@@ -53,7 +53,7 @@ def patch_exchange_method(exchange_id, method):
 class BacktestExchangeBaseTest(unittest.TestCase):
 
     def setUp(self):
-        self.backtest = Backtest()
+        self.backtest = Backtest(timeframe=None)
 
     def test__check_has(self):
         exchange = MagicMock()

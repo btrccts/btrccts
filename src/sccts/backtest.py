@@ -4,12 +4,31 @@ from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 
 
+class Timeframe:
+
+    def __init__(self, pd_start_date, pd_end_date, pd_timedelta):
+        if pd_end_date < pd_start_date:
+            raise ValueError('Timeframe: end date is smaller then start date')
+        self._pd_current_date = pd_start_date
+        self._pd_timedelta = pd_timedelta
+        self._pd_end_date = pd_end_date
+
+    def add_timedelta(self):
+        self._pd_current_date += self._pd_timedelta
+
+    def date(self):
+        if self._pd_current_date > self._pd_end_date:
+            return None
+        return self._pd_current_date
+
+
 class Backtest:
 
-    def __init__(self, exchange_backends={}):
+    def __init__(self, timeframe, exchange_backends={}):
         self._exchange_backends = defaultdict(ExchangeBackend)
         for key in exchange_backends:
             self._exchange_backends[key] = exchange_backends[key]
+        self._timeframe = timeframe
 
     def create_exchange(self, exchange_id, config={}):
         if exchange_id not in ccxt.exchanges:
@@ -23,3 +42,6 @@ class Backtest:
         instance = BacktestExchange(config=config, exchange_backend=backend,
                                     backtest=self)
         return instance
+
+    def date(self):
+        return self._timeframe.date()
