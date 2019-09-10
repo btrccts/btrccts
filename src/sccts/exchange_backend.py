@@ -22,7 +22,8 @@ class Balance:
 
 class ExchangeBackend:
 
-    def __init__(self, balances={}, ohlcvs={}):
+    def __init__(self, timeframe, balances={}, ohlcvs={}):
+        self._timeframe = timeframe
         self._start_balances = defaultdict(Balance)
         for key in balances:
             self._start_balances[key] = Balance(balances[key])

@@ -1,4 +1,5 @@
 import ccxt
+import functools
 from collections import defaultdict
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
@@ -25,7 +26,8 @@ class Timeframe:
 class Backtest:
 
     def __init__(self, timeframe, exchange_backends={}):
-        self._exchange_backends = defaultdict(ExchangeBackend)
+        self._exchange_backends = defaultdict(functools.partial(
+            ExchangeBackend, timeframe=timeframe))
         for key in exchange_backends:
             self._exchange_backends[key] = exchange_backends[key]
         self._timeframe = timeframe
@@ -39,8 +41,7 @@ class Backtest:
             pass
 
         backend = self._exchange_backends[exchange_id]
-        instance = BacktestExchange(config=config, exchange_backend=backend,
-                                    backtest=self)
+        instance = BacktestExchange(config=config, exchange_backend=backend)
         return instance
 
     def date(self):

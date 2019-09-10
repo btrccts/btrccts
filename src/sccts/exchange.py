@@ -12,9 +12,8 @@ def check_has(name):
 
 class BacktestExchangeBase:
 
-    def __init__(self, config, backtest, exchange_backend):
+    def __init__(self, config, exchange_backend):
         super().__init__(config=config)
-        self._backtest = backtest
         self._exchange_backend = exchange_backend
 
     @check_has('cancelAllOrders')
