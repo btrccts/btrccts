@@ -8,7 +8,7 @@ class Balance:
         self._total = Decimal(str(start_balance))
         self._used = Decimal('0')
         if self._total < 0:
-            raise ValueError('Balance: inital value cant be positive')
+            raise ValueError('Balance: inital value cant be negative')
 
     def free(self):
         return self._total - self._used
