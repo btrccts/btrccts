@@ -10,6 +10,13 @@ class Balance:
         if self._total < 0:
             raise ValueError('Balance: inital value cant be negative')
 
+    def to_dict(self):
+        return {
+            'free': self.free(),
+            'used': self.used(),
+            'total': self.total(),
+        }
+
     def free(self):
         return self._total - self._used
 
