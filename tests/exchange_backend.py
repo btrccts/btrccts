@@ -1,7 +1,7 @@
 import unittest
 from ccxt.base.errors import InsufficientFunds
 from decimal import Decimal
-from sccts.exchange_backend import Balance
+from sccts.exchange_backend import Balance, ExchangeBackend
 
 
 class BalanceTest(unittest.TestCase):
@@ -71,3 +71,14 @@ class BalanceTest(unittest.TestCase):
             'used': Decimal(0),
             'total': Decimal('15.3'),
         })
+
+
+class ExchangeBackendTest(unittest.TestCase):
+
+    def test__fetch_balance(self):
+        backend = ExchangeBackend(timeframe=None,
+                                  balances={'BTC': 15.3,
+                                            'USD': 0.3})
+        self.assertEqual(backend.fetch_balance(),
+                         {'BTC': {'free': 15.3, 'total': 15.3, 'used': 0.0},
+                          'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0}})

@@ -48,3 +48,18 @@ class ExchangeBackend:
             self._start_balances[key] = Balance(balances[key])
         self._balances = self._start_balances.copy()
         self._ohlcvs = ohlcvs
+
+    def _return_decimal_to_float(self, result):
+        for key in result.keys():
+            value_type = type(result[key])
+            if value_type == Decimal:
+                result[key] = float(str(result[key]))
+            elif value_type == dict:
+                result[key] = self._return_decimal_to_float(result[key])
+        return result
+
+    def fetch_balance(self):
+        result = {}
+        for key, balance in self._balances.iteritems():
+            result[key] = self._return_decimal_to_float(balance.to_dict())
+        return result
