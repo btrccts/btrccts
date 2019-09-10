@@ -155,23 +155,25 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     def test__create_order__market_sell(self, fetch_currencies_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_currencies_mock.return_value = [self.btc_usd_market]
-        exchange.create_order(symbol='BTC/USD', type='market', side='sell',
-                              amount=5)
+        result = exchange.create_order(symbol='BTC/USD', type='market',
+                                       side='sell', amount=5)
         fetch_currencies_mock.assert_called_once_with({})
         self.binance_backend_mock.create_order.assert_called_once_with(
             amount=5, price=None, side='sell', type='market',
             market=exchange.markets['BTC/USD'])
+        self.assertEqual(result, self.binance_backend_mock.create_order())
 
     @patch_exchange_method('binance', 'fetch_markets')
     def test__create_order__limit_buy(self, fetch_currencies_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_currencies_mock.return_value = [self.btc_usd_market]
-        exchange.create_order(symbol='BTC/USD', type='limit', side='buy',
-                              amount=2, price=17)
+        result = exchange.create_order(symbol='BTC/USD', type='limit',
+                                       side='buy', amount=2, price=17)
         fetch_currencies_mock.assert_called_once_with({})
         self.binance_backend_mock.create_order.assert_called_once_with(
             amount=2, price=17, side='buy', type='limit',
             market=exchange.markets['BTC/USD'])
+        self.assertEqual(result, self.binance_backend_mock.create_order())
 
     @patch_exchange_method('binance', 'fetch_markets')
     def test__create_order__no_market(self, fetch_currencies_mock):
