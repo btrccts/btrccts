@@ -1,11 +1,16 @@
+from ccxt.base.errors import InsufficientFunds
 from collections import defaultdict
 from decimal import Decimal
+
+
+def _convert_float(f):
+    return Decimal(str(f))
 
 
 class Balance:
 
     def __init__(self, start_balance=0):
-        self._total = Decimal(str(start_balance))
+        self._total = _convert_float(start_balance)
         self._used = Decimal('0')
         if self._total < 0:
             raise ValueError('Balance: inital value cant be negative')
@@ -25,6 +30,13 @@ class Balance:
 
     def total(self):
         return self._total
+
+    def change_total(self, change):
+        change = _convert_float(change)
+        new_value = self._total + change
+        if new_value < Decimal('0'):
+            raise InsufficientFunds('Balance too little')
+        self._total = new_value
 
 
 class ExchangeBackend:
