@@ -34,18 +34,24 @@ def patch_exchange_method(exchange_id, method):
     # Normal patch is not working, probably due to multiple inheritance
     exchange = getattr(ccxt, exchange_id)
     orig_init = exchange.__init__
-    mock = MagicMock()
-
-    def instanciate(self, config):
-        res = orig_init(self, config)
-        setattr(self, method, mock)
-        return res
-
-    exchange.__init__ = instanciate
 
     def decorator(func):
+        mock = MagicMock()
+
+        def instanciate(self, config):
+            res = orig_init(self, config=config)
+            setattr(self, method, mock)
+            return res
+
         def wrapper(*args, **kwargs):
-            return func(*args, mock, **kwargs)
+            exchange.__init__ = instanciate
+            try:
+                result = func(*args, mock, **kwargs)
+            except BaseException:
+                exchange.__init__ = orig_init
+                raise
+            exchange.__init__ = orig_init
+            return result
         return wrapper
     return decorator
 
