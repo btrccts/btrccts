@@ -1,3 +1,6 @@
+from ccxt.base.errors import InvalidOrder
+
+
 def check_has(name):
 
     def decorator(func):
@@ -37,9 +40,24 @@ class BacktestExchangeBase:
                                   'create_deposit_address')
 
     @check_has('createOrder')
-    def create_order(self, *args, **kwargs):
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'create_order')
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        super().load_markets()
+        if type == 'market':
+            if not self.has['createMarketOrder']:
+                raise NotImplementedError(
+                    '{}: method not implemented: createMarketOrder'
+                    .format(self.id))
+        elif type == 'limit':
+            if not self.has['createLimitOrder']:
+                raise NotImplementedError(
+                    '{}: method not implemented: createLimitOrder'
+                    .format(self.id))
+        market = self.markets.get(symbol)
+        if market is None:
+            raise InvalidOrder('Exchange: market does not exist: {}'.format(
+                symbol))
+        return self._exchange_backend.create_order(
+            market=market, side=side, amount=amount, type=type, price=price)
 
     @check_has('deposit')
     def deposit(self, *args, **kwargs):

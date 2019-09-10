@@ -1,13 +1,16 @@
 import unittest
 import re
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from sccts.backtest import Backtest
 from sccts.exchange import check_has
 from sccts.backtest import ccxt
+from ccxt.base.exchange import Exchange
+from ccxt.base.errors import InvalidOrder
 
 
 ccxt_has = [
     'cancelAllOrders', 'cancelOrder', 'cancelOrders', 'createDepositAddress',
+    'createLimitOrder', 'createMarketOrder',
     'createOrder', 'deposit', 'editOrder', 'fetchBalance', 'fetchClosedOrders',
     'fetchCurrencies', 'fetchDepositAddress', 'fetchDeposits',
     'fetchL2OrderBook', 'fetchLedger', 'fetchMarkets', 'fetchMyTrades',
@@ -16,8 +19,9 @@ ccxt_has = [
     'fetchTickers', 'fetchTime', 'fetchTrades', 'fetchTradingFee',
     'fetchTradingFees', 'fetchFundingFee', 'fetchFundingFees',
     'fetchTradingLimits', 'fetchTransactions', 'fetchWithdrawals', 'withdraw']
-ccxt_has_other = ['CORS', 'createLimitOrder', 'createMarketOrder']
-ccxt_has_implemented = ['fetchCurrencies', 'fetchMarkets']
+ccxt_has_other = ['CORS', ]
+ccxt_has_implemented = ['createLimitOrder', 'createMarketOrder', 'createOrder',
+                        'fetchCurrencies', 'fetchMarkets']
 
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -59,7 +63,20 @@ def patch_exchange_method(exchange_id, method):
 class BacktestExchangeBaseTest(unittest.TestCase):
 
     def setUp(self):
-        self.backtest = Backtest(timeframe=None)
+        self.binance_backend_mock = MagicMock()
+        self.backtest = Backtest(
+            timeframe=None,
+            exchange_backends={'binance': self.binance_backend_mock})
+        self.btc_usd_market = {
+            'id': 'BTC/USD',
+            'symbol': 'BTC/USD',
+            'base': 'BTC',
+            'quote': 'USD',
+            'baseId': 'BTC',
+            'quoteId': 'USD',
+            'info': {},
+            'active': True,
+        }
 
     def test__check_has(self):
         exchange = MagicMock()
@@ -90,19 +107,30 @@ class BacktestExchangeBaseTest(unittest.TestCase):
         func.assert_called_once_with(exchange)
         self.assertEqual(result, func())
 
-    def test__exchange_methods_check_has(self):
+    @patch.object(Exchange, 'load_markets')
+    def test__exchange_methods_check_has(self, mock):
         exchange = self.backtest.create_exchange('binance')
         for i in ccxt_has:
             exchange.has[i] = False
             snake_case = camel_case_to_snake_case(i)
+            params = {}
+            if i == 'createLimitOrder':
+                params = ['BTC/USD', 'sell', 5]
+            elif i == 'createMarketOrder':
+                params = ['BTC/USD', 'sell', 5]
+            elif i == 'createOrder':
+                params = {'symbol': 'BTC/USD',
+                          'side': 'sell',
+                          'type': 'market',
+                          'amount': 5}
             with self.assertRaises(NotImplementedError) as e:
-                getattr(exchange, snake_case)()
+                getattr(exchange, snake_case)(*params)
             self.assertEqual(str(e.exception),
                              'binance: method not implemented: {}'.format(i))
             exchange.has[i] = True
             if i not in ccxt_has_implemented:
                 with self.assertRaises(NotImplementedError) as e:
-                    getattr(exchange, snake_case)()
+                    getattr(exchange, snake_case)(*params)
                 self.assertEqual(str(e.exception),
                                  'BacktestExchange does not support method {}'
                                  .format(snake_case))
@@ -122,3 +150,48 @@ class BacktestExchangeBaseTest(unittest.TestCase):
         method.assert_called_once_with(
             {'test': 123})
         self.assertEqual(result, method())
+
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__create_order__market_sell(self, fetch_currencies_mock):
+        exchange = self.backtest.create_exchange('binance')
+        fetch_currencies_mock.return_value = [self.btc_usd_market]
+        exchange.create_order(symbol='BTC/USD', type='market', side='sell',
+                              amount=5)
+        fetch_currencies_mock.assert_called_once_with({})
+        self.binance_backend_mock.create_order.assert_called_once_with(
+            amount=5, price=None, side='sell', type='market',
+            market=exchange.markets['BTC/USD'])
+
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__create_order__limit_buy(self, fetch_currencies_mock):
+        exchange = self.backtest.create_exchange('binance')
+        fetch_currencies_mock.return_value = [self.btc_usd_market]
+        exchange.create_order(symbol='BTC/USD', type='limit', side='buy',
+                              amount=2, price=17)
+        fetch_currencies_mock.assert_called_once_with({})
+        self.binance_backend_mock.create_order.assert_called_once_with(
+            amount=2, price=17, side='buy', type='limit',
+            market=exchange.markets['BTC/USD'])
+
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__create_order__no_market(self, fetch_currencies_mock):
+        exchange = self.backtest.create_exchange('binance')
+        fetch_currencies_mock.return_value = [self.btc_usd_market]
+        with self.assertRaises(InvalidOrder) as e:
+            exchange.create_order(symbol='ETH/USD', type='market', side='sell',
+                                  amount=5)
+        self.assertEqual(str(e.exception),
+                         'Exchange: market does not exist: ETH/USD')
+        fetch_currencies_mock.assert_called_once_with({})
+        self.binance_backend_mock.create_order.assert_not_called()
+
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__create_order__fetch_markets_only_once(
+            self, fetch_currencies_mock):
+        exchange = self.backtest.create_exchange('binance')
+        fetch_currencies_mock.return_value = [self.btc_usd_market]
+        exchange.create_order(symbol='BTC/USD', type='market', side='sell',
+                              amount=5)
+        exchange.create_order(symbol='BTC/USD', type='market', side='sell',
+                              amount=5)
+        fetch_currencies_mock.assert_called_once_with({})
