@@ -60,6 +60,6 @@ class ExchangeBackend:
 
     def fetch_balance(self):
         result = {}
-        for key, balance in self._balances.iteritems():
+        for key, balance in self._balances.items():
             result[key] = self._return_decimal_to_float(balance.to_dict())
         return result
