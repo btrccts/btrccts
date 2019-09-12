@@ -25,9 +25,8 @@ class BacktestExchangeBase:
                                   'cancel_all_orders')
 
     @check_has('cancelOrder')
-    def cancel_order(self, *args, **kwargs):
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'cancel_order')
+    def cancel_order(self, id, symbol):
+        return self._exchange_backend.cancel_order(id=id, symbol=symbol)
 
     @check_has('cancelOrders')
     def cancel_orders(self, *args, **kwargs):

@@ -20,8 +20,8 @@ ccxt_has = [
     'fetchTradingFees', 'fetchFundingFee', 'fetchFundingFees',
     'fetchTradingLimits', 'fetchTransactions', 'fetchWithdrawals', 'withdraw']
 ccxt_has_other = ['CORS', ]
-ccxt_has_implemented = ['createLimitOrder', 'createMarketOrder', 'createOrder',
-                        'fetchCurrencies', 'fetchMarkets']
+ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
+                        'createOrder', 'fetchCurrencies', 'fetchMarkets']
 
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -134,6 +134,13 @@ class BacktestExchangeBaseTest(unittest.TestCase):
                 self.assertEqual(str(e.exception),
                                  'BacktestExchange does not support method {}'
                                  .format(snake_case))
+
+    @patch_exchange_method('bittrex', 'cancel_order')
+    def test__cancel_order(self, method):
+        exchange = self.backtest.create_exchange('bittrex')
+        result = exchange.cancel_order(id='some_id', symbol='BTC/USD')
+        method.assert_called_once_with(id='some_id', symbol='BTC/USD')
+        self.assertEqual(result, method())
 
     @patch_exchange_method('bittrex', 'fetch_markets')
     def test__fetch_markets(self, method):
