@@ -1,6 +1,17 @@
-from ccxt.base.errors import InsufficientFunds
+from ccxt.base.exchange import Exchange
+from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder
 from collections import defaultdict
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+
+
+def _convert_float_or_raise(f, msg):
+    try:
+        val = _convert_float(f)
+    except InvalidOperation:
+        raise BadRequest('{} needs to be a number'.format(msg))
+    if not val.is_finite():
+        raise BadRequest('{} needs to be finite'.format(msg))
+    return val
 
 
 def _convert_float(f):
@@ -48,6 +59,12 @@ class ExchangeBackend:
             self._start_balances[key] = Balance(balances[key])
         self._balances = self._start_balances.copy()
         self._ohlcvs = ohlcvs
+        # TODO: check that provided ohlcvs
+        # - is parsable to Decimal
+        # - low/high provided
+        # - in range for timeframe
+        self._orders = {}
+        self._last_order_id = 0
 
     def _return_decimal_to_float(self, result):
         for key in result.keys():
@@ -57,6 +74,89 @@ class ExchangeBackend:
             elif value_type == dict:
                 result[key] = self._return_decimal_to_float(result[key])
         return result
+
+    def create_order(self, market, type, price, side, amount):
+        # Check parameters
+        if type == 'market':
+            if price is not None:
+                raise InvalidOrder(
+                    'ExchangeBackend: market order has no price')
+        else:
+            raise InvalidOrder('ExchangeBackend: only market order supported')
+        if market is None:
+            raise InvalidOrder('ExchangeBackend: market is None')
+        symbol = market.get('symbol')
+        if self._ohlcvs.get(symbol) is None:
+            raise InvalidOrder('ExchangeBackend: no prices available for {}'
+                               .format(symbol))
+        if side not in ['buy', 'sell']:
+            raise InvalidOrder('ExchangeBackend: side {} not supported'
+                               .format(side))
+        buy = side == 'buy'
+        amount = _convert_float_or_raise(amount, 'ExchangeBackend: amount')
+        if amount <= 0:
+            raise BadRequest('ExchangeBackend: amount needs to be positive')
+        base = market.get('base')
+        quote = market.get('quote')
+        if base is None:
+            raise BadRequest('ExchangeBackend: market has no base')
+        if quote is None:
+            raise BadRequest('ExchangeBackend: market has no quote')
+
+        date = self._timeframe.date()
+
+        # Determinie the price of the market order
+        # We could use the next low/high to fill the order, but then we
+        # need to wait for the next date to fill the order, otherwise we would
+        # introduce a possibility to see the future price (Look-Ahead Bias)
+        # If we wait for the next date, we would return a market order that is
+        # pending, but this should never happen in reality
+        # Maybe the factor should depend on the volume
+        factor = Decimal('0.0015')
+        if buy:
+            price = (1 + factor) * _convert_float(
+                self._ohlcvs.get(symbol)['high'][date])
+            base_change = amount
+            quote_change = - price * amount
+            # First decrease balance, then increase, so
+            # decrease can throw and increase wont be affected
+            self._balances[quote].change_total(quote_change)
+            self._balances[base].change_total(base_change)
+        else:
+            price = (1 - factor) * _convert_float(
+                self._ohlcvs.get(symbol)['low'][date])
+            base_change = -amount
+            quote_change = price * amount
+            # First decrease balance, then increase, so
+            # decrease can throw and increase wont be affected
+            self._balances[base].change_total(base_change)
+            self._balances[quote].change_total(quote_change)
+
+        self._last_order_id += 1
+        order_id = str(self._last_order_id)
+        timestamp = int(date.value / 10e5)
+        order = {
+            'info': {},
+            'id': order_id,
+            'timestamp': timestamp,
+            'datetime': Exchange.iso8601(timestamp),
+            'lastTradeTimestamp': timestamp,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'average': price,
+            'filled': amount,
+            'remaining': 0,
+            'status': 'closed',
+            'fee': 0,  # TODO
+            'trades': None,
+        }
+        self._orders[order_id] = order
+        return {'id': order_id,
+                'info': {}}
 
     def fetch_balance(self):
         result = {}
