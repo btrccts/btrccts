@@ -1,5 +1,6 @@
 from ccxt.base.exchange import Exchange
-from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder
+from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
+    OrderNotFound
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
@@ -163,3 +164,10 @@ class ExchangeBackend:
         for key, balance in self._balances.items():
             result[key] = self._return_decimal_to_float(balance.to_dict())
         return result
+
+    def fetch_order(self, id, symbol=None):
+        order = self._orders.get(id)
+        if order is None:
+            raise OrderNotFound('ExchangeBackend: order {} does not exist'
+                                .format(id))
+        return self._return_decimal_to_float(order.copy())

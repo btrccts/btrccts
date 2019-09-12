@@ -1,6 +1,7 @@
 import pandas
 import unittest
-from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder
+from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
+    OrderNotFound
 from decimal import Decimal
 from sccts.exchange_backend import Balance, ExchangeBackend
 from sccts.backtest import Timeframe
@@ -288,3 +289,72 @@ class ExchangeBackendTest(unittest.TestCase):
         self.assertEqual(backend.fetch_balance(),
                          {'BTC': {'free': 15.3, 'total': 15.3, 'used': 0.0},
                           'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0}})
+
+    def test__fetch_order(self):
+        backend = ExchangeBackend(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 7,
+                                            'ETH': 2})
+        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+                                      type='market', amount=1, price=None)
+        self.timeframe.add_timedelta()
+        sell_id = backend.create_order(market=self.eth_btc_market, side='sell',
+                                       type='market', amount=1, price=None)
+        self.assertEqual(
+            backend.fetch_order(buy_id['id']),
+            {'amount': 1.0,
+             'average': 2.003,
+             'cost': 2.003,
+             'datetime': '2017-01-01T01:01:00.000Z',
+             'fee': 0,
+             'filled': 1.0,
+             'id': '1',
+             'info': {},
+             'lastTradeTimestamp': 1483232460000,
+             'price': 2.003,
+             'remaining': 0,
+             'side': 'buy',
+             'status': 'closed',
+             'symbol': 'ETH/BTC',
+             'timestamp': 1483232460000,
+             'trades': None,
+             'type': 'market'})
+        self.assertEqual(
+            backend.fetch_order(sell_id['id']),
+            {'amount': 1.0,
+             'average': 0.9985,
+             'cost': 0.9985,
+             'datetime': '2017-01-01T01:02:00.000Z',
+             'fee': 0,
+             'filled': 1.0,
+             'id': '2',
+             'info': {},
+             'lastTradeTimestamp': 1483232520000,
+             'price': 0.9985,
+             'remaining': 0,
+             'side': 'sell',
+             'status': 'closed',
+             'symbol': 'ETH/BTC',
+             'timestamp': 1483232520000,
+             'trades': None,
+             'type': 'market'})
+
+    def test__fetch_order__dont_return_internals(self):
+        backend = ExchangeBackend(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 7,
+                                            'ETH': 2})
+        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+                                      type='market', amount=1, price=None)
+        order = backend.fetch_order(buy_id['id'])
+        order_copy = order.copy()
+        for key in list(order.keys()):
+            del order[key]
+        self.assertEqual(order_copy, backend.fetch_order(buy_id['id']))
+
+    def test__fetch_order__not_found(self):
+        backend = ExchangeBackend(timeframe=self.timeframe)
+        with self.assertRaises(OrderNotFound) as e:
+            backend.fetch_order('some_id')
+        self.assertEqual(str(e.exception),
+                         'ExchangeBackend: order some_id does not exist')
