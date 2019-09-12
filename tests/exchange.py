@@ -14,15 +14,15 @@ ccxt_has = [
     'createOrder', 'deposit', 'editOrder', 'fetchBalance', 'fetchClosedOrders',
     'fetchCurrencies', 'fetchDepositAddress', 'fetchDeposits',
     'fetchL2OrderBook', 'fetchLedger', 'fetchMarkets', 'fetchMyTrades',
-    'fetchOHLCV', 'fetchOpenOrders', 'fetchOrder', 'fetchOrderBook',
-    'fetchOrderBooks', 'fetchOrders', 'fetchStatus', 'fetchTicker',
+    'fetchOHLCV', 'fetchOpenOrders', 'fetchOrders', 'fetchOrderBook',
+    'fetchOrderBooks', 'fetchStatus', 'fetchTicker',
     'fetchTickers', 'fetchTime', 'fetchTrades', 'fetchTradingFee',
     'fetchTradingFees', 'fetchFundingFee', 'fetchFundingFees',
     'fetchTradingLimits', 'fetchTransactions', 'fetchWithdrawals', 'withdraw']
 ccxt_has_other = ['CORS', ]
 ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
-                        'createOrder', 'fetchCurrencies', 'fetchMarkets']
-
+                        'createOrder', 'fetchCurrencies', 'fetchMarkets',
+                        'fetchOrder']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -139,6 +139,13 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     def test__cancel_order(self, method):
         exchange = self.backtest.create_exchange('bittrex')
         result = exchange.cancel_order(id='some_id', symbol='BTC/USD')
+        method.assert_called_once_with(id='some_id', symbol='BTC/USD')
+        self.assertEqual(result, method())
+
+    @patch_exchange_method('bittrex', 'fetch_order')
+    def test__fetch_order(self, method):
+        exchange = self.backtest.create_exchange('bittrex')
+        result = exchange.fetch_order(id='some_id', symbol='BTC/USD')
         method.assert_called_once_with(id='some_id', symbol='BTC/USD')
         self.assertEqual(result, method())
 

@@ -122,9 +122,8 @@ class BacktestExchangeBase:
                                   'fetch_open_orders')
 
     @check_has('fetchOrder')
-    def fetch_order(self, *args, **kwargs):
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_order')
+    def fetch_order(self, id, symbol=None, params={}):
+        return self._exchange_backend.fetch_order(id=id, symbol=symbol)
 
     @check_has('fetchOrderBook')
     def fetch_order_book(self, *args, **kwargs):
