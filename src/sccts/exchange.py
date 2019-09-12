@@ -25,7 +25,7 @@ class BacktestExchangeBase:
                                   'cancel_all_orders')
 
     @check_has('cancelOrder')
-    def cancel_order(self, id, symbol):
+    def cancel_order(self, id, symbol=None, params={}):
         return self._exchange_backend.cancel_order(id=id, symbol=symbol)
 
     @check_has('cancelOrders')
