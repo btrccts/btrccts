@@ -76,6 +76,14 @@ class ExchangeBackend:
                 result[key] = self._return_decimal_to_float(result[key])
         return result
 
+    def cancel_order(self, id, symbol=None):
+        order = self._orders.get(id)
+        if order is None:
+            raise OrderNotFound('ExchangeBackend: order {} does not exist'
+                                .format(id))
+        else:
+            raise BadRequest('ExchangeBackend: cannot cancel market order')
+
     def create_order(self, market, type, price, side, amount):
         # Check parameters
         if type == 'market':

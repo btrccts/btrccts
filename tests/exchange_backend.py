@@ -358,3 +358,22 @@ class ExchangeBackendTest(unittest.TestCase):
             backend.fetch_order('some_id')
         self.assertEqual(str(e.exception),
                          'ExchangeBackend: order some_id does not exist')
+
+    def test__cancel_order__market(self):
+        backend = ExchangeBackend(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 7,
+                                            'ETH': 2})
+        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+                                      type='market', amount=1, price=None)
+        with self.assertRaises(BadRequest) as e:
+            backend.cancel_order(buy_id['id'])
+        self.assertEqual(str(e.exception),
+                         'ExchangeBackend: cannot cancel market order')
+
+    def test__cancel_order__not_found(self):
+        backend = ExchangeBackend(timeframe=self.timeframe)
+        with self.assertRaises(OrderNotFound) as e:
+            backend.cancel_order('some_id')
+        self.assertEqual(str(e.exception),
+                         'ExchangeBackend: order some_id does not exist')
