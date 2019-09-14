@@ -55,13 +55,16 @@ def _check_dataframe(ohlcvs, timeframe):
     index = ohlcvs.index
     if index[0] > timeframe.start_date() or index[-1] < timeframe.end_date():
         raise ValueError('ohlcv needs to cover timeframe')
+    if 'low' not in ohlcvs.columns:
+        raise ValueError('ohlcv low needs to be provided')
+    if 'high' not in ohlcvs.columns:
+        raise ValueError('ohlcv high needs to be provided')
 
 
 class ExchangeBackend:
 
     # TODO: check that provided ohlcvs
     # - is parsable to Decimal
-    # - low/high provided
     # - ohlcvs: is finite
     # - is 1m?
     # date +1m avail?
