@@ -51,7 +51,21 @@ class Balance:
         self._total = new_value
 
 
+def _check_dataframe(ohlcvs, timeframe):
+    index = ohlcvs.index
+    if index[0] > timeframe.start_date() or index[-1] < timeframe.end_date():
+        raise ValueError('ohlcv needs to cover timeframe')
+
+
 class ExchangeBackend:
+
+    # TODO: check that provided ohlcvs
+    # - is parsable to Decimal
+    # - low/high provided
+    # - ohlcvs: is finite
+    # - is 1m?
+    # date +1m avail?
+    # test that parameter can be modified afterwards
 
     def __init__(self, timeframe, balances={}, ohlcvs={}):
         self._timeframe = timeframe
@@ -59,11 +73,11 @@ class ExchangeBackend:
         for key in balances:
             self._start_balances[key] = Balance(balances[key])
         self._balances = self._start_balances.copy()
-        self._ohlcvs = ohlcvs
-        # TODO: check that provided ohlcvs
-        # - is parsable to Decimal
-        # - low/high provided
-        # - in range for timeframe
+        self._ohlcvs = {}
+        for key in ohlcvs:
+            ohlcv = ohlcvs[key]
+            _check_dataframe(ohlcv, timeframe)
+            self._ohlcvs[key] = ohlcv
         self._orders = {}
         self._last_order_id = 0
 

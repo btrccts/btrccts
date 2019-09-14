@@ -93,6 +93,32 @@ class ExchangeBackendTest(unittest.TestCase):
                 'low': [5, 0.5, 1]}
         self.eth_btc_ohlcvs = pandas.DataFrame(data=data, index=dates)
 
+    def test__init__ohlcvs_index_start_bigger_than_start_date(self):
+        data = {'high': [6, 2],
+                'low': [5, 0.5]}
+        dates = pandas.to_datetime(['2017-01-01 1:01', '2017-01-01 1:02'],
+                                   utc=True)
+        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        with self.assertRaises(ValueError) as e:
+            ExchangeBackend(timeframe=self.timeframe,
+                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                    'BTC/USD': btc_usd_ohlcvs},
+                            balances={})
+        self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
+
+    def test__init__ohlcvs_index_end_lower_than_end_date(self):
+        data = {'high': [6, 2],
+                'low': [5, 0.5]}
+        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01'],
+                                   utc=True)
+        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        with self.assertRaises(ValueError) as e:
+            ExchangeBackend(timeframe=self.timeframe,
+                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                    'BTC/USD': btc_usd_ohlcvs},
+                            balances={})
+        self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
+
     def template__create_order__error(self, exception_text, exception, market,
                                       side, type, amount, price):
         backend = ExchangeBackend(timeframe=self.timeframe,
