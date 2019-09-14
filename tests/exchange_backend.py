@@ -119,7 +119,7 @@ class ExchangeBackendTest(unittest.TestCase):
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
 
-    def test__init__high_missing(self):
+    def test__init__ohlcvs__high_missing(self):
         data = {'low': [5, 0.5, 2]}
         dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
                                     '2017-01-01 1:02'], utc=True)
@@ -131,7 +131,7 @@ class ExchangeBackendTest(unittest.TestCase):
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv high needs to be provided')
 
-    def test__init__low_missing(self):
+    def test__init__ohlcvs__low_missing(self):
         data = {'high': [6, 2, 3]}
         dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
                                     '2017-01-01 1:02'], utc=True)
@@ -142,6 +142,19 @@ class ExchangeBackendTest(unittest.TestCase):
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv low needs to be provided')
+
+    def test__init__ohlcvs__wrong_frequency(self):
+        data = {'high': [6, 2],
+                'low': [5, 0.5]}
+        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:02'],
+                                   utc=True)
+        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        with self.assertRaises(ValueError) as e:
+            ExchangeBackend(timeframe=self.timeframe,
+                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                    'BTC/USD': btc_usd_ohlcvs},
+                            balances={})
+        self.assertEqual(str(e.exception), 'ohlcv needs to be in 1T format')
 
     def template__create_order__error(self, exception_text, exception, market,
                                       side, type, amount, price):

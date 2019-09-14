@@ -59,6 +59,10 @@ def _check_dataframe(ohlcvs, timeframe):
         raise ValueError('ohlcv low needs to be provided')
     if 'high' not in ohlcvs.columns:
         raise ValueError('ohlcv high needs to be provided')
+    try:
+        ohlcvs.index.freq = '1T'
+    except ValueError:
+        raise ValueError('ohlcv needs to be in 1T format')
 
 
 class ExchangeBackend:
@@ -66,8 +70,6 @@ class ExchangeBackend:
     # TODO: check that provided ohlcvs
     # - is parsable to Decimal
     # - ohlcvs: is finite
-    # - is 1m?
-    # date +1m avail?
     # test that parameter can be modified afterwards
 
     def __init__(self, timeframe, balances={}, ohlcvs={}):
