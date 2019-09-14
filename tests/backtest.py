@@ -97,3 +97,15 @@ class TimeframeTest(unittest.TestCase):
         self.assertEqual(t.date(), pd_ts('2017-01-01 1:30'))
         t.add_timedelta()
         self.assertEqual(t.date(), None)
+
+    def test__start_date(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 1:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=15))
+        self.assertEqual(t.start_date(), pd_ts('2017-01-01 1:00'))
+
+    def test__end_date(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 1:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=15))
+        self.assertEqual(t.end_date(), pd_ts('2017-01-01 1:35'))
