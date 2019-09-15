@@ -1,3 +1,4 @@
+import numpy
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
@@ -63,14 +64,16 @@ def _check_dataframe(ohlcvs, timeframe):
         ohlcvs.index.freq = '1T'
     except ValueError:
         raise ValueError('ohlcv needs to be in 1T format')
+    try:
+        result = ohlcvs.astype(numpy.float)
+        if not numpy.isfinite(result).values.all():
+            raise ValueError('ohlcv needs to finite')
+    except ValueError as e:
+        raise ValueError('ohlcv {}'.format(str(e)))
+    return result
 
 
 class ExchangeAccount:
-
-    # TODO: check that provided ohlcvs
-    # - is parsable to Decimal
-    # - ohlcvs: is finite
-    # test that parameter can be modified afterwards
 
     def __init__(self, timeframe, balances={}, ohlcvs={}):
         self._timeframe = timeframe
@@ -80,9 +83,7 @@ class ExchangeAccount:
         self._balances = self._start_balances.copy()
         self._ohlcvs = {}
         for key in ohlcvs:
-            ohlcv = ohlcvs[key]
-            _check_dataframe(ohlcv, timeframe)
-            self._ohlcvs[key] = ohlcv
+            self._ohlcvs[key] = _check_dataframe(ohlcvs[key], timeframe)
         self._orders = {}
         self._last_order_id = 0
 

@@ -157,6 +157,33 @@ class ExchangeAccountTest(unittest.TestCase):
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv needs to be in 1T format')
 
+    def test__init__ohlcvs__not_finite(self):
+        data = {'high': [6, 2, 5],
+                'low': [5, 0.5, float('inf')]}
+        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
+                                    '2017-01-01 1:02'], utc=True)
+        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        with self.assertRaises(ValueError) as e:
+            ExchangeAccount(timeframe=self.timeframe,
+                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                    'BTC/USD': btc_usd_ohlcvs},
+                            balances={})
+        self.assertEqual(str(e.exception), 'ohlcv ohlcv needs to finite')
+
+    def test__init__ohlcvs__not_convertable_to_float(self):
+        data = {'high': [6, 2, 'asd'],
+                'low': [5, 0.5, float('inf')]}
+        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
+                                    '2017-01-01 1:02'], utc=True)
+        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        with self.assertRaises(ValueError) as e:
+            ExchangeAccount(timeframe=self.timeframe,
+                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                    'BTC/USD': btc_usd_ohlcvs},
+                            balances={})
+        self.assertEqual(str(e.exception),
+                         "ohlcv could not convert string to float: 'asd'")
+
     def template__create_order__error(self, exception_text, exception, market,
                                       side, type, amount, price):
         backend = ExchangeAccount(timeframe=self.timeframe,
