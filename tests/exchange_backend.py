@@ -3,7 +3,8 @@ import unittest
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
 from decimal import Decimal
-from sccts.exchange_backend import Balance, ExchangeBackend
+from unittest.mock import patch, MagicMock
+from sccts.exchange_backend import Balance, ExchangeAccount, ExchangeBackend
 from sccts.backtest import Timeframe
 
 
@@ -76,7 +77,7 @@ class BalanceTest(unittest.TestCase):
         })
 
 
-class ExchangeBackendTest(unittest.TestCase):
+class ExchangeAccountTest(unittest.TestCase):
 
     def setUp(self):
         self.eth_btc_market = {'base': 'ETH', 'quote': 'BTC',
@@ -100,7 +101,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                    utc=True)
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
         with self.assertRaises(ValueError) as e:
-            ExchangeBackend(timeframe=self.timeframe,
+            ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
@@ -113,7 +114,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                    utc=True)
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
         with self.assertRaises(ValueError) as e:
-            ExchangeBackend(timeframe=self.timeframe,
+            ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
@@ -125,7 +126,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                     '2017-01-01 1:02'], utc=True)
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
         with self.assertRaises(ValueError) as e:
-            ExchangeBackend(timeframe=self.timeframe,
+            ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
@@ -137,7 +138,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                     '2017-01-01 1:02'], utc=True)
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
         with self.assertRaises(ValueError) as e:
-            ExchangeBackend(timeframe=self.timeframe,
+            ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
@@ -150,7 +151,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                    utc=True)
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
         with self.assertRaises(ValueError) as e:
-            ExchangeBackend(timeframe=self.timeframe,
+            ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                     'BTC/USD': btc_usd_ohlcvs},
                             balances={})
@@ -158,7 +159,7 @@ class ExchangeBackendTest(unittest.TestCase):
 
     def template__create_order__error(self, exception_text, exception, market,
                                       side, type, amount, price):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3,
                                             'ETH': 0})
@@ -179,7 +180,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=1,
             exception=InvalidOrder,
-            exception_text='ExchangeBackend: only market order supported')
+            exception_text='ExchangeAccount: only market order supported')
 
     def test__create_order__market_price_set(self):
         self.template__create_order__error(
@@ -189,7 +190,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=1,
             exception=InvalidOrder,
-            exception_text='ExchangeBackend: market order has no price')
+            exception_text='ExchangeAccount: market order has no price')
 
     def test__create_order__no_market_provided(self):
         self.template__create_order__error(
@@ -199,7 +200,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=None,
             exception=InvalidOrder,
-            exception_text='ExchangeBackend: market is None')
+            exception_text='ExchangeAccount: market is None')
 
     def test__create_order__has_no_prices(self):
         self.template__create_order__error(
@@ -209,7 +210,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=None,
             exception=InvalidOrder,
-            exception_text='ExchangeBackend: no prices available for BTC/USD')
+            exception_text='ExchangeAccount: no prices available for BTC/USD')
 
     def test__create_order__unsupported_side(self):
         self.template__create_order__error(
@@ -219,7 +220,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=None,
             exception=InvalidOrder,
-            exception_text='ExchangeBackend: no prices available for BTC/USD')
+            exception_text='ExchangeAccount: no prices available for BTC/USD')
 
     def test__create_order__market_has_no_quote(self):
         self.template__create_order__error(
@@ -229,7 +230,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: market has no quote')
+            exception_text='ExchangeAccount: market has no quote')
 
     def test__create_order__market_has_no_base(self):
         self.template__create_order__error(
@@ -239,7 +240,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=5,
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: market has no base')
+            exception_text='ExchangeAccount: market has no base')
 
     def test__create_order__amount_not_finite(self):
         self.template__create_order__error(
@@ -249,7 +250,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=float('inf'),
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: amount needs to be finite')
+            exception_text='ExchangeAccount: amount needs to be finite')
 
     def test__create_order__amount_not_a_number(self):
         self.template__create_order__error(
@@ -259,7 +260,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount='wrong number',
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: amount needs to be a number')
+            exception_text='ExchangeAccount: amount needs to be a number')
 
     def test__create_order__amount_is_zero(self):
         self.template__create_order__error(
@@ -269,7 +270,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=0,
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: amount needs to be positive')
+            exception_text='ExchangeAccount: amount needs to be positive')
 
     def test__create_order__less_than_zero(self):
         self.template__create_order__error(
@@ -279,7 +280,7 @@ class ExchangeBackendTest(unittest.TestCase):
             amount=-20,
             price=None,
             exception=BadRequest,
-            exception_text='ExchangeBackend: amount needs to be positive')
+            exception_text='ExchangeAccount: amount needs to be positive')
 
     def test__create_order__market_buy__insufficient_funds(self):
         self.template__create_order__error(
@@ -302,7 +303,7 @@ class ExchangeBackendTest(unittest.TestCase):
             exception_text='Balance too little')
 
     def test__create_order__market_buy__create_balance(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
         backend.create_order(market=self.eth_btc_market, side='buy',
@@ -312,7 +313,7 @@ class ExchangeBackendTest(unittest.TestCase):
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__market_buy__balance_available(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
@@ -324,7 +325,7 @@ class ExchangeBackendTest(unittest.TestCase):
                           'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
 
     def test__create_order__market_sell__create_balance(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         backend.create_order(market=self.eth_btc_market, side='sell',
@@ -335,7 +336,7 @@ class ExchangeBackendTest(unittest.TestCase):
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__market_sell__balance_available(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         self.timeframe.add_timedelta()
@@ -346,7 +347,7 @@ class ExchangeBackendTest(unittest.TestCase):
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__fetch_balance(self):
-        backend = ExchangeBackend(timeframe=None,
+        backend = ExchangeAccount(timeframe=None,
                                   balances={'BTC': 15.3,
                                             'USD': 0.3})
         self.assertEqual(backend.fetch_balance(),
@@ -354,7 +355,7 @@ class ExchangeBackendTest(unittest.TestCase):
                           'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0}})
 
     def test__fetch_order(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
@@ -403,7 +404,7 @@ class ExchangeBackendTest(unittest.TestCase):
              'type': 'market'})
 
     def test__fetch_order__dont_return_internals(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
@@ -416,14 +417,14 @@ class ExchangeBackendTest(unittest.TestCase):
         self.assertEqual(order_copy, backend.fetch_order(buy_id['id']))
 
     def test__fetch_order__not_found(self):
-        backend = ExchangeBackend(timeframe=self.timeframe)
+        backend = ExchangeAccount(timeframe=self.timeframe)
         with self.assertRaises(OrderNotFound) as e:
             backend.fetch_order('some_id')
         self.assertEqual(str(e.exception),
-                         'ExchangeBackend: order some_id does not exist')
+                         'ExchangeAccount: order some_id does not exist')
 
     def test__cancel_order__market(self):
-        backend = ExchangeBackend(timeframe=self.timeframe,
+        backend = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
@@ -432,11 +433,63 @@ class ExchangeBackendTest(unittest.TestCase):
         with self.assertRaises(BadRequest) as e:
             backend.cancel_order(buy_id['id'])
         self.assertEqual(str(e.exception),
-                         'ExchangeBackend: cannot cancel market order')
+                         'ExchangeAccount: cannot cancel market order')
 
     def test__cancel_order__not_found(self):
-        backend = ExchangeBackend(timeframe=self.timeframe)
+        backend = ExchangeAccount(timeframe=self.timeframe)
         with self.assertRaises(OrderNotFound) as e:
             backend.cancel_order('some_id')
         self.assertEqual(str(e.exception),
-                         'ExchangeBackend: order some_id does not exist')
+                         'ExchangeAccount: order some_id does not exist')
+
+
+class ExchangeBackendTest(unittest.TestCase):
+
+    @patch("sccts.exchange_backend.ExchangeAccount")
+    def test__init(self, mock):
+        ohlcvs_mock = MagicMock()
+        timeframe_mock = MagicMock()
+        balances_mock = MagicMock()
+        ExchangeBackend(ohlcvs=ohlcvs_mock,
+                        timeframe=timeframe_mock,
+                        balances=balances_mock)
+        mock.assert_called_once_with(ohlcvs=ohlcvs_mock,
+                                     timeframe=timeframe_mock,
+                                     balances=balances_mock)
+
+    @patch("sccts.exchange_backend.ExchangeAccount")
+    def template_exchange_account_method_propagated(
+            self, mock, kwargs, methodname):
+        ohlcvs = {}
+        timeframe_mock = MagicMock()
+        balances = {}
+        backend = ExchangeBackend(ohlcvs=ohlcvs,
+                                  timeframe=timeframe_mock,
+                                  balances=balances)
+        result = getattr(backend, methodname)(**kwargs)
+        mock.assert_called_once_with(ohlcvs=ohlcvs,
+                                     timeframe=timeframe_mock,
+                                     balances=balances)
+        getattr(mock(), methodname).assert_called_once_with(**kwargs)
+        self.assertEqual(result, getattr(mock(), methodname)())
+
+    def test__create_order(self):
+        self.template_exchange_account_method_propagated(
+            kwargs={'market': {}, 'side': 'sell', 'price': 5,
+                    'amount': 10, 'type': 'limit'},
+            methodname='create_order')
+
+    def test__cancel_order(self):
+        self.template_exchange_account_method_propagated(
+            kwargs={'id': '123', 'symbol': None},
+            methodname='cancel_order')
+
+    def test__fetch_order(self):
+        self.template_exchange_account_method_propagated(
+            kwargs={'id': '123', 'symbol': None},
+            methodname='fetch_order')
+
+    def test__fetch_balance(self):
+        self.template_exchange_account_method_propagated(
+            kwargs={},
+            methodname='fetch_balance')

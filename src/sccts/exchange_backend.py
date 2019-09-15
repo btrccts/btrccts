@@ -65,7 +65,7 @@ def _check_dataframe(ohlcvs, timeframe):
         raise ValueError('ohlcv needs to be in 1T format')
 
 
-class ExchangeBackend:
+class ExchangeAccount:
 
     # TODO: check that provided ohlcvs
     # - is parsable to Decimal
@@ -98,38 +98,38 @@ class ExchangeBackend:
     def cancel_order(self, id, symbol=None):
         order = self._orders.get(id)
         if order is None:
-            raise OrderNotFound('ExchangeBackend: order {} does not exist'
+            raise OrderNotFound('ExchangeAccount: order {} does not exist'
                                 .format(id))
         else:
-            raise BadRequest('ExchangeBackend: cannot cancel market order')
+            raise BadRequest('ExchangeAccount: cannot cancel market order')
 
     def create_order(self, market, type, price, side, amount):
         # Check parameters
         if type == 'market':
             if price is not None:
                 raise InvalidOrder(
-                    'ExchangeBackend: market order has no price')
+                    'ExchangeAccount: market order has no price')
         else:
-            raise InvalidOrder('ExchangeBackend: only market order supported')
+            raise InvalidOrder('ExchangeAccount: only market order supported')
         if market is None:
-            raise InvalidOrder('ExchangeBackend: market is None')
+            raise InvalidOrder('ExchangeAccount: market is None')
         symbol = market.get('symbol')
         if self._ohlcvs.get(symbol) is None:
-            raise InvalidOrder('ExchangeBackend: no prices available for {}'
+            raise InvalidOrder('ExchangeAccount: no prices available for {}'
                                .format(symbol))
         if side not in ['buy', 'sell']:
-            raise InvalidOrder('ExchangeBackend: side {} not supported'
+            raise InvalidOrder('ExchangeAccount: side {} not supported'
                                .format(side))
         buy = side == 'buy'
-        amount = _convert_float_or_raise(amount, 'ExchangeBackend: amount')
+        amount = _convert_float_or_raise(amount, 'ExchangeAccount: amount')
         if amount <= 0:
-            raise BadRequest('ExchangeBackend: amount needs to be positive')
+            raise BadRequest('ExchangeAccount: amount needs to be positive')
         base = market.get('base')
         quote = market.get('quote')
         if base is None:
-            raise BadRequest('ExchangeBackend: market has no base')
+            raise BadRequest('ExchangeAccount: market has no base')
         if quote is None:
-            raise BadRequest('ExchangeBackend: market has no quote')
+            raise BadRequest('ExchangeAccount: market has no quote')
 
         date = self._timeframe.date()
 
@@ -195,6 +195,27 @@ class ExchangeBackend:
     def fetch_order(self, id, symbol=None):
         order = self._orders.get(id)
         if order is None:
-            raise OrderNotFound('ExchangeBackend: order {} does not exist'
+            raise OrderNotFound('ExchangeAccount: order {} does not exist'
                                 .format(id))
         return self._return_decimal_to_float(order.copy())
+
+
+class ExchangeBackend:
+
+    def __init__(self, timeframe, balances={}, ohlcvs={}):
+        self._account = ExchangeAccount(timeframe=timeframe,
+                                        balances=balances,
+                                        ohlcvs=ohlcvs)
+
+    def fetch_order(self, id, symbol=None):
+        return self._account.fetch_order(id=id, symbol=symbol)
+
+    def fetch_balance(self):
+        return self._account.fetch_balance()
+
+    def create_order(self, market, type, price, side, amount):
+        return self._account.create_order(market=market, type=type, side=side,
+                                          price=price, amount=amount)
+
+    def cancel_order(self, id, symbol=None):
+        return self._account.cancel_order(id=id, symbol=symbol)
