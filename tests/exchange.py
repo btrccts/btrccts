@@ -1,11 +1,12 @@
 import unittest
 import re
+import pandas
 from unittest.mock import MagicMock, patch
 from sccts.backtest import Backtest
 from sccts.exchange import check_has
 from sccts.backtest import ccxt
 from ccxt.base.exchange import Exchange
-from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidOrder, BadRequest
 
 
 ccxt_has = [
@@ -14,7 +15,7 @@ ccxt_has = [
     'createOrder', 'deposit', 'editOrder', 'fetchBalance', 'fetchClosedOrders',
     'fetchCurrencies', 'fetchDepositAddress', 'fetchDeposits',
     'fetchL2OrderBook', 'fetchLedger', 'fetchMarkets', 'fetchMyTrades',
-    'fetchOHLCV', 'fetchOpenOrders', 'fetchOrders', 'fetchOrderBook',
+    'fetchOpenOrders', 'fetchOrders', 'fetchOrderBook',
     'fetchOrderBooks', 'fetchStatus', 'fetchTicker',
     'fetchTickers', 'fetchTime', 'fetchTrades', 'fetchTradingFee',
     'fetchTradingFees', 'fetchFundingFee', 'fetchFundingFees',
@@ -22,7 +23,7 @@ ccxt_has = [
 ccxt_has_other = ['CORS', ]
 ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
                         'createOrder', 'fetchCurrencies', 'fetchMarkets',
-                        'fetchOrder']
+                        'fetchOrder', 'fetchOHLCV']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -109,20 +110,17 @@ class BacktestExchangeBaseTest(unittest.TestCase):
 
     @patch.object(Exchange, 'load_markets')
     def test__exchange_methods_check_has(self, mock):
+        params_per_method = {
+            'createLimitOrder': ['BTC/USD', 'sell', 5],
+            'createMarketOrder': ['BTC/USD', 'sell', 5],
+            'createOrder': ['BTC/USD', 'sell', 'market', 5],
+            'fetchOHLCV': ['BTC/USD', '1m'],
+        }
         exchange = self.backtest.create_exchange('binance')
         for i in ccxt_has:
             exchange.has[i] = False
             snake_case = camel_case_to_snake_case(i)
-            params = {}
-            if i == 'createLimitOrder':
-                params = ['BTC/USD', 'sell', 5]
-            elif i == 'createMarketOrder':
-                params = ['BTC/USD', 'sell', 5]
-            elif i == 'createOrder':
-                params = {'symbol': 'BTC/USD',
-                          'side': 'sell',
-                          'type': 'market',
-                          'amount': 5}
+            params = params_per_method.get(i, [])
             with self.assertRaises(NotImplementedError) as e:
                 getattr(exchange, snake_case)(*params)
             self.assertEqual(str(e.exception),
@@ -211,3 +209,29 @@ class BacktestExchangeBaseTest(unittest.TestCase):
         exchange.create_order(symbol='BTC/USD', type='market', side='sell',
                               amount=5)
         fetch_currencies_mock.assert_called_once_with({})
+
+    def test__fetch_ohlcv(self):
+        df = pandas.DataFrame(data={'open': [2, 4],
+                                    'high': [3, 5],
+                                    'low': [1, 3],
+                                    'close': [4, 6],
+                                    'volume': [102, 110]},
+                              index=pandas.to_datetime(['2017-01-01 1:00',
+                                                        '2017-01-01 1:01'],
+                                                       utc=True))
+        fetch_ohlcv_dataframe_mock = \
+            self.binance_backend_mock.fetch_ohlcv_dataframe
+        fetch_ohlcv_dataframe_mock.return_value = df
+        exchange = self.backtest.create_exchange('binance')
+        result = exchange.fetch_ohlcv('BTC/USD', '5m', limit=2, since=50)
+        self.assertEqual(result, [[1483232400000, 2, 3, 1, 4, 102],
+                                  [1483232460000, 4, 5, 3, 6, 110]])
+        fetch_ohlcv_dataframe_mock.assert_called_once_with(
+            symbol='BTC/USD', timeframe='5m', limit=2, since=50)
+
+    def test__fetch_ohlcv__timeframe_not_in_timeframes(self):
+        exchange = self.backtest.create_exchange('poloniex')
+        with self.assertRaises(BadRequest) as e:
+            exchange.fetch_ohlcv('BTC/USD', '1m')
+        self.assertEqual(str(e.exception),
+                         'Timeframe 1m not supported by exchange')

@@ -1,4 +1,4 @@
-from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidOrder, BadRequest
 
 
 def check_has(name):
@@ -112,9 +112,20 @@ class BacktestExchangeBase:
                                   'fetch_my_trades')
 
     @check_has('fetchOHLCV')
-    def fetch_ohlcv(self, *args, **kwargs):
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_ohlcv')
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None,
+                    params={}):
+        if timeframe not in self.timeframes:
+            raise BadRequest('Timeframe {} not supported by exchange'.format(
+                timeframe))
+        data = self._exchange_backend.fetch_ohlcv_dataframe(
+            symbol=symbol, timeframe=timeframe, since=since, limit=limit)
+        result = [[int(values.Index.value / 10**6),
+                   values.open,
+                   values.high,
+                   values.low,
+                   values.close,
+                   values.volume] for values in data.itertuples()]
+        return result
 
     @check_has('fetchOpenOrders')
     def fetch_open_orders(self, *args, **kwargs):
