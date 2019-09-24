@@ -15,8 +15,8 @@ ccxt_has = [
     'createOrder', 'deposit', 'editOrder', 'fetchBalance', 'fetchClosedOrders',
     'fetchCurrencies', 'fetchDepositAddress', 'fetchDeposits',
     'fetchL2OrderBook', 'fetchLedger', 'fetchMarkets', 'fetchMyTrades',
-    'fetchOpenOrders', 'fetchOrders', 'fetchOrderBook',
-    'fetchOrderBooks', 'fetchStatus', 'fetchTicker',
+    'fetchOpenOrders', 'fetchOrders', 'fetchOrderBook', 'fetchOrder',
+    'fetchOrderBooks', 'fetchStatus', 'fetchTicker', 'fetchOHLCV',
     'fetchTickers', 'fetchTime', 'fetchTrades', 'fetchTradingFee',
     'fetchTradingFees', 'fetchFundingFee', 'fetchFundingFees',
     'fetchTradingLimits', 'fetchTransactions', 'fetchWithdrawals', 'withdraw']
@@ -133,19 +133,20 @@ class BacktestExchangeBaseTest(unittest.TestCase):
                                  'BacktestExchange does not support method {}'
                                  .format(snake_case))
 
-    @patch_exchange_method('bittrex', 'cancel_order')
-    def test__cancel_order(self, method):
-        exchange = self.backtest.create_exchange('bittrex')
-        result = exchange.cancel_order(id='some_id', symbol='BTC/USD')
-        method.assert_called_once_with(id='some_id', symbol='BTC/USD')
-        self.assertEqual(result, method())
+    def template__propagate_method_call(self, function_name, parameters):
+        exchange = self.backtest.create_exchange('binance')
+        result = getattr(exchange, function_name)(**parameters)
+        backend_method = getattr(self.binance_backend_mock, function_name)
+        backend_method.assert_called_once_with(**parameters)
+        self.assertEqual(result, backend_method())
 
-    @patch_exchange_method('bittrex', 'fetch_order')
-    def test__fetch_order(self, method):
-        exchange = self.backtest.create_exchange('bittrex')
-        result = exchange.fetch_order(id='some_id', symbol='BTC/USD')
-        method.assert_called_once_with(id='some_id', symbol='BTC/USD')
-        self.assertEqual(result, method())
+    def test__cancel_order(self):
+        self.template__propagate_method_call(
+            'cancel_order', {'id': 'some_id', 'symbol': 'BTC/USD'})
+
+    def test__fetch_order(self):
+        self.template__propagate_method_call(
+            'fetch_order', {'id': 'some_id', 'symbol': 'BTC/USD'})
 
     @patch_exchange_method('bittrex', 'fetch_markets')
     def test__fetch_markets(self, method):
