@@ -230,6 +230,13 @@ class ExchangeBackend:
 
     def fetch_ohlcv_dataframe(self, symbol, timeframe='1m', since=None,
                               limit=None, params={}):
+        # Exchanges in the real world have different behaviour, when there is
+        # no since parameter provided. (some use data from the beginning,
+        # some from the end)
+        # We return data from the beginning, because this is most likely not
+        # what the user wants, so this will force the user to provide the
+        # parameters, which will work with every exchange. This is a bug
+        # prevention mechanism.
         ohlcv = self._ohlcvs.get(symbol)
         if ohlcv is None:
             raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
