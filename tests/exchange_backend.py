@@ -95,91 +95,60 @@ class ExchangeAccountTest(unittest.TestCase):
         self.eth_btc_ohlcvs = pandas.DataFrame(data=data, index=dates)
 
     def test__init__ohlcvs_index_start_bigger_than_start_date(self):
-        data = {'high': [6, 2],
-                'low': [5, 0.5]}
-        dates = pandas.to_datetime(['2017-01-01 1:01', '2017-01-01 1:02'],
-                                   utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.drop(self.eth_btc_ohlcvs.index[0])
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
 
     def test__init__ohlcvs_index_end_lower_than_end_date(self):
-        data = {'high': [6, 2],
-                'low': [5, 0.5]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01'],
-                                   utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.drop(self.eth_btc_ohlcvs.index[-1])
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
 
     def test__init__ohlcvs__high_missing(self):
-        data = {'low': [5, 0.5, 2]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
-                                    '2017-01-01 1:02'], utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.drop('high', 1)
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv high needs to be provided')
 
     def test__init__ohlcvs__low_missing(self):
-        data = {'high': [6, 2, 3]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
-                                    '2017-01-01 1:02'], utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.drop('low', 1)
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv low needs to be provided')
 
     def test__init__ohlcvs__wrong_frequency(self):
-        data = {'high': [6, 2],
-                'low': [5, 0.5]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:02'],
-                                   utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.drop(self.eth_btc_ohlcvs.index[1])
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv needs to be in 1T format')
 
     def test__init__ohlcvs__not_finite(self):
-        data = {'high': [6, 2, 5],
-                'low': [5, 0.5, float('inf')]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
-                                    '2017-01-01 1:02'], utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.copy()
+        df.iloc[1, 1] = float('inf')
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception), 'ohlcv ohlcv needs to finite')
 
     def test__init__ohlcvs__not_convertable_to_float(self):
-        data = {'high': [6, 2, 'asd'],
-                'low': [5, 0.5, float('inf')]}
-        dates = pandas.to_datetime(['2017-01-01 1:00:00', '2017-01-01 1:01',
-                                    '2017-01-01 1:02'], utc=True)
-        btc_usd_ohlcvs = pandas.DataFrame(data=data, index=dates)
+        df = self.eth_btc_ohlcvs.copy()
+        df.iloc[1, 1] = 'asd'
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
-                            ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
-                                    'BTC/USD': btc_usd_ohlcvs},
+                            ohlcvs={'ETH/BTC': df},
                             balances={})
         self.assertEqual(str(e.exception),
                          "ohlcv could not convert string to float: 'asd'")
