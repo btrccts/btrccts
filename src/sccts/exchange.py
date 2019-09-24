@@ -69,9 +69,9 @@ class BacktestExchangeBase:
                                   'edit_order')
 
     @check_has('fetchBalance')
-    def fetch_balance(self, *args, **kwargs):
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_balance')
+    def fetch_balance(self, params={}):
+        result = self._exchange_backend.fetch_balance()
+        return self.parse_balance(result)
 
     @check_has('fetchClosedOrders')
     def fetch_closed_orders(self, *args, **kwargs):

@@ -23,7 +23,7 @@ ccxt_has = [
 ccxt_has_other = ['CORS', ]
 ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
                         'createOrder', 'fetchCurrencies', 'fetchMarkets',
-                        'fetchOrder', 'fetchOHLCV']
+                        'fetchOrder', 'fetchOHLCV', 'fetchBalance']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -147,6 +147,20 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     def test__fetch_order(self):
         self.template__propagate_method_call(
             'fetch_order', {'id': 'some_id', 'symbol': 'BTC/USD'})
+
+    def test__fetch_balance(self):
+        self.binance_backend_mock.fetch_balance.return_value = {
+            'BTC': {'free': 15.3, 'total': 15.3, 'used': 0.0},
+            'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0}}
+        exchange = self.backtest.create_exchange('binance')
+        result = exchange.fetch_balance(params={})
+        self.binance_backend_mock.fetch_balance.assert_called_once_with()
+        self.assertEqual(result,
+                         {'BTC': {'free': 15.3, 'total': 15.3, 'used': 0.0},
+                          'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0},
+                          'free': {'BTC': 15.3, 'USD': 0.3},
+                          'total': {'BTC': 15.3, 'USD': 0.3},
+                          'used': {'BTC': 0.0, 'USD': 0.0}})
 
     @patch_exchange_method('bittrex', 'fetch_markets')
     def test__fetch_markets(self, method):
