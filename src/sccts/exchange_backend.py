@@ -1,7 +1,8 @@
 import numpy
+import pandas
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
-    OrderNotFound
+    OrderNotFound, BadSymbol
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
 
@@ -52,14 +53,13 @@ class Balance:
         self._total = new_value
 
 
-def _check_dataframe(ohlcvs, timeframe):
+def _check_dataframe(ohlcvs, timeframe, needed_columns=['low', 'high']):
     index = ohlcvs.index
     if index[0] > timeframe.start_date() or index[-1] < timeframe.end_date():
         raise ValueError('ohlcv needs to cover timeframe')
-    if 'low' not in ohlcvs.columns:
-        raise ValueError('ohlcv low needs to be provided')
-    if 'high' not in ohlcvs.columns:
-        raise ValueError('ohlcv high needs to be provided')
+    for col in needed_columns:
+        if col not in ohlcvs.columns:
+            raise ValueError('ohlcv {} needs to be provided'.format(col))
     try:
         ohlcvs.index.freq = '1T'
     except ValueError:
@@ -207,6 +207,13 @@ class ExchangeBackend:
         self._account = ExchangeAccount(timeframe=timeframe,
                                         balances=balances,
                                         ohlcvs=ohlcvs)
+        self._ohlcvs = {}
+        self._timeframe = timeframe
+        for key in ohlcvs:
+            self._ohlcvs[key] = _check_dataframe(
+                ohlcvs[key],
+                timeframe,
+                ['open', 'low', 'high', 'close', 'volume'])
 
     def fetch_order(self, id, symbol=None):
         return self._account.fetch_order(id=id, symbol=symbol)
@@ -220,3 +227,32 @@ class ExchangeBackend:
 
     def cancel_order(self, id, symbol=None):
         return self._account.cancel_order(id=id, symbol=symbol)
+
+    def fetch_ohlcv_dataframe(self, symbol, timeframe='1m', since=None,
+                              limit=None, params={}):
+        ohlcv = self._ohlcvs.get(symbol)
+        if ohlcv is None:
+            raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
+        current_date = self._timeframe.date().floor('1T')
+        if limit is None:
+            limit = 5
+        timeframe_sec = Exchange.parse_timeframe(timeframe)
+        pd_timeframe = pandas.Timedelta(timeframe_sec, unit='s')
+        if since is None:
+            pd_since = ohlcv.index[0]
+        else:
+            pd_since = pandas.Timestamp(since, unit='ms', tz='UTC')
+        pd_since = pd_since.ceil(pd_timeframe)
+        pd_until = pd_since + limit * pd_timeframe - pandas.Timedelta('1m')
+        if pd_until > current_date:
+            raise BadRequest(
+                'ExchangeBackend: fetch_ohlcv:'
+                ' since.ceil(timeframe) + limit * timeframe'
+                ' needs to be in the past')
+        data = ohlcv[pd_since:pd_until]
+        return data.resample(pd_timeframe).agg({
+            'open': 'first',
+            'high': 'max',
+            'low': 'min',
+            'close': 'last',
+            'volume': 'sum'})
