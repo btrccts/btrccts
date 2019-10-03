@@ -31,19 +31,10 @@ class Balance:
 
     def to_dict(self):
         return {
-            'free': self.free(),
-            'used': self.used(),
-            'total': self.total(),
+            'free': self._total - self._used,
+            'used': self._used,
+            'total': self._total,
         }
-
-    def free(self):
-        return self._total - self._used
-
-    def used(self):
-        return self._used
-
-    def total(self):
-        return self._total
 
     def change_total(self, change):
         change = _convert_float(change)
@@ -51,6 +42,13 @@ class Balance:
         if new_value < Decimal('0'):
             raise InsufficientFunds('Balance too little')
         self._total = new_value
+
+    def change_used(self, change):
+        change = _convert_float(change)
+        new_value = self._used + change
+        if new_value + self._total < Decimal('0'):
+            raise InsufficientFunds('Balance too little')
+        self._used = new_value
 
 
 def _check_dataframe(ohlcvs, timeframe, needed_columns=['low', 'high']):
