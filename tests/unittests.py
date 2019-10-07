@@ -1,8 +1,8 @@
 import unittest
 from tests.backtest import BacktestTest, TimeframeTest
 from tests.exchange import BacktestExchangeBaseTest
-from tests.exchange_backend import BalanceTest, ExchangeAccountTest, \
-    ExchangeBackendTest
+from tests.exchange_backend import ExchangeAccountTest, ExchangeBackendTest
+from tests.balance import BalanceTest
 from tests.pep_checker import Pep8Test
 
 
