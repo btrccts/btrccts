@@ -4,7 +4,8 @@ from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound, BadSymbol
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
-from sccts.exchange_backend import Balance, ExchangeAccount, ExchangeBackend
+from sccts.exchange_account import Balance, ExchangeAccount
+from sccts.exchange_backend import ExchangeBackend
 from sccts.backtest import Timeframe
 
 
