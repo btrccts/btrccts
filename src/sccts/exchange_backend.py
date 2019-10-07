@@ -4,21 +4,8 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound, BadSymbol
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
-
-
-def _convert_float_or_raise(f, msg):
-    try:
-        val = _convert_float(f)
-    except InvalidOperation:
-        raise BadRequest('{} needs to be a number'.format(msg))
-    if not val.is_finite():
-        raise BadRequest('{} needs to be finite'.format(msg))
-    return val
-
-
-def _convert_float(f):
-    return Decimal(str(f))
+from decimal import Decimal
+from sccts.convert_float import _convert_float_or_raise, _convert_float
 
 
 class Balance:
