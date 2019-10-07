@@ -12,4 +12,4 @@ Setup a virtualenv:
 
 ## Run tests
 
-    .venv/bin/python -m unittest tests/unittests.py
+    .venv/bin/python -m unittest tests/unittests/unittests.py
