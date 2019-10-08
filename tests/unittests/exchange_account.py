@@ -84,14 +84,14 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def template__create_order__error(self, exception_text, exception, market,
                                       side, type, amount, price):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3,
                                             'ETH': 0})
         with self.assertRaises(exception) as e:
-            backend.create_order(market=market, side=side, type=type,
+            account.create_order(market=market, side=side, type=type,
                                  amount=amount, price=price)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 3, 'total': 3, 'used': 0.0},
                           'ETH': {'free': 0, 'total': 0, 'used': 0.0}})
         self.assertEqual(str(e.exception),
@@ -273,88 +273,88 @@ class ExchangeAccountTest(unittest.TestCase):
             exception_text='Balance too little')
 
     def test__create_order__market_buy__create_balance(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        backend.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=self.eth_btc_market, side='buy',
                              type='market', amount=1, price=None)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 0.997, 'total': 0.997, 'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__market_buy__balance_available(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
         self.timeframe.add_timedelta()
-        backend.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=self.eth_btc_market, side='buy',
                              type='market', amount=1, price=None)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 2.994, 'total': 2.994, 'used': 0.0},
                           'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
 
     def test__create_order__market_sell__create_balance(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        backend.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=self.eth_btc_market, side='sell',
                              type='market', amount=2, price=None)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 0.9985, 'total': 0.9985,
                                   'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__market_sell__balance_available(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         self.timeframe.add_timedelta()
-        backend.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=self.eth_btc_market, side='sell',
                              type='market', amount=2, price=None)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 1.997, 'total': 1.997, 'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__limit_buy(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        backend.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=self.eth_btc_market, side='buy',
                              type='limit', amount=2, price=0.5)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 2, 'used': 1, 'total': 3.0}})
 
     def test__create_order__limit_sell(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         self.timeframe.add_timedelta()
-        backend.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=self.eth_btc_market, side='sell',
                              type='limit', amount=2, price=4)
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 1.0, 'used': 2.0, 'total': 3.0}})
 
     def test__fetch_balance(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   balances={'BTC': 15.3,
                                             'USD': 0.3})
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 15.3, 'total': 15.3, 'used': 0.0},
                           'USD': {'free': 0.3, 'total': 0.3, 'used': 0.0}})
 
     def test__fetch_order__market(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
                                       type='market', amount=1, price=None)
         self.timeframe.add_timedelta()
-        sell_id = backend.create_order(market=self.eth_btc_market, side='sell',
+        sell_id = account.create_order(market=self.eth_btc_market, side='sell',
                                        type='market', amount=1, price=None)
         self.assertEqual(
-            backend.fetch_order(buy_id['id']),
+            account.fetch_order(buy_id['id']),
             {'amount': 1.0,
              'average': 2.003,
              'cost': 2.003,
@@ -373,7 +373,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'trades': None,
              'type': 'market'})
         self.assertEqual(
-            backend.fetch_order(sell_id['id']),
+            account.fetch_order(sell_id['id']),
             {'amount': 1.0,
              'average': 0.9985,
              'cost': 0.9985,
@@ -393,57 +393,57 @@ class ExchangeAccountTest(unittest.TestCase):
              'type': 'market'})
 
     def test__fetch_order__dont_return_internals(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
                                       type='market', amount=1, price=None)
-        order = backend.fetch_order(buy_id['id'])
+        order = account.fetch_order(buy_id['id'])
         order_copy = order.copy()
         for key in list(order.keys()):
             del order[key]
-        self.assertEqual(order_copy, backend.fetch_order(buy_id['id']))
+        self.assertEqual(order_copy, account.fetch_order(buy_id['id']))
 
     def test__fetch_order__not_found(self):
-        backend = ExchangeAccount(timeframe=self.timeframe)
+        account = ExchangeAccount(timeframe=self.timeframe)
         with self.assertRaises(OrderNotFound) as e:
-            backend.fetch_order('some_id')
+            account.fetch_order('some_id')
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: order some_id does not exist')
 
     def test__cancel_order__market(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = backend.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
                                       type='market', amount=1, price=None)
         with self.assertRaises(BadRequest) as e:
-            backend.cancel_order(buy_id['id'])
+            account.cancel_order(buy_id['id'])
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: cannot cancel closed order 1')
 
     def test__cancel_order__not_found(self):
-        backend = ExchangeAccount(timeframe=self.timeframe)
+        account = ExchangeAccount(timeframe=self.timeframe)
         with self.assertRaises(OrderNotFound) as e:
-            backend.cancel_order('some_id')
+            account.cancel_order('some_id')
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: order some_id does not exist')
 
     def test__cancel_order__limit_buy(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        create_result = backend.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=2, price=1)
-        result = backend.cancel_order(id=create_result['id'])
+        result = account.cancel_order(id=create_result['id'])
         self.assertEqual(result, {'id': create_result['id'],
                                   'info': {}})
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
-        self.assertEqual(backend.fetch_order(id=result['id']),
+        self.assertEqual(account.fetch_order(id=result['id']),
                          {'amount': 2.0,
                           'average': None,
                           'cost': None,
@@ -463,18 +463,18 @@ class ExchangeAccountTest(unittest.TestCase):
                           'type': 'limit'})
 
     def test__cancel_order__limit_sell(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = backend.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='sell', type='limit',
                                              amount=2, price=10)
-        result = backend.cancel_order(id=create_result['id'])
+        result = account.cancel_order(id=create_result['id'])
         self.assertEqual(result, {'id': create_result['id'],
                                   'info': {}})
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
-        self.assertEqual(backend.fetch_order(id=result['id']),
+        self.assertEqual(account.fetch_order(id=result['id']),
                          {'amount': 2.0,
                           'average': None,
                           'cost': None,
@@ -494,18 +494,18 @@ class ExchangeAccountTest(unittest.TestCase):
                           'type': 'limit'})
 
     def test__cancel_order__already_canceled(self):
-        backend = ExchangeAccount(timeframe=self.timeframe,
+        account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = backend.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='sell', type='limit',
                                              amount=2, price=10)
-        backend.cancel_order(id=create_result['id'])
+        account.cancel_order(id=create_result['id'])
         with self.assertRaises(BadRequest) as e:
-            backend.cancel_order(id=create_result['id'])
+            account.cancel_order(id=create_result['id'])
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: cannot cancel canceled order 1')
-        self.assertEqual(backend.fetch_balance(),
+        self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
 
     def setup_update_state_limit_sell(self):
@@ -518,22 +518,22 @@ class ExchangeAccountTest(unittest.TestCase):
         data = {'high': [1, 1, 1],
                 'low': [1, 1, 1]}
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
-        backend = ExchangeAccount(timeframe=timeframe,
+        account = ExchangeAccount(timeframe=timeframe,
                                   ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
                                           'BTC/USD': btc_usd_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = backend.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         order_id = create_result['id']
-        self.check_update_state_limit_sell_not_filled(backend, order_id)
+        self.check_update_state_limit_sell_not_filled(account, order_id)
         timeframe.add_timedelta()
-        self.check_update_state_limit_sell_not_filled(backend, order_id)
+        self.check_update_state_limit_sell_not_filled(account, order_id)
         timeframe.add_timedelta()
-        return backend, timeframe, order_id
+        return account, timeframe, order_id
 
-    def check_update_state_limit_sell_order_not_filled(self, backend, id_):
-        self.assertEqual(backend.fetch_order(id_),
+    def check_update_state_limit_sell_order_not_filled(self, account, id_):
+        self.assertEqual(account.fetch_order(id_),
                          {'amount': 2.0,
                           'average': None,
                           'cost': None,
@@ -552,17 +552,17 @@ class ExchangeAccountTest(unittest.TestCase):
                           'trades': None,
                           'type': 'limit'})
 
-    def check_update_state_limit_sell_fetch_balance_not_filled(self, backend):
-        self.assertEqual(backend.fetch_balance(),
+    def check_update_state_limit_sell_fetch_balance_not_filled(self, account):
+        self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 1.0, 'total': 3.0, 'used': 2.0}})
 
-    def check_update_state_limit_sell_not_filled(self, backend, order_id):
-        self.check_update_state_limit_sell_order_not_filled(backend, order_id)
-        self.check_update_state_limit_sell_fetch_balance_not_filled(backend)
+    def check_update_state_limit_sell_not_filled(self, account, order_id):
+        self.check_update_state_limit_sell_order_not_filled(account, order_id)
+        self.check_update_state_limit_sell_fetch_balance_not_filled(account)
         # TODO: open orders, closed orders
 
-    def check_update_state_limit_sell_order_filled(self, backend, id_):
-        self.assertEqual(backend.fetch_order(id_),
+    def check_update_state_limit_sell_order_filled(self, account, id_):
+        self.assertEqual(account.fetch_order(id_),
                          {'amount': 2.0,
                           'average': 5.0,
                           'cost': 10,
@@ -581,45 +581,45 @@ class ExchangeAccountTest(unittest.TestCase):
                           'trades': None,
                           'type': 'limit'})
 
-    def check_update_state_limit_sell_fetch_balance_filled(self, backend):
-        self.assertEqual(backend.fetch_balance(),
+    def check_update_state_limit_sell_fetch_balance_filled(self, account):
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 10.0, 'total': 10.0, 'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
-    def check_update_state_limit_sell_filled(self, backend, order_id):
-        self.check_update_state_limit_sell_order_filled(backend, order_id)
-        self.check_update_state_limit_sell_fetch_balance_filled(backend)
+    def check_update_state_limit_sell_filled(self, account, order_id):
+        self.check_update_state_limit_sell_order_filled(account, order_id)
+        self.check_update_state_limit_sell_fetch_balance_filled(account)
         # TODO: open orders, closed orders
 
     def test__update_state__create_order__limit_sell(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_sell()
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
         # Check if balance is available when first calling create_order
-        create_result = backend.create_order(market=self.btc_usd_market,
+        create_result = account.create_order(market=self.btc_usd_market,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         # cancel, so there is no used balance
-        backend.cancel_order(create_result['id'])
-        self.check_update_state_limit_sell_filled(backend, order_id)
+        account.cancel_order(create_result['id'])
+        self.check_update_state_limit_sell_filled(account, order_id)
 
     def test__update_state__fetch_balance__limit_sell(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_sell()
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
         # first check if this method return correct
-        self.check_update_state_limit_sell_fetch_balance_filled(backend)
-        self.check_update_state_limit_sell_filled(backend, order_id)
+        self.check_update_state_limit_sell_fetch_balance_filled(account)
+        self.check_update_state_limit_sell_filled(account, order_id)
 
     def test__update_state__fetch_order__limit_sell(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_sell()
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
         # first check if this method return correct
-        self.check_update_state_limit_sell_order_filled(backend, order_id)
-        self.check_update_state_limit_sell_filled(backend, order_id)
+        self.check_update_state_limit_sell_order_filled(account, order_id)
+        self.check_update_state_limit_sell_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_sell(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_sell()
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
         with self.assertRaises(BadRequest) as e:
-            backend.cancel_order(id=order_id)
+            account.cancel_order(id=order_id)
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: cannot cancel closed order 1')
-        self.check_update_state_limit_sell_filled(backend, order_id)
+        self.check_update_state_limit_sell_filled(account, order_id)
 
     def setup_update_state_limit_buy(self):
         timeframe = Timeframe(pd_start_date=self.dates[0],
@@ -631,22 +631,22 @@ class ExchangeAccountTest(unittest.TestCase):
         data = {'high': [1, 1, 1],
                 'low': [1, 1, 1]}
         btc_usd_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
-        backend = ExchangeAccount(timeframe=timeframe,
+        account = ExchangeAccount(timeframe=timeframe,
                                   ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
                                           'BTC/USD': btc_usd_ohlcvs},
                                   balances={'BTC': 15})
-        create_result = backend.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=1.5, price=4)
         order_id = create_result['id']
-        self.check_update_state_limit_buy_not_filled(backend, order_id)
+        self.check_update_state_limit_buy_not_filled(account, order_id)
         timeframe.add_timedelta()
-        self.check_update_state_limit_buy_not_filled(backend, order_id)
+        self.check_update_state_limit_buy_not_filled(account, order_id)
         timeframe.add_timedelta()
-        return backend, timeframe, order_id
+        return account, timeframe, order_id
 
-    def check_update_state_limit_buy_order_not_filled(self, backend, id_):
-        self.assertEqual(backend.fetch_order(id_),
+    def check_update_state_limit_buy_order_not_filled(self, account, id_):
+        self.assertEqual(account.fetch_order(id_),
                          {'amount': 1.5,
                           'average': None,
                           'cost': None,
@@ -665,17 +665,17 @@ class ExchangeAccountTest(unittest.TestCase):
                           'trades': None,
                           'type': 'limit'})
 
-    def check_update_state_limit_buy_fetch_balance_not_filled(self, backend):
-        self.assertEqual(backend.fetch_balance(),
+    def check_update_state_limit_buy_fetch_balance_not_filled(self, account):
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 9.0, 'total': 15.0, 'used': 6.0}})
 
-    def check_update_state_limit_buy_not_filled(self, backend, order_id):
-        self.check_update_state_limit_buy_order_not_filled(backend, order_id)
-        self.check_update_state_limit_buy_fetch_balance_not_filled(backend)
+    def check_update_state_limit_buy_not_filled(self, account, order_id):
+        self.check_update_state_limit_buy_order_not_filled(account, order_id)
+        self.check_update_state_limit_buy_fetch_balance_not_filled(account)
         # TODO: open orders, closed orders
 
-    def check_update_state_limit_buy_order_filled(self, backend, id_):
-        self.assertEqual(backend.fetch_order(id_),
+    def check_update_state_limit_buy_order_filled(self, account, id_):
+        self.assertEqual(account.fetch_order(id_),
                          {'amount': 1.5,
                           'average': 4.0,
                           'cost': 6,
@@ -694,42 +694,42 @@ class ExchangeAccountTest(unittest.TestCase):
                           'trades': None,
                           'type': 'limit'})
 
-    def check_update_state_limit_buy_fetch_balance_filled(self, backend):
-        self.assertEqual(backend.fetch_balance(),
+    def check_update_state_limit_buy_fetch_balance_filled(self, account):
+        self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 9.0, 'total': 9.0, 'used': 0.0},
                           'ETH': {'free': 1.5, 'total': 1.5, 'used': 0.0}})
 
-    def check_update_state_limit_buy_filled(self, backend, order_id):
-        self.check_update_state_limit_buy_order_filled(backend, order_id)
-        self.check_update_state_limit_buy_fetch_balance_filled(backend)
+    def check_update_state_limit_buy_filled(self, account, order_id):
+        self.check_update_state_limit_buy_order_filled(account, order_id)
+        self.check_update_state_limit_buy_fetch_balance_filled(account)
         # TODO: open orders, closed orders
 
     def test__update_state__create_order__limit_buy(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_buy()
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
         # Check if balance is available when first calling create_order
-        create_result = backend.create_order(market=self.btc_usd_market,
+        create_result = account.create_order(market=self.btc_usd_market,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         # cancel, so there is no used balance
-        backend.cancel_order(create_result['id'])
-        self.check_update_state_limit_buy_filled(backend, order_id)
+        account.cancel_order(create_result['id'])
+        self.check_update_state_limit_buy_filled(account, order_id)
 
     def test__update_state__fetch_balance__limit_buy(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_buy()
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
         # first check if this method return correct
-        self.check_update_state_limit_buy_fetch_balance_filled(backend)
-        self.check_update_state_limit_buy_filled(backend, order_id)
+        self.check_update_state_limit_buy_fetch_balance_filled(account)
+        self.check_update_state_limit_buy_filled(account, order_id)
 
     def test__update_state__fetch_order__limit_buy(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_buy()
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
         # first check if this method return correct
-        self.check_update_state_limit_buy_order_filled(backend, order_id)
-        self.check_update_state_limit_buy_filled(backend, order_id)
+        self.check_update_state_limit_buy_order_filled(account, order_id)
+        self.check_update_state_limit_buy_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_buy(self):
-        backend, timeframe, order_id = self.setup_update_state_limit_buy()
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
         with self.assertRaises(BadRequest) as e:
-            backend.cancel_order(id=order_id)
+            account.cancel_order(id=order_id)
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: cannot cancel closed order 1')
-        self.check_update_state_limit_buy_filled(backend, order_id)
+        self.check_update_state_limit_buy_filled(account, order_id)
