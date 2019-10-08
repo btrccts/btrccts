@@ -95,6 +95,7 @@ class ExchangeAccount:
                               quote=private['quote'],
                               buy=private['buy'])
             self._move_to_closed_orders(id)
+            self._update_next_private_order_to_update()
             return {'id': id,
                     'info': {}}
 

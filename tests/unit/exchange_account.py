@@ -441,26 +441,33 @@ class ExchangeAccountTest(unittest.TestCase):
         result = account.cancel_order(id=create_result['id'])
         self.assertEqual(result, {'id': create_result['id'],
                                   'info': {}})
-        self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
-        self.assertEqual(account.fetch_order(id=result['id']),
-                         {'amount': 2.0,
-                          'average': None,
-                          'cost': None,
-                          'datetime': '2017-01-01T01:01:00.000Z',
-                          'fee': 0,
-                          'filled': 0,
-                          'id': '1',
-                          'info': {},
-                          'lastTradeTimestamp': None,
-                          'price': None,
-                          'remaining': 2.0,
-                          'side': 'buy',
-                          'status': 'canceled',
-                          'symbol': 'ETH/BTC',
-                          'timestamp': 1483232460000,
-                          'trades': None,
-                          'type': 'limit'})
+
+        def check_canceled():
+            self.assertEqual(account.fetch_balance(),
+                             {'BTC': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
+            self.assertEqual(account.fetch_order(id=result['id']),
+                             {'amount': 2.0,
+                              'average': None,
+                              'cost': None,
+                              'datetime': '2017-01-01T01:01:00.000Z',
+                              'fee': 0,
+                              'filled': 0,
+                              'id': '1',
+                              'info': {},
+                              'lastTradeTimestamp': None,
+                              'price': None,
+                              'remaining': 2.0,
+                              'side': 'buy',
+                              'status': 'canceled',
+                              'symbol': 'ETH/BTC',
+                              'timestamp': 1483232460000,
+                              'trades': None,
+                              'type': 'limit'})
+
+        check_canceled()
+        # Order gets filled next run, check if it is handling it correct
+        self.timeframe.add_timedelta()
+        check_canceled()
 
     def test__cancel_order__limit_sell(self):
         account = ExchangeAccount(timeframe=self.timeframe,
