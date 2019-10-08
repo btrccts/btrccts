@@ -1,45 +1,38 @@
 from ccxt.base.errors import InvalidOrder, BadRequest
 
 
-def check_has(name):
-
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
-            if not self.has[name]:
-                raise NotImplementedError('{}: method not implemented: {}'
-                                          .format(self.id, name))
-            return func(self, *args, **kwargs)
-        return wrapper
-    return decorator
-
-
 class BacktestExchangeBase:
 
     def __init__(self, config, exchange_backend):
         super().__init__(config=config)
         self._exchange_backend = exchange_backend
 
-    @check_has('cancelAllOrders')
+    def _check_has(self, name):
+        if not self.has[name]:
+            raise NotImplementedError('{}: method not implemented: {}'
+                                      .format(self.id, name))
+
     def cancel_all_orders(self, *args, **kwargs):
+        self._check_has('cancelAllOrders')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'cancel_all_orders')
 
-    @check_has('cancelOrder')
     def cancel_order(self, id, symbol=None, params={}):
+        self._check_has('cancelOrder')
         return self._exchange_backend.cancel_order(id=id, symbol=symbol)
 
-    @check_has('cancelOrders')
     def cancel_orders(self, *args, **kwargs):
+        self._check_has('cancelOrders')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'cancel_orders')
 
-    @check_has('createDepositAddress')
     def create_deposit_address(self, *args, **kwargs):
+        self._check_has('createDepositAddress')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'create_deposit_address')
 
-    @check_has('createOrder')
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self._check_has('createOrder')
         super().load_markets()
         if type == 'market':
             if not self.has['createMarketOrder']:
@@ -58,62 +51,62 @@ class BacktestExchangeBase:
         return self._exchange_backend.create_order(
             market=market, side=side, amount=amount, type=type, price=price)
 
-    @check_has('deposit')
     def deposit(self, *args, **kwargs):
+        self._check_has('deposit')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'deposit')
 
-    @check_has('editOrder')
     def edit_order(self, *args, **kwargs):
+        self._check_has('editOrder')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'edit_order')
 
-    @check_has('fetchBalance')
     def fetch_balance(self, params={}):
+        self._check_has('fetchBalance')
         result = self._exchange_backend.fetch_balance()
         return self.parse_balance(result)
 
-    @check_has('fetchClosedOrders')
     def fetch_closed_orders(self, *args, **kwargs):
+        self._check_has('fetchClosedOrders')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_closed_orders')
 
-    @check_has('fetchCurrencies')
     def fetch_currencies(self, params={}):
+        self._check_has('fetchCurrencies')
         return super().fetch_markets(params)
 
-    @check_has('fetchDepositAddress')
     def fetch_deposit_address(self, *args, **kwargs):
+        self._check_has('fetchDepositAddress')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_deposit_address')
 
-    @check_has('fetchDeposits')
     def fetch_deposits(self, *args, **kwargs):
+        self._check_has('fetchDeposits')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_deposits')
 
-    @check_has('fetchL2OrderBook')
     def fetch_l2_order_book(self, *args, **kwargs):
+        self._check_has('fetchL2OrderBook')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_l2_order_book')
 
-    @check_has('fetchLedger')
     def fetch_ledger(self, *args, **kwargs):
+        self._check_has('fetchLedger')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_ledger')
 
-    @check_has('fetchMarkets')
     def fetch_markets(self, params={}):
+        self._check_has('fetchMarkets')
         return super().fetch_markets(params)
 
-    @check_has('fetchMyTrades')
     def fetch_my_trades(self, *args, **kwargs):
+        self._check_has('fetchMyTrades')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_my_trades')
 
-    @check_has('fetchOHLCV')
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None,
                     params={}):
+        self._check_has('fetchOHLCV')
         if timeframe not in self.timeframes:
             raise BadRequest('Timeframe {} not supported by exchange'.format(
                 timeframe))
@@ -127,91 +120,91 @@ class BacktestExchangeBase:
                    values.volume] for values in data.itertuples()]
         return result
 
-    @check_has('fetchOpenOrders')
     def fetch_open_orders(self, *args, **kwargs):
+        self._check_has('fetchOpenOrders')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_open_orders')
 
-    @check_has('fetchOrder')
     def fetch_order(self, id, symbol=None, params={}):
+        self._check_has('fetchOrder')
         return self._exchange_backend.fetch_order(id=id, symbol=symbol)
 
-    @check_has('fetchOrderBook')
     def fetch_order_book(self, *args, **kwargs):
+        self._check_has('fetchOrderBook')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_order_book')
 
-    @check_has('fetchOrderBooks')
     def fetch_order_books(self, *args, **kwargs):
+        self._check_has('fetchOrderBooks')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_order_books')
 
-    @check_has('fetchOrders')
     def fetch_orders(self, *args, **kwargs):
+        self._check_has('fetchOrders')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_orders')
 
-    @check_has('fetchStatus')
     def fetch_status(self, *args, **kwargs):
+        self._check_has('fetchStatus')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_status')
 
-    @check_has('fetchTicker')
     def fetch_ticker(self, *args, **kwargs):
+        self._check_has('fetchTicker')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_ticker')
 
-    @check_has('fetchTickers')
     def fetch_tickers(self, *args, **kwargs):
+        self._check_has('fetchTickers')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_tickers')
 
-    @check_has('fetchTime')
     def fetch_time(self, *args, **kwargs):
+        self._check_has('fetchTime')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_time')
 
-    @check_has('fetchTrades')
     def fetch_trades(self, *args, **kwargs):
+        self._check_has('fetchTrades')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_trades')
 
-    @check_has('fetchTradingFee')
     def fetch_trading_fee(self, *args, **kwargs):
+        self._check_has('fetchTradingFee')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_trading_fee')
 
-    @check_has('fetchTradingFees')
     def fetch_trading_fees(self, *args, **kwargs):
+        self._check_has('fetchTradingFees')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_trading_fees')
 
-    @check_has('fetchFundingFee')
     def fetch_funding_fee(self, *args, **kwargs):
+        self._check_has('fetchFundingFee')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_funding_fee')
 
-    @check_has('fetchFundingFees')
     def fetch_funding_fees(self, *args, **kwargs):
+        self._check_has('fetchFundingFees')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_funding_fees')
 
-    @check_has('fetchTradingLimits')
     def fetch_trading_limits(self, *args, **kwargs):
+        self._check_has('fetchTradingLimits')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_trading_limits')
 
-    @check_has('fetchTransactions')
     def fetch_transactions(self, *args, **kwargs):
+        self._check_has('fetchTransactions')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_transactions')
 
-    @check_has('fetchWithdrawals')
     def fetch_withdrawals(self, *args, **kwargs):
+        self._check_has('fetchWithdrawals')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_withdrawals')
 
-    @check_has('withdraw')
     def withdraw(self, *args, **kwargs):
+        self._check_has('withdraw')
         raise NotImplementedError('BacktestExchange does not support method '
                                   'withdraw')

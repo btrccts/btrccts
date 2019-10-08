@@ -3,7 +3,6 @@ import re
 import pandas
 from unittest.mock import MagicMock, patch
 from sccts.backtest import Backtest
-from sccts.exchange import check_has
 from sccts.backtest import ccxt
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import InvalidOrder, BadRequest
@@ -79,35 +78,6 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             'active': True,
         }
 
-    def test__check_has(self):
-        exchange = MagicMock()
-        exchange.id = 'mock'
-        exchange.has = {'has_it': True,
-                        'dont_have_it': False,
-                        'emu': 'emulated'}
-        func = MagicMock()
-        # dont has it
-        decorator = check_has('dont_have_it')
-        wrapped_func = decorator(func)
-        with self.assertRaises(NotImplementedError) as e:
-            wrapped_func(exchange)
-        self.assertEqual(str(e.exception),
-                         'mock: method not implemented: dont_have_it')
-        func.assert_not_called()
-        # has
-        decorator = check_has('has_it')
-        wrapped_func = decorator(func)
-        result = wrapped_func(exchange)
-        func.assert_called_once_with(exchange)
-        self.assertEqual(result, func())
-        # emulated
-        func.reset_mock()
-        decorator = check_has('emu')
-        wrapped_func = decorator(func)
-        result = wrapped_func(exchange)
-        func.assert_called_once_with(exchange)
-        self.assertEqual(result, func())
-
     @patch.object(Exchange, 'load_markets')
     def test__exchange_methods_check_has(self, mock):
         params_per_method = {
@@ -115,6 +85,8 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             'createMarketOrder': ['BTC/USD', 'sell', 5],
             'createOrder': ['BTC/USD', 'sell', 'market', 5],
             'fetchOHLCV': ['BTC/USD', '1m'],
+            'cancelOrder': ['id'],
+            'fetchOrder': ['id'],
         }
         exchange = self.backtest.create_exchange('binance')
         for i in ccxt_has:
@@ -125,13 +97,15 @@ class BacktestExchangeBaseTest(unittest.TestCase):
                 getattr(exchange, snake_case)(*params)
             self.assertEqual(str(e.exception),
                              'binance: method not implemented: {}'.format(i))
-            exchange.has[i] = True
-            if i not in ccxt_has_implemented:
-                with self.assertRaises(NotImplementedError) as e:
-                    getattr(exchange, snake_case)(*params)
-                self.assertEqual(str(e.exception),
-                                 'BacktestExchange does not support method {}'
-                                 .format(snake_case))
+            for state in [True, 'emulated']:
+                exchange.has[i] = state
+                if i not in ccxt_has_implemented:
+                    with self.assertRaises(NotImplementedError) as e:
+                        getattr(exchange, snake_case)(*params)
+                    self.assertEqual(
+                        str(e.exception),
+                        'BacktestExchange does not support method {}'
+                        .format(snake_case))
 
     def template__propagate_method_call(self, function_name, parameters):
         exchange = self.backtest.create_exchange('binance')
