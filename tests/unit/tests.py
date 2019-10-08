@@ -1,10 +1,10 @@
 import unittest
-from tests.unittests.backtest import BacktestTest, TimeframeTest
-from tests.unittests.exchange import BacktestExchangeBaseTest
-from tests.unittests.exchange_backend import ExchangeBackendTest
-from tests.unittests.exchange_account import ExchangeAccountTest
-from tests.unittests.balance import BalanceTest
-from tests.unittests.pep_checker import Pep8Test
+from tests.unit.backtest import BacktestTest, TimeframeTest
+from tests.unit.exchange import BacktestExchangeBaseTest
+from tests.unit.exchange_backend import ExchangeBackendTest
+from tests.unit.exchange_account import ExchangeAccountTest
+from tests.unit.balance import BalanceTest
+from tests.unit.pep_checker import Pep8Test
 
 
 def test_suite():

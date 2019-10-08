@@ -12,5 +12,5 @@ Setup a virtualenv:
 
 ## Run tests
 
-    .venv/bin/python -m unittest tests/unittests/unittests.py
+    .venv/bin/python -m unittest tests/unit/tests.py
     .venv/bin/python -m unittest tests/integration/tests.py
