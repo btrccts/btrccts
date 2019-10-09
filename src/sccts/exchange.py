@@ -66,10 +66,11 @@ class BacktestExchangeBase:
         result = self._exchange_backend.fetch_balance()
         return self.parse_balance(result)
 
-    def fetch_closed_orders(self, *args, **kwargs):
+    def fetch_closed_orders(
+            self, symbol=None, since=None, limit=None, params={}):
         self._check_has('fetchClosedOrders')
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_closed_orders')
+        return self._exchange_backend.fetch_closed_orders(
+            symbol=symbol, since=since, limit=limit)
 
     def fetch_currencies(self, params={}):
         self._check_has('fetchCurrencies')
