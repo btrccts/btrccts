@@ -22,6 +22,9 @@ class ExchangeAccountTest(unittest.TestCase):
         data = {'high': [6, 2, 4],
                 'low': [5, 0.5, 1]}
         self.eth_btc_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
+        data = {'high': [2, 3, 4],
+                'low': [1, 2, 3]}
+        self.btc_usd_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
 
     def test__init__ohlcvs_index_start_bigger_than_start_date(self):
         df = self.eth_btc_ohlcvs.drop(self.eth_btc_ohlcvs.index[0])
@@ -96,7 +99,8 @@ class ExchangeAccountTest(unittest.TestCase):
                           'ETH': {'free': 0, 'total': 0, 'used': 0.0}})
         self.assertEqual(str(e.exception),
                          exception_text)
-        # TODO: Test fetch_open_orders / fetch_closed_orders empty
+        self.assertEqual(account.fetch_closed_orders(), [])
+        # TODO: Test fetch_open_orders empty
 
     def template__create_order__market_and_limit_error(
             self, exception_text, exception, market, side, amount, price):
@@ -412,6 +416,98 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: order some_id does not exist')
 
+    def test__fetch_closed_orders__empty(self):
+        account = ExchangeAccount(timeframe=self.timeframe)
+        self.assertEqual(account.fetch_closed_orders(), [])
+
+    def test__fetch_closed_orders(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                          'BTC/USD': self.btc_usd_ohlcvs},
+                                  balances={'BTC': 10})
+        market_buy_eth_btc = account.create_order(market=self.eth_btc_market,
+                                                  side='buy', type='market',
+                                                  amount=2, price=None)['id']
+        market_sell_btc_usd = account.create_order(market=self.btc_usd_market,
+                                                   side='sell', type='market',
+                                                   amount=3, price=None)['id']
+        cancel_sell_btc_usd = account.create_order(market=self.btc_usd_market,
+                                                   side='sell', type='limit',
+                                                   amount=1, price=50)['id']
+        limit_buy_btc_usd = account.create_order(market=self.btc_usd_market,
+                                                 side='buy', type='limit',
+                                                 amount=0.5, price=3)['id']
+        market_buy_eth_btc_order = {
+            'amount': 2.0,
+             'average': 2.003,
+             'cost': 4.006,
+             'datetime': '2017-01-01T01:01:00.000Z',
+             'fee': 0,
+             'filled': 2.0,
+             'id': market_buy_eth_btc,
+             'info': {},
+             'lastTradeTimestamp': 1483232460000,
+             'price': 2.003,
+             'remaining': 0,
+             'side': 'buy',
+             'status': 'closed',
+             'symbol': 'ETH/BTC',
+             'timestamp': 1483232460000,
+             'trades': None,
+             'type': 'market'}
+        market_sell_btc_usd_order = {
+            'amount': 3.0,
+            'average': 1.997,
+            'cost': 5.991,
+            'datetime': '2017-01-01T01:01:00.000Z',
+            'fee': 0,
+            'filled': 3.0,
+            'id': market_sell_btc_usd,
+            'info': {},
+            'lastTradeTimestamp': 1483232460000,
+            'price': 1.997,
+            'remaining': 0,
+            'side': 'sell',
+            'status': 'closed',
+            'symbol': 'BTC/USD',
+            'timestamp': 1483232460000,
+            'trades': None,
+            'type': 'market'}
+        limit_buy_btc_usd_order = {
+            'amount': 0.5,
+            'average': 3.0,
+            'cost': 1.5,
+            'datetime': '2017-01-01T01:01:00.000Z',
+            'fee': 0,
+            'filled': 0.5,
+            'id': limit_buy_btc_usd,
+            'info': {},
+            'lastTradeTimestamp': 1483232520000,
+            'price': 3.0,
+            'remaining': 0,
+            'side': 'buy',
+            'status': 'closed',
+            'symbol': 'BTC/USD',
+            'timestamp': 1483232460000,
+            'trades': None,
+            'type': 'limit'}
+        self.assertEqual(account.fetch_closed_orders(),
+                         [market_buy_eth_btc_order, market_sell_btc_usd_order])
+        self.timeframe.add_timedelta()
+        self.assertEqual(account.fetch_closed_orders(),
+                         [market_buy_eth_btc_order,
+                          market_sell_btc_usd_order,
+                          limit_buy_btc_usd_order])
+        self.assertEqual(account.fetch_closed_orders(symbol='BTC/USD'),
+                         [market_sell_btc_usd_order, limit_buy_btc_usd_order])
+        self.assertEqual(account.fetch_closed_orders(since=1483232460000),
+                         [limit_buy_btc_usd_order])
+        self.assertEqual(account.fetch_closed_orders(limit=2),
+                         [market_buy_eth_btc_order,
+                          market_sell_btc_usd_order])
+        self.assertEqual(account.fetch_closed_orders(since=1483232460000),
+                         [limit_buy_btc_usd_order])
+
     def test__cancel_order__market(self):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
@@ -539,54 +635,73 @@ class ExchangeAccountTest(unittest.TestCase):
         timeframe.add_timedelta()
         return account, timeframe, order_id
 
-    def check_update_state_limit_sell_order_not_filled(self, account, id_):
+    def update_state_limit_sell_order_not_filled(self):
+        return {'amount': 2.0,
+                'average': None,
+                'cost': None,
+                'datetime': '2017-01-01T01:00:00.000Z',
+                'fee': 0,
+                'filled': 0,
+                'id': '1',
+                'info': {},
+                'lastTradeTimestamp': None,
+                'price': None,
+                'remaining': 2.0,
+                'side': 'sell',
+                'status': 'open',
+                'symbol': 'ETH/BTC',
+                'timestamp': 1483232400000,
+                'trades': None,
+                'type': 'limit'}
+
+    def check_update_state_limit_sell_fetch_order_not_filled(
+            self, account, id_):
         self.assertEqual(account.fetch_order(id_),
-                         {'amount': 2.0,
-                          'average': None,
-                          'cost': None,
-                          'datetime': '2017-01-01T01:00:00.000Z',
-                          'fee': 0,
-                          'filled': 0,
-                          'id': '1',
-                          'info': {},
-                          'lastTradeTimestamp': None,
-                          'price': None,
-                          'remaining': 2.0,
-                          'side': 'sell',
-                          'status': 'open',
-                          'symbol': 'ETH/BTC',
-                          'timestamp': 1483232400000,
-                          'trades': None,
-                          'type': 'limit'})
+                         self.update_state_limit_sell_order_not_filled())
+
+    def check_update_state_limit_sell_fetch_closed_orders_not_filled(
+            self, account):
+        self.assertEqual(account.fetch_closed_orders(), [])
 
     def check_update_state_limit_sell_fetch_balance_not_filled(self, account):
         self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 1.0, 'total': 3.0, 'used': 2.0}})
 
     def check_update_state_limit_sell_not_filled(self, account, order_id):
-        self.check_update_state_limit_sell_order_not_filled(account, order_id)
+        self.check_update_state_limit_sell_fetch_order_not_filled(
+            account, order_id)
         self.check_update_state_limit_sell_fetch_balance_not_filled(account)
-        # TODO: open orders, closed orders
+        self.check_update_state_limit_sell_fetch_closed_orders_not_filled(
+            account)
+        # TODO: open orders
 
-    def check_update_state_limit_sell_order_filled(self, account, id_):
+    def update_state_limit_sell_order_filled(self):
+        return {'amount': 2.0,
+                'average': 5.0,
+                'cost': 10,
+                'datetime': '2017-01-01T01:00:00.000Z',
+                'fee': 0,
+                'filled': 2.0,
+                'id': '1',
+                'info': {},
+                'lastTradeTimestamp': 1483232520000,
+                'price': 5.0,
+                'remaining': 0.0,
+                'side': 'sell',
+                'status': 'closed',
+                'symbol': 'ETH/BTC',
+                'timestamp': 1483232400000,
+                'trades': None,
+                'type': 'limit'}
+
+    def check_update_state_limit_sell_fetch_order_filled(self, account, id_):
         self.assertEqual(account.fetch_order(id_),
-                         {'amount': 2.0,
-                          'average': 5.0,
-                          'cost': 10,
-                          'datetime': '2017-01-01T01:00:00.000Z',
-                          'fee': 0,
-                          'filled': 2.0,
-                          'id': '1',
-                          'info': {},
-                          'lastTradeTimestamp': 1483232520000,
-                          'price': 5.0,
-                          'remaining': 0.0,
-                          'side': 'sell',
-                          'status': 'closed',
-                          'symbol': 'ETH/BTC',
-                          'timestamp': 1483232400000,
-                          'trades': None,
-                          'type': 'limit'})
+                         self.update_state_limit_sell_order_filled())
+
+    def check_update_state_limit_sell_fetch_closed_orders_filled(
+            self, account):
+        self.assertEqual(account.fetch_closed_orders(limit=5),
+                         [self.update_state_limit_sell_order_filled()])
 
     def check_update_state_limit_sell_fetch_balance_filled(self, account):
         self.assertEqual(account.fetch_balance(),
@@ -594,9 +709,11 @@ class ExchangeAccountTest(unittest.TestCase):
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def check_update_state_limit_sell_filled(self, account, order_id):
-        self.check_update_state_limit_sell_order_filled(account, order_id)
+        self.check_update_state_limit_sell_fetch_order_filled(
+            account, order_id)
         self.check_update_state_limit_sell_fetch_balance_filled(account)
-        # TODO: open orders, closed orders
+        self.check_update_state_limit_sell_fetch_closed_orders_filled(account)
+        # TODO: open orders
 
     def test__update_state__create_order__limit_sell(self):
         account, timeframe, order_id = self.setup_update_state_limit_sell()
@@ -617,7 +734,14 @@ class ExchangeAccountTest(unittest.TestCase):
     def test__update_state__fetch_order__limit_sell(self):
         account, timeframe, order_id = self.setup_update_state_limit_sell()
         # first check if this method return correct
-        self.check_update_state_limit_sell_order_filled(account, order_id)
+        self.check_update_state_limit_sell_fetch_order_filled(
+            account, order_id)
+        self.check_update_state_limit_sell_filled(account, order_id)
+
+    def test__update_state__fetch_closed_orders__limit_sell(self):
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
+        # first check if this method return correct
+        self.check_update_state_limit_sell_fetch_closed_orders_filled(account)
         self.check_update_state_limit_sell_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_sell(self):
@@ -652,54 +776,73 @@ class ExchangeAccountTest(unittest.TestCase):
         timeframe.add_timedelta()
         return account, timeframe, order_id
 
-    def check_update_state_limit_buy_order_not_filled(self, account, id_):
+    def update_state_limit_buy_order_not_filled(self):
+        return {'amount': 1.5,
+                'average': None,
+                'cost': None,
+                'datetime': '2017-01-01T01:00:00.000Z',
+                'fee': 0,
+                'filled': 0,
+                'id': '1',
+                'info': {},
+                'lastTradeTimestamp': None,
+                'price': None,
+                'remaining': 1.5,
+                'side': 'buy',
+                'status': 'open',
+                'symbol': 'ETH/BTC',
+                'timestamp': 1483232400000,
+                'trades': None,
+                'type': 'limit'}
+
+    def check_update_state_limit_buy_fetch_order_not_filled(
+            self, account, id_):
         self.assertEqual(account.fetch_order(id_),
-                         {'amount': 1.5,
-                          'average': None,
-                          'cost': None,
-                          'datetime': '2017-01-01T01:00:00.000Z',
-                          'fee': 0,
-                          'filled': 0,
-                          'id': '1',
-                          'info': {},
-                          'lastTradeTimestamp': None,
-                          'price': None,
-                          'remaining': 1.5,
-                          'side': 'buy',
-                          'status': 'open',
-                          'symbol': 'ETH/BTC',
-                          'timestamp': 1483232400000,
-                          'trades': None,
-                          'type': 'limit'})
+                         self.update_state_limit_buy_order_not_filled())
+
+    def check_update_state_limit_buy_fetch_closed_orders_not_filled(
+            self, account):
+        self.assertEqual(account.fetch_closed_orders(),
+                         [])
 
     def check_update_state_limit_buy_fetch_balance_not_filled(self, account):
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 9.0, 'total': 15.0, 'used': 6.0}})
 
     def check_update_state_limit_buy_not_filled(self, account, order_id):
-        self.check_update_state_limit_buy_order_not_filled(account, order_id)
+        self.check_update_state_limit_buy_fetch_order_not_filled(
+            account, order_id)
         self.check_update_state_limit_buy_fetch_balance_not_filled(account)
-        # TODO: open orders, closed orders
+        self.check_update_state_limit_buy_fetch_closed_orders_not_filled(
+            account)
+        # TODO: open orders
 
-    def check_update_state_limit_buy_order_filled(self, account, id_):
+    def update_state_limit_buy_order_filled(self):
+        return {'amount': 1.5,
+                'average': 4.0,
+                'cost': 6,
+                'datetime': '2017-01-01T01:00:00.000Z',
+                'fee': 0,
+                'filled': 1.5,
+                'id': '1',
+                'info': {},
+                'lastTradeTimestamp': 1483232520000,
+                'price': 4.0,
+                'remaining': 0.0,
+                'side': 'buy',
+                'status': 'closed',
+                'symbol': 'ETH/BTC',
+                'timestamp': 1483232400000,
+                'trades': None,
+                'type': 'limit'}
+
+    def check_update_state_limit_buy_fetch_order_filled(self, account, id_):
         self.assertEqual(account.fetch_order(id_),
-                         {'amount': 1.5,
-                          'average': 4.0,
-                          'cost': 6,
-                          'datetime': '2017-01-01T01:00:00.000Z',
-                          'fee': 0,
-                          'filled': 1.5,
-                          'id': '1',
-                          'info': {},
-                          'lastTradeTimestamp': 1483232520000,
-                          'price': 4.0,
-                          'remaining': 0.0,
-                          'side': 'buy',
-                          'status': 'closed',
-                          'symbol': 'ETH/BTC',
-                          'timestamp': 1483232400000,
-                          'trades': None,
-                          'type': 'limit'})
+                         self.update_state_limit_buy_order_filled())
+
+    def check_update_state_limit_buy_fetch_closed_orders_filled(self, account):
+        self.assertEqual(account.fetch_closed_orders(limit=5),
+                         [self.update_state_limit_buy_order_filled()])
 
     def check_update_state_limit_buy_fetch_balance_filled(self, account):
         self.assertEqual(account.fetch_balance(),
@@ -707,9 +850,10 @@ class ExchangeAccountTest(unittest.TestCase):
                           'ETH': {'free': 1.5, 'total': 1.5, 'used': 0.0}})
 
     def check_update_state_limit_buy_filled(self, account, order_id):
-        self.check_update_state_limit_buy_order_filled(account, order_id)
+        self.check_update_state_limit_buy_fetch_order_filled(account, order_id)
         self.check_update_state_limit_buy_fetch_balance_filled(account)
-        # TODO: open orders, closed orders
+        self.check_update_state_limit_buy_fetch_closed_orders_filled(account)
+        # TODO: open orders
 
     def test__update_state__create_order__limit_buy(self):
         account, timeframe, order_id = self.setup_update_state_limit_buy()
@@ -730,7 +874,13 @@ class ExchangeAccountTest(unittest.TestCase):
     def test__update_state__fetch_order__limit_buy(self):
         account, timeframe, order_id = self.setup_update_state_limit_buy()
         # first check if this method return correct
-        self.check_update_state_limit_buy_order_filled(account, order_id)
+        self.check_update_state_limit_buy_fetch_order_filled(account, order_id)
+        self.check_update_state_limit_buy_filled(account, order_id)
+
+    def test__update_state__fetch_closed_orders__limit_buy(self):
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
+        # first check if this method return correct
+        self.check_update_state_limit_buy_fetch_closed_orders_filled(account)
         self.check_update_state_limit_buy_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_buy(self):

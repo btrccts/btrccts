@@ -262,3 +262,22 @@ class ExchangeAccount:
             raise OrderNotFound('ExchangeAccount: order {} does not exist'
                                 .format(id))
         return self._return_decimal_to_float(order.copy())
+
+    def _filter_sort_orders(
+            self, orders, since, limit, symbol, since_get, filter_non_zero):
+        usable_orders = [order for _, order in orders.items()
+                         if (symbol is None or order['symbol'] == symbol)
+                         and (filter_non_zero is None or
+                              order[filter_non_zero] != 0)
+                         and (since is None or order[since_get] > since)]
+        usable_orders = sorted(usable_orders, key=lambda x: x[since_get])
+        return usable_orders[:limit]
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None):
+        self._update_orders()
+        orders = self._filter_sort_orders(orders=self._closed_orders,
+                                          symbol=symbol, limit=limit,
+                                          since=since,
+                                          filter_non_zero='filled',
+                                          since_get='lastTradeTimestamp')
+        return [self._return_decimal_to_float(o) for o in orders]
