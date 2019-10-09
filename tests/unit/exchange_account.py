@@ -437,63 +437,12 @@ class ExchangeAccountTest(unittest.TestCase):
         limit_buy_btc_usd = account.create_order(market=self.btc_usd_market,
                                                  side='buy', type='limit',
                                                  amount=0.5, price=3)['id']
-        market_buy_eth_btc_order = {
-            'amount': 2.0,
-            'average': 2.003,
-            'cost': 4.006,
-            'datetime': '2017-01-01T01:01:00.000Z',
-            'fee': 0,
-            'filled': 2.0,
-            'id': market_buy_eth_btc,
-            'info': {},
-            'lastTradeTimestamp': 1483232460000,
-            'price': 2.003,
-            'remaining': 0,
-            'side': 'buy',
-            'status': 'closed',
-            'symbol': 'ETH/BTC',
-            'timestamp': 1483232460000,
-            'trades': None,
-            'type': 'market'}
-        market_sell_btc_usd_order = {
-            'amount': 3.0,
-            'average': 1.997,
-            'cost': 5.991,
-            'datetime': '2017-01-01T01:01:00.000Z',
-            'fee': 0,
-            'filled': 3.0,
-            'id': market_sell_btc_usd,
-            'info': {},
-            'lastTradeTimestamp': 1483232460000,
-            'price': 1.997,
-            'remaining': 0,
-            'side': 'sell',
-            'status': 'closed',
-            'symbol': 'BTC/USD',
-            'timestamp': 1483232460000,
-            'trades': None,
-            'type': 'market'}
-        limit_buy_btc_usd_order = {
-            'amount': 0.5,
-            'average': 3.0,
-            'cost': 1.5,
-            'datetime': '2017-01-01T01:01:00.000Z',
-            'fee': 0,
-            'filled': 0.5,
-            'id': limit_buy_btc_usd,
-            'info': {},
-            'lastTradeTimestamp': 1483232520000,
-            'price': 3.0,
-            'remaining': 0,
-            'side': 'buy',
-            'status': 'closed',
-            'symbol': 'BTC/USD',
-            'timestamp': 1483232460000,
-            'trades': None,
-            'type': 'limit'}
+        market_buy_eth_btc_order = account.fetch_order(market_buy_eth_btc)
+        market_sell_btc_usd_order = account.fetch_order(market_sell_btc_usd)
         self.assertEqual(account.fetch_closed_orders(),
                          [market_buy_eth_btc_order, market_sell_btc_usd_order])
         self.timeframe.add_timedelta()
+        limit_buy_btc_usd_order = account.fetch_order(limit_buy_btc_usd)
         self.assertEqual(account.fetch_closed_orders(),
                          [market_buy_eth_btc_order,
                           market_sell_btc_usd_order,
