@@ -280,4 +280,4 @@ class ExchangeAccount:
                                           since=since,
                                           filter_non_zero='filled',
                                           since_get='lastTradeTimestamp')
-        return [self._return_decimal_to_float(o) for o in orders]
+        return [self._return_decimal_to_float(o.copy()) for o in orders]

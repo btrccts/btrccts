@@ -508,6 +508,19 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_closed_orders(since=1483232460000),
                          [limit_buy_btc_usd_order])
 
+    def test__fetch_closed_orders__dont_return_internals(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 7,
+                                            'ETH': 2})
+        account.create_order(market=self.eth_btc_market, side='buy',
+                             type='market', amount=1, price=None)
+        order = account.fetch_closed_orders()[0]
+        order_copy = order.copy()
+        for key in list(order.keys()):
+            del order[key]
+        self.assertEqual([order_copy], account.fetch_closed_orders())
+
     def test__cancel_order__market(self):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
