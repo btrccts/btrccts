@@ -32,6 +32,10 @@ class ExchangeBackend:
     def cancel_order(self, id, symbol=None):
         return self._account.cancel_order(id=id, symbol=symbol)
 
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None):
+        return self._account.fetch_closed_orders(symbol=symbol, since=since,
+                                                 limit=limit)
+
     def fetch_ohlcv_dataframe(self, symbol, timeframe='1m', since=None,
                               limit=None, params={}):
         # Exchanges in the real world have different behaviour, when there is
