@@ -2,7 +2,7 @@ import unittest
 import re
 import pandas
 from unittest.mock import MagicMock, patch
-from sccts.backtest import Backtest
+from sccts.backtest import BacktestContext
 from sccts.backtest import ccxt
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import InvalidOrder, BadRequest
@@ -65,7 +65,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
 
     def setUp(self):
         self.binance_backend_mock = MagicMock()
-        self.backtest = Backtest(
+        self.backtest = BacktestContext(
             timeframe=None,
             exchange_backends={'binance': self.binance_backend_mock})
         self.btc_usd_market = {

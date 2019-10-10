@@ -30,7 +30,7 @@ class Timeframe:
         return self._pd_end_date
 
 
-class Backtest:
+class BacktestContext:
 
     def __init__(self, timeframe, exchange_backends={}):
         self._exchange_backends = defaultdict(functools.partial(
@@ -53,3 +53,6 @@ class Backtest:
 
     def date(self):
         return self._timeframe.date()
+
+    def state(self):
+        return 'backtest'

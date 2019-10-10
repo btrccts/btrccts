@@ -2,7 +2,7 @@ import ccxt
 import unittest
 import pandas
 from unittest.mock import patch
-from sccts.backtest import Backtest, Timeframe
+from sccts.backtest import BacktestContext, Timeframe
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 
@@ -11,10 +11,10 @@ def pd_ts(s):
     return pandas.Timestamp(s, tz='UTC')
 
 
-class BacktestTest(unittest.TestCase):
+class BacktestContextTest(unittest.TestCase):
 
     def test__create_exchange__not_an_exchange(self):
-        backtest = Backtest(timeframe=None)
+        backtest = BacktestContext(timeframe=None)
         with self.assertRaises(ValueError) as e:
             backtest.create_exchange('not_an_exchange')
         self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
@@ -24,9 +24,10 @@ class BacktestTest(unittest.TestCase):
         base_init_mock.return_value = None
         bitfinex_backend = ExchangeBackend(timeframe=None)
         binance_backend = ExchangeBackend(timeframe=None)
-        backtest = Backtest(timeframe=None,
-                            exchange_backends={'bitfinex': bitfinex_backend,
-                                               'binance': binance_backend})
+        backtest = BacktestContext(timeframe=None,
+                                   exchange_backends={
+                                       'bitfinex': bitfinex_backend,
+                                       'binance': binance_backend})
         exchange = backtest.create_exchange('bitfinex', {'parameter': 123})
         base_init_mock.assert_called_once_with(
             config={'parameter': 123},
@@ -42,7 +43,7 @@ class BacktestTest(unittest.TestCase):
         timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                               pd_end_date=pd_ts('2017-01-01 1:03'),
                               pd_timedelta=pandas.Timedelta(minutes=1))
-        backtest = Backtest(timeframe=timeframe)
+        backtest = BacktestContext(timeframe=timeframe)
         exchange = backtest.create_exchange('binance', {'some': 'test'})
         self.assertEqual(exchange.__class__.__bases__,
                          (BacktestExchangeBase, ccxt.binance))
@@ -56,10 +57,14 @@ class BacktestTest(unittest.TestCase):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                       pd_end_date=pd_ts('2017-01-01 1:35'),
                       pd_timedelta=pandas.Timedelta(minutes=1))
-        backtest = Backtest(timeframe=t)
+        backtest = BacktestContext(timeframe=t)
         self.assertEqual(backtest.date(), pd_ts('2017-01-01 1:00'))
         t.add_timedelta()
         self.assertEqual(backtest.date(), pd_ts('2017-01-01 1:01'))
+
+    def test__state(self):
+        backtest = BacktestContext(timeframe=None)
+        self.assertEqual(backtest.state(), 'backtest')
 
 
 class TimeframeTest(unittest.TestCase):
