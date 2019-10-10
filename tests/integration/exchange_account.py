@@ -42,6 +42,24 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
                          self.timeframe.date().value / 1e6)
         self.assertTrue(order['filled'] != 0)
 
+    def test__cancel_order__next_order_gets_filled(self):
+        account, timeframe = self.account, self.timeframe
+        create_result = account.create_order(market=self.eth_btc_market,
+                                             side='buy', type='limit',
+                                             amount=3, price=8.5)
+        first_buy_id = create_result['id']
+        create_result = account.create_order(market=self.eth_btc_market,
+                                             side='buy', type='limit',
+                                             amount=2, price=6.1)
+        last_buy_id = create_result['id']
+        account.cancel_order(first_buy_id)
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        self.assertEqual(account.fetch_balance(),
+                         {'BTC': {'free': 37.8, 'total': 37.8, 'used': 0.0},
+                          'ETH': {'free': 102.0, 'total': 102.0, 'used': 0.0}})
+
     def test__create_order__multiple_limit_orders(self):
         account, timeframe = self.account, self.timeframe
         # Fill multiple orders at the same time
