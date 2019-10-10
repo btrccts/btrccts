@@ -100,7 +100,7 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(str(e.exception),
                          exception_text)
         self.assertEqual(account.fetch_closed_orders(), [])
-        # TODO: Test fetch_open_orders empty
+        self.assertEqual(account.fetch_open_orders(), [])
 
     def template__create_order__market_and_limit_error(
             self, exception_text, exception, market, side, amount, price):
@@ -621,6 +621,11 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_order(id_),
                          self.update_state_limit_sell_order_not_filled())
 
+    def check_update_state_limit_sell_fetch_open_orders_not_filled(
+            self, account):
+        self.assertEqual(account.fetch_open_orders(),
+                         [self.update_state_limit_sell_order_not_filled()])
+
     def check_update_state_limit_sell_fetch_closed_orders_not_filled(
             self, account):
         self.assertEqual(account.fetch_closed_orders(), [])
@@ -635,7 +640,8 @@ class ExchangeAccountTest(unittest.TestCase):
         self.check_update_state_limit_sell_fetch_balance_not_filled(account)
         self.check_update_state_limit_sell_fetch_closed_orders_not_filled(
             account)
-        # TODO: open orders
+        self.check_update_state_limit_sell_fetch_open_orders_not_filled(
+            account)
 
     def update_state_limit_sell_order_filled(self):
         return {'amount': 2.0,
@@ -660,6 +666,9 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_order(id_),
                          self.update_state_limit_sell_order_filled())
 
+    def check_update_state_limit_sell_fetch_open_orders_filled(self, account):
+        self.assertEqual(account.fetch_open_orders(), [])
+
     def check_update_state_limit_sell_fetch_closed_orders_filled(
             self, account):
         self.assertEqual(account.fetch_closed_orders(limit=5),
@@ -675,7 +684,7 @@ class ExchangeAccountTest(unittest.TestCase):
             account, order_id)
         self.check_update_state_limit_sell_fetch_balance_filled(account)
         self.check_update_state_limit_sell_fetch_closed_orders_filled(account)
-        # TODO: open orders
+        self.check_update_state_limit_sell_fetch_open_orders_filled(account)
 
     def test__update_state__create_order__limit_sell(self):
         account, timeframe, order_id = self.setup_update_state_limit_sell()
@@ -704,6 +713,12 @@ class ExchangeAccountTest(unittest.TestCase):
         account, timeframe, order_id = self.setup_update_state_limit_sell()
         # first check if this method return correct
         self.check_update_state_limit_sell_fetch_closed_orders_filled(account)
+        self.check_update_state_limit_sell_filled(account, order_id)
+
+    def test__update_state__fetch_open_orders__limit_sell(self):
+        account, timeframe, order_id = self.setup_update_state_limit_sell()
+        # first check if this method return correct
+        self.check_update_state_limit_sell_fetch_open_orders_filled(account)
         self.check_update_state_limit_sell_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_sell(self):
@@ -767,6 +782,11 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_closed_orders(),
                          [])
 
+    def check_update_state_limit_buy_fetch_open_orders_not_filled(
+            self, account):
+        self.assertEqual(account.fetch_open_orders(),
+                         [self.update_state_limit_buy_order_not_filled()])
+
     def check_update_state_limit_buy_fetch_balance_not_filled(self, account):
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 9.0, 'total': 15.0, 'used': 6.0}})
@@ -777,7 +797,7 @@ class ExchangeAccountTest(unittest.TestCase):
         self.check_update_state_limit_buy_fetch_balance_not_filled(account)
         self.check_update_state_limit_buy_fetch_closed_orders_not_filled(
             account)
-        # TODO: open orders
+        self.check_update_state_limit_buy_fetch_open_orders_not_filled(account)
 
     def update_state_limit_buy_order_filled(self):
         return {'amount': 1.5,
@@ -806,6 +826,9 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_closed_orders(limit=5),
                          [self.update_state_limit_buy_order_filled()])
 
+    def check_update_state_limit_buy_fetch_open_orders_filled(self, account):
+        self.assertEqual(account.fetch_open_orders(limit=5), [])
+
     def check_update_state_limit_buy_fetch_balance_filled(self, account):
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 9.0, 'total': 9.0, 'used': 0.0},
@@ -815,7 +838,7 @@ class ExchangeAccountTest(unittest.TestCase):
         self.check_update_state_limit_buy_fetch_order_filled(account, order_id)
         self.check_update_state_limit_buy_fetch_balance_filled(account)
         self.check_update_state_limit_buy_fetch_closed_orders_filled(account)
-        # TODO: open orders
+        self.check_update_state_limit_buy_fetch_open_orders_filled(account)
 
     def test__update_state__create_order__limit_buy(self):
         account, timeframe, order_id = self.setup_update_state_limit_buy()
@@ -843,6 +866,12 @@ class ExchangeAccountTest(unittest.TestCase):
         account, timeframe, order_id = self.setup_update_state_limit_buy()
         # first check if this method return correct
         self.check_update_state_limit_buy_fetch_closed_orders_filled(account)
+        self.check_update_state_limit_buy_filled(account, order_id)
+
+    def test__update_state__fetch_open_orders__limit_buy(self):
+        account, timeframe, order_id = self.setup_update_state_limit_buy()
+        # first check if this method return correct
+        self.check_update_state_limit_buy_fetch_open_orders_filled(account)
         self.check_update_state_limit_buy_filled(account, order_id)
 
     def test__update_state__cancel_order__limit_buy(self):

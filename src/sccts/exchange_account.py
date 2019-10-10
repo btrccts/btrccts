@@ -180,11 +180,11 @@ class ExchangeAccount:
             self._fill_order(order, price, timestamp)
             self._closed_orders[order_id] = order
         if type_limit:
-            self._open_orders[order_id] = order
             if buy:
                 self._balances[quote].change_used(price * amount)
             else:
                 self._balances[base].change_used(amount)
+            self._open_orders[order_id] = order
             self._private_order_info[order_id] = {
                 'id': order_id,
                 'base': base,
@@ -280,4 +280,13 @@ class ExchangeAccount:
                                           since=since,
                                           filter_non_zero='filled',
                                           since_get='lastTradeTimestamp')
+        return [self._return_decimal_to_float(o.copy()) for o in orders]
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None):
+        self._update_orders()
+        orders = self._filter_sort_orders(orders=self._open_orders,
+                                          symbol=symbol, limit=limit,
+                                          since=since,
+                                          filter_non_zero=None,
+                                          since_get='timestamp')
         return [self._return_decimal_to_float(o.copy()) for o in orders]
