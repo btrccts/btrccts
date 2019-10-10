@@ -2,7 +2,8 @@ import ccxt
 import unittest
 import pandas
 from unittest.mock import patch
-from sccts.backtest import BacktestContext, Timeframe
+from sccts.timeframe import Timeframe
+from sccts.backtest import BacktestContext
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 

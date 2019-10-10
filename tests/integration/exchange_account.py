@@ -1,6 +1,6 @@
 import pandas
 import unittest
-from sccts.backtest import Timeframe
+from sccts.timeframe import Timeframe
 from sccts.exchange_account import ExchangeAccount
 
 

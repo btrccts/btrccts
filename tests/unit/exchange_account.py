@@ -3,7 +3,7 @@ import unittest
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
 from sccts.exchange_account import ExchangeAccount
-from sccts.backtest import Timeframe
+from sccts.timeframe import Timeframe
 
 
 class ExchangeAccountTest(unittest.TestCase):

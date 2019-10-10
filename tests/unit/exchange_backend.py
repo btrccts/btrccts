@@ -3,7 +3,7 @@ import unittest
 from ccxt.base.errors import BadRequest, BadSymbol
 from unittest.mock import patch, MagicMock
 from sccts.exchange_backend import ExchangeBackend
-from sccts.backtest import Timeframe
+from sccts.timeframe import Timeframe
 
 
 class ExchangeBackendTest(unittest.TestCase):
