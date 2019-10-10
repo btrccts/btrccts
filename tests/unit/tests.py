@@ -1,5 +1,6 @@
 import unittest
-from tests.unit.backtest import BacktestContextTest, TimeframeTest
+from tests.unit.timeframe import TimeframeTest
+from tests.unit.backtest import BacktestContextTest
 from tests.unit.exchange import BacktestExchangeBaseTest
 from tests.unit.exchange_backend import ExchangeBackendTest
 from tests.unit.exchange_account import ExchangeAccountTest
