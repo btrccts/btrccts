@@ -44,6 +44,7 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
 
     def test__cancel_order__next_order_gets_filled(self):
         account, timeframe = self.account, self.timeframe
+        # Create order that would get filled first
         create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=3, price=8.5)
