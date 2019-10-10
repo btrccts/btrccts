@@ -6,79 +6,82 @@ from sccts.exchange_account import ExchangeAccount
 
 class ExchangeAccountIntegrationTest(unittest.TestCase):
 
-    def test__create_order__multiple_limit_orders(self):
-        eth_btc_market = {'base': 'ETH', 'quote': 'BTC',
-                          'symbol': 'ETH/BTC'}
-        btc_usd_market = {'base': 'BTC', 'quote': 'USD',
-                          'symbol': 'BTC/USD'}
+    def setUp(self):
+        self.eth_btc_market = {'base': 'ETH', 'quote': 'BTC',
+                              'symbol': 'ETH/BTC'}
+        self.btc_usd_market = {'base': 'BTC', 'quote': 'USD',
+                               'symbol': 'BTC/USD'}
         dates = pandas.to_datetime(['2017-06-01 1:00', '2017-06-01 1:01',
                                     '2017-06-01 1:02', '2017-06-01 1:03'],
                                    utc=True)
-        timeframe = Timeframe(pd_start_date=dates[0],
-                              pd_end_date=dates[-1],
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+        self.timeframe = Timeframe(pd_start_date=dates[0],
+                                   pd_end_date=dates[-1],
+                                   pd_timedelta=pandas.Timedelta(minutes=1))
         eth_btc_data = {'high': [10, 9, 11, 9],
                         'low': [9, 8, 7, 6]}
         eth_btc_ohlcvs = pandas.DataFrame(data=eth_btc_data, index=dates)
         btc_usd_data = {'high': [5, 6, 7, 8],
                         'low': [4, 5, 6, 7]}
         btc_usd_ohlcvs = pandas.DataFrame(data=btc_usd_data, index=dates)
-        account = ExchangeAccount(timeframe=timeframe,
-                                  ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
-                                          'BTC/USD': btc_usd_ohlcvs},
-                                  balances={'BTC': 50,
-                                            'ETH': 100})
+        self.account = ExchangeAccount(timeframe=self.timeframe,
+                                       ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
+                                               'BTC/USD': btc_usd_ohlcvs},
+                                       balances={'BTC': 50,
+                                                 'ETH': 100})
+
+    def check_order_open(self, id):
+        order = self.account.fetch_order(id)
+        self.assertEqual(order['status'], 'open')
+        self.assertEqual(order['lastTradeTimestamp'], None)
+        self.assertEqual(order['filled'], 0)
+
+    def check_order_filled_now(self, id):
+        order = self.account.fetch_order(id)
+        self.assertEqual(order['status'], 'closed')
+        self.assertEqual(order['lastTradeTimestamp'],
+                         self.timeframe.date().value / 1e6)
+        self.assertTrue(order['filled'] != 0)
+
+    def test__create_order__multiple_limit_orders(self):
+        account, timeframe = self.account, self.timeframe
         # Fill multiple orders at the same time
-        create_result = account.create_order(market=eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=1, price=7.5)
         same_time_buy_id = create_result['id']
-        create_result = account.create_order(market=btc_usd_market,
+        create_result = account.create_order(market=self.btc_usd_market,
                                              side='sell', type='limit',
                                              amount=2, price=6.5)
         same_time_sell_id = create_result['id']
         # Fill on earlier date then order created before
-        create_result = account.create_order(market=eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=3, price=8.5)
         first_buy_id = create_result['id']
         # Fill at last
-        create_result = account.create_order(market=eth_btc_market,
+        create_result = account.create_order(market=self.eth_btc_market,
                                              side='buy', type='limit',
                                              amount=2, price=6.1)
         last_buy_id = create_result['id']
 
-        def check_order_open(id):
-            order = account.fetch_order(id)
-            self.assertEqual(order['status'], 'open')
-            self.assertEqual(order['lastTradeTimestamp'], None)
-            self.assertEqual(order['filled'], 0)
-
-        def check_order_filled_now(id):
-            order = account.fetch_order(id)
-            self.assertEqual(order['status'], 'closed')
-            self.assertEqual(order['lastTradeTimestamp'],
-                             timeframe.date().value / 1e6)
-            self.assertTrue(order['filled'] != 0)
-
-        check_order_open(same_time_buy_id)
-        check_order_open(same_time_sell_id)
-        check_order_open(first_buy_id)
-        check_order_open(last_buy_id)
+        self.check_order_open(same_time_buy_id)
+        self.check_order_open(same_time_sell_id)
+        self.check_order_open(first_buy_id)
+        self.check_order_open(last_buy_id)
 
         timeframe.add_timedelta()
-        check_order_filled_now(first_buy_id)
-        check_order_open(same_time_buy_id)
-        check_order_open(same_time_sell_id)
-        check_order_open(last_buy_id)
+        self.check_order_filled_now(first_buy_id)
+        self.check_order_open(same_time_buy_id)
+        self.check_order_open(same_time_sell_id)
+        self.check_order_open(last_buy_id)
 
         timeframe.add_timedelta()
-        check_order_filled_now(same_time_buy_id)
-        check_order_filled_now(same_time_sell_id)
-        check_order_open(last_buy_id)
+        self.check_order_filled_now(same_time_buy_id)
+        self.check_order_filled_now(same_time_sell_id)
+        self.check_order_open(last_buy_id)
 
         timeframe.add_timedelta()
-        check_order_filled_now(last_buy_id)
+        self.check_order_filled_now(last_buy_id)
 
         self.assertEqual(
             account.fetch_order(same_time_buy_id),
