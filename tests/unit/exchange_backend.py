@@ -298,17 +298,8 @@ class ExchangeBackendTest(unittest.TestCase):
         backend = ExchangeBackend(ohlcvs={symbol: self.fetch_ohlcv_ohlcvs},
                                   timeframe=self.fetch_ohlcv_timeframe,
                                   balances={})
-        result = backend.fetch_ohlcv_dataframe(symbol=symbol,
-                                               since=1483232330000)
-        pandas.testing.assert_frame_equal(
-            result,
-            pandas.DataFrame(
-                data={
-                    'open': [4, 8, 12],
-                    'high': [5, 9, 13],
-                    'low': [3, 7, 11],
-                    'close': [8, 12, 16],
-                    'volume': [100, 104, 108]},
-                dtype=float,
-                index=pandas.date_range(
-                    '2017-01-01 1:01', '2017-01-01 1:03', 3, tz='UTC')))
+        with self.assertRaises(BadRequest) as e:
+            backend.fetch_ohlcv_dataframe(symbol=symbol,
+                                          since=1483232330000)
+        self.assertEqual(str(e.exception), 'ExchangeBackend: fetch_ohlcv: no '
+                                           'date availabe at since')

@@ -53,11 +53,15 @@ class ExchangeBackend:
             limit = 5
         timeframe_sec = Exchange.parse_timeframe(timeframe)
         pd_timeframe = pandas.Timedelta(timeframe_sec, unit='s')
+        ohlcv_start_date = ohlcv.index[0]
         if since is None:
-            pd_since = ohlcv.index[0]
+            pd_since = ohlcv_start_date
         else:
             pd_since = pandas.Timestamp(since, unit='ms', tz='UTC')
         pd_since = pd_since.ceil(pd_timeframe)
+        if pd_since < ohlcv_start_date:
+            raise BadRequest('ExchangeBackend: fetch_ohlcv: no date availabe '
+                             'at since')
         pd_until = pd_since + limit * pd_timeframe - pandas.Timedelta('1m')
         if pd_until > current_date:
             raise BadRequest(
