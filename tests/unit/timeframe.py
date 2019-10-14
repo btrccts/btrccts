@@ -6,13 +6,21 @@ from tests.unit.common import pd_ts
 
 class TimeframeTest(unittest.TestCase):
 
-    def test__end_date_smaller_than_start_date(self):
+    def test__init__end_date_smaller_than_start_date(self):
         with self.assertRaises(ValueError) as e:
             Timeframe(pd_start_date=pd_ts('2017-02-01'),
                       pd_end_date=pd_ts('2017-01-01'),
                       pd_timedelta=pandas.Timedelta(minutes=1))
         self.assertEqual(str(e.exception),
                          'Timeframe: end date is smaller then start date')
+
+    def test__init__timedelta_negative(self):
+        with self.assertRaises(ValueError) as e:
+            Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 1:03'),
+                      pd_timedelta=pandas.Timedelta(minutes=-1))
+        self.assertEqual(str(e.exception),
+                         'Timeframe: timedelta needs to be positive')
 
     def test__add_timedelta__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),

@@ -3,6 +3,8 @@ class Timeframe:
     def __init__(self, pd_start_date, pd_end_date, pd_timedelta):
         if pd_end_date < pd_start_date:
             raise ValueError('Timeframe: end date is smaller then start date')
+        if pd_timedelta.value <= 0:
+            raise ValueError('Timeframe: timedelta needs to be positive')
         self._pd_timedelta = pd_timedelta
         self._pd_start_date = pd_start_date
         self._pd_current_date = pd_start_date
