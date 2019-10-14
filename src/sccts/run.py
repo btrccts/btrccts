@@ -23,4 +23,8 @@ def load_ohlcvs(basedir, exchange_names, symbols):
                 raise FileNotFoundError(
                     'Cannot find symbol ({}) file for exchange ({})'
                     .format(symbol, exchange_name))
+            except ValueError:
+                raise ValueError(
+                    'Cannot parse symbol ({}) file for exchange ({})'
+                    .format(symbol, exchange_name))
     return result

@@ -57,6 +57,24 @@ class LoadCSVTests(unittest.TestCase):
             str(e.exception),
             'Cannot find symbol (ETH/BTC) file for exchange (bittrex)')
 
+    def test__load_ohlcvs__exchange_does_not_exist(self):
+        with self.assertRaises(FileNotFoundError) as e:
+            load_ohlcvs(basedir=test_dir,
+                        exchange_names=['inexistent'],
+                        symbols=['ETH/BTC'])
+        self.assertEqual(
+            str(e.exception),
+            'Cannot find symbol (ETH/BTC) file for exchange (inexistent)')
+
+    def test__load_ohlcvs__defect_file(self):
+        with self.assertRaises(ValueError) as e:
+            load_ohlcvs(basedir=test_dir,
+                        exchange_names=['defect'],
+                        symbols=['XRP/ETH'])
+        self.assertEqual(
+            str(e.exception),
+            'Cannot parse symbol (XRP/ETH) file for exchange (defect)')
+
     def test__load_ohlcvs(self):
         result = load_ohlcvs(basedir=test_dir,
                              exchange_names=['bitmex', 'binance'],
