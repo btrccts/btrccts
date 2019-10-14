@@ -1,7 +1,7 @@
 import pandas
 import os
 import unittest
-from sccts.run import load_ohlcvs
+from sccts.run import load_ohlcvs, serialize_symbol
 
 here = os.path.dirname(__file__)
 test_dir = os.path.join(here, 'run', 'load_ohlcvs')
@@ -44,6 +44,9 @@ class LoadCSVTests(unittest.TestCase):
     def assert_frame_equal(self, d1, d2):
         pandas.testing.assert_frame_equal(d1.sort_index(axis=1),
                                           d2.sort_index(axis=1))
+
+    def test__serialize_symbol(self):
+        self.assertEqual(serialize_symbol('BTC/USD'), 'BTC_USD')
 
     def test__load_ohlcvs__symbol_file_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
