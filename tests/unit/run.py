@@ -1,7 +1,11 @@
 import pandas
 import os
 import unittest
-from sccts.run import load_ohlcvs, serialize_symbol
+from sccts.algorithm import AlgorithmBase
+from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason
+from sccts.timeframe import Timeframe
+from tests.unit.common import pd_ts
+from unittest.mock import Mock, call
 
 here = os.path.dirname(__file__)
 test_dir = os.path.join(here, 'run', 'load_ohlcvs')
@@ -98,3 +102,81 @@ class LoadCSVTests(unittest.TestCase):
                          ['ETH/BTC', 'XRP/ETH'])
         self.assert_frame_equal(result['bitmex']['XRP/ETH'], bitmex_xrp_eth)
         self.assert_frame_equal(result['bitmex']['ETH/BTC'], bitmex_eth_btc)
+
+
+class MainLoopTests(unittest.TestCase):
+
+    def setUp(self):
+        self.timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                                   pd_end_date=pd_ts('2017-01-01 1:03'),
+                                   pd_timedelta=pandas.Timedelta(minutes=1))
+
+    def test__main_loop__successful(self):
+        algorithm = Mock(spec=AlgorithmBase)
+        error = ValueError('a')
+        algorithm.next_iteration.side_effect = [0, 0, error, 0]
+        with self.assertLogs('sccts') as cm:
+            result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
+        self.assertEqual(result, algorithm)
+        self.assertEqual(algorithm.mock_calls,
+                         [call.next_iteration(),
+                          call.next_iteration(),
+                          call.next_iteration(),
+                          call.handle_exception(error),
+                          call.next_iteration(),
+                          call.exit(reason=ExitReason.FINISHED)])
+        self.assertEqual(len(cm.output), 4)
+        self.assertEqual(cm.output[0:2],
+                         ['INFO:sccts:Starting main_loop',
+                          'ERROR:sccts:Error occured during next_iteration'])
+        self.assertTrue(cm.output[2].startswith(
+            'ERROR:sccts:a\nTraceback (most recent call last):\n  File'))
+        self.assertEqual(cm.output[3], 'INFO:sccts:Finished main_loop')
+
+    def test__main_loop__handle_exception_throws(self):
+        algorithm = Mock(spec=AlgorithmBase)
+        error = ValueError('a')
+        algorithm.next_iteration.side_effect = [0, error, 0, 0]
+        algorithm.handle_exception.side_effect = AttributeError('side')
+        with self.assertLogs('sccts') as cm:
+            with self.assertRaises(AttributeError) as e:
+                main_loop(timeframe=self.timeframe, algorithm=algorithm)
+        self.assertEqual(str(e.exception), 'side')
+        self.assertEqual(algorithm.mock_calls,
+                         [call.next_iteration(),
+                          call.next_iteration(),
+                          call.handle_exception(error),
+                          call.exit(reason=ExitReason.EXCEPTION)])
+        self.assertEqual(len(cm.output), 5)
+        self.assertEqual(cm.output[0:2],
+                         ['INFO:sccts:Starting main_loop',
+                          'ERROR:sccts:Error occured during next_iteration'])
+        self.assertTrue(cm.output[2].startswith(
+            'ERROR:sccts:a\nTraceback (most recent call last):\n  File'))
+        self.assertEqual(cm.output[3], 'ERROR:sccts:Exiting because of '
+                                       'exception in handle_exception')
+        self.assertTrue(cm.output[4].startswith(
+            'ERROR:sccts:side\nTraceback (most recent call last):\n  File'))
+
+    def template__main_loop__exit_exception(self, exception_class, log_str):
+        algorithm = Mock(spec=AlgorithmBase)
+        algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
+        with self.assertLogs('sccts') as cm:
+            with self.assertRaises(exception_class) as e:
+                main_loop(timeframe=self.timeframe, algorithm=algorithm)
+        self.assertEqual(str(e.exception), 'aa')
+        self.assertEqual(algorithm.mock_calls,
+                         [call.next_iteration(),
+                          call.next_iteration(),
+                          call.exit(reason=ExitReason.STOPPED)])
+        self.assertEqual(cm.output,
+                         ['INFO:sccts:Starting main_loop', log_str])
+
+    def test__main_loop__systemexit(self):
+        self.template__main_loop__exit_exception(
+            SystemExit, 'INFO:sccts:Stopped because of SystemExit: aa')
+
+    def test__main_loop__keyboardinterrupt(self):
+        self.template__main_loop__exit_exception(
+            KeyboardInterrupt,
+            'INFO:sccts:Stopped because of KeyboardInterrupt: aa')

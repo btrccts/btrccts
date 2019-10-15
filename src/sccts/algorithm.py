@@ -8,12 +8,10 @@ class AlgorithmBase:
         pass
 
     def exit(self, reason):
-        # reason: 'stopped', 'exception', 'finished'
         pass
 
     def handle_exception(self, e):
         raise e
 
-    def handle_period(self):
-        # TODO There is probably a better name needed
+    def next_iteration(self):
         pass

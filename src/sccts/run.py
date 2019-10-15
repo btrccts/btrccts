@@ -1,6 +1,8 @@
-import pandas
+import logging
 import numpy
 import os
+import pandas
+from enum import Enum
 
 
 def serialize_symbol(symbol):
@@ -36,3 +38,38 @@ def load_ohlcvs(basedir, exchange_names, symbols):
                     'Cannot parse symbol ({}) file for exchange ({})'
                     .format(symbol, exchange_name))
     return result
+
+
+class ExitReason(Enum):
+
+    STOPPED = 'stopped'
+    EXCEPTION = 'exception'
+    FINISHED = 'finished'
+
+
+def main_loop(timeframe, algorithm):
+    logger = logging.getLogger(__package__)
+    logger.info('Starting main_loop')
+    while timeframe.date() is not None:
+        try:
+            algorithm.next_iteration()
+        except (SystemExit, KeyboardInterrupt) as e:
+            logger.info('Stopped because of {}: {}'.format(
+                type(e).__name__, e))
+            algorithm.exit(reason=ExitReason.STOPPED)
+            raise e
+        except BaseException as e:
+            logger.error('Error occured during next_iteration')
+            logger.exception(e)
+            try:
+                algorithm.handle_exception(e)
+            except BaseException as e:
+                logger.error(
+                    'Exiting because of exception in handle_exception')
+                logger.exception(e)
+                algorithm.exit(reason=ExitReason.EXCEPTION)
+                raise e
+        timeframe.add_timedelta()
+    algorithm.exit(reason=ExitReason.FINISHED)
+    logger.info('Finished main_loop')
+    return algorithm
