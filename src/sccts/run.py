@@ -9,7 +9,7 @@ def serialize_symbol(symbol):
     return symbol.replace('/', '_')
 
 
-def load_ohlcvs(basedir, exchange_names, symbols):
+def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
     result = {}
     complete_exchange = False
     if len(symbols) == 0:
@@ -17,7 +17,7 @@ def load_ohlcvs(basedir, exchange_names, symbols):
     for exchange_name in exchange_names:
         exchange_result = {}
         result[exchange_name] = exchange_result
-        exchange_path = os.path.join(basedir, exchange_name)
+        exchange_path = os.path.join(ohlcv_dir, exchange_name)
         if complete_exchange:
             symbols = [x[:-4].replace('_', '/')
                        for x in os.listdir(exchange_path)

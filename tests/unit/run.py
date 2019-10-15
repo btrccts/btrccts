@@ -54,7 +54,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__symbol_file_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
-            load_ohlcvs(basedir=test_dir,
+            load_ohlcvs(ohlcv_dir=test_dir,
                         exchange_names=['bittrex'],
                         symbols=['ETH/BTC'])
         self.assertEqual(
@@ -63,7 +63,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__exchange_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
-            load_ohlcvs(basedir=test_dir,
+            load_ohlcvs(ohlcv_dir=test_dir,
                         exchange_names=['inexistent'],
                         symbols=['ETH/BTC'])
         self.assertEqual(
@@ -72,7 +72,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__defect_file(self):
         with self.assertRaises(ValueError) as e:
-            load_ohlcvs(basedir=test_dir,
+            load_ohlcvs(ohlcv_dir=test_dir,
                         exchange_names=['defect'],
                         symbols=['XRP/ETH'])
         self.assertEqual(
@@ -80,7 +80,7 @@ class LoadCSVTests(unittest.TestCase):
             'Cannot parse symbol (XRP/ETH) file for exchange (defect)')
 
     def test__load_ohlcvs(self):
-        result = load_ohlcvs(basedir=test_dir,
+        result = load_ohlcvs(ohlcv_dir=test_dir,
                              exchange_names=['bitmex', 'binance'],
                              symbols=['ETH/BTC', 'XRP/ETH'])
         self.assertEqual(sorted(result.keys()), ['binance', 'bitmex'])
@@ -94,7 +94,7 @@ class LoadCSVTests(unittest.TestCase):
         self.assert_frame_equal(result['bitmex']['ETH/BTC'], bitmex_eth_btc)
 
     def test__load_ohlcvs__all_symbols_per_exchange(self):
-        result = load_ohlcvs(basedir=test_dir,
+        result = load_ohlcvs(ohlcv_dir=test_dir,
                              exchange_names=['bitmex'],
                              symbols=[])
         self.assertEqual(sorted(result.keys()), ['bitmex'])
