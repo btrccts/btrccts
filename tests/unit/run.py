@@ -88,3 +88,13 @@ class LoadCSVTests(unittest.TestCase):
         self.assert_frame_equal(result['binance']['XRP/ETH'], binance_xrp_eth)
         self.assert_frame_equal(result['bitmex']['XRP/ETH'], bitmex_xrp_eth)
         self.assert_frame_equal(result['bitmex']['ETH/BTC'], bitmex_eth_btc)
+
+    def test__load_ohlcvs__all_symbols_per_exchange(self):
+        result = load_ohlcvs(basedir=test_dir,
+                             exchange_names=['bitmex'],
+                             symbols=[])
+        self.assertEqual(sorted(result.keys()), ['bitmex'])
+        self.assertEqual(sorted(result['bitmex'].keys()),
+                         ['ETH/BTC', 'XRP/ETH'])
+        self.assert_frame_equal(result['bitmex']['XRP/ETH'], bitmex_xrp_eth)
+        self.assert_frame_equal(result['bitmex']['ETH/BTC'], bitmex_eth_btc)
