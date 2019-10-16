@@ -31,9 +31,12 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
             file_path = os.path.join(exchange_path,
                                      '{}.csv'.format(serialize_symbol(symbol)))
             try:
-                exchange_result[symbol] = pandas.read_csv(
+                ohlcv = pandas.read_csv(
                     file_path,
-                    index_col=0, parse_dates=[0], dtype=numpy.float)
+                    index_col=0, parse_dates=[0], dtype=numpy.float,
+                    date_parser=partial(pandas.to_datetime, utc=True)
+                    )
+                exchange_result[symbol] = ohlcv
             except FileNotFoundError:
                 raise FileNotFoundError(
                     'Cannot find symbol ({}) file for exchange ({})'
