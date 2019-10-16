@@ -53,6 +53,15 @@ class LoadCSVTests(unittest.TestCase):
     def test__serialize_symbol(self):
         self.assertEqual(serialize_symbol('BTC/USD'), 'BTC_USD')
 
+    def test__load_ohlcvs__all_symbols_no_exchange_directory(self):
+        with self.assertRaises(FileNotFoundError) as e:
+            load_ohlcvs(ohlcv_dir=ohlcv_dir,
+                        exchange_names=['acx'],
+                        symbols=[])
+        self.assertEqual(
+            str(e.exception),
+            'Cannot find ohlcv directory for exchange (acx)')
+
     def test__load_ohlcvs__symbol_file_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
             load_ohlcvs(ohlcv_dir=ohlcv_dir,

@@ -19,9 +19,14 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
         result[exchange_name] = exchange_result
         exchange_path = os.path.join(ohlcv_dir, exchange_name)
         if complete_exchange:
-            symbols = [x[:-4].replace('_', '/')
-                       for x in os.listdir(exchange_path)
-                       if x.endswith('.csv')]
+            try:
+                symbols = [x[:-4].replace('_', '/')
+                           for x in os.listdir(exchange_path)
+                           if x.endswith('.csv')]
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    'Cannot find ohlcv directory for exchange ({})'
+                    .format(exchange_name))
         for symbol in symbols:
             file_path = os.path.join(exchange_path,
                                      '{}.csv'.format(serialize_symbol(symbol)))
