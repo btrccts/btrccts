@@ -3,7 +3,7 @@ import logging
 import numpy
 import os
 import pandas
-from enum import Enum
+from enum import Enum, auto
 from functools import partial
 from sccts.backtest import BacktestContext
 from sccts.exchange_backend import ExchangeBackend
@@ -58,9 +58,9 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
 
 class ExitReason(Enum):
 
-    STOPPED = 'stopped'
-    EXCEPTION = 'exception'
-    FINISHED = 'finished'
+    STOPPED = auto()
+    EXCEPTION = auto()
+    FINISHED = auto()
 
 
 def main_loop(timeframe, algorithm):
