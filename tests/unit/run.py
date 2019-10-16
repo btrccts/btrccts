@@ -8,7 +8,8 @@ from tests.unit.common import pd_ts
 from unittest.mock import Mock, call
 
 here = os.path.dirname(__file__)
-test_dir = os.path.join(here, 'run', 'load_ohlcvs')
+data_dir = os.path.join(here, 'run', 'data_dir')
+ohlcv_dir = os.path.join(data_dir, 'ohlcvs')
 
 binance_eth_btc = pandas.DataFrame(
     index=pandas.to_datetime(['2017-08-18 00:00:00', '2017-08-18 00:01:00',
@@ -54,7 +55,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__symbol_file_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
-            load_ohlcvs(ohlcv_dir=test_dir,
+            load_ohlcvs(ohlcv_dir=ohlcv_dir,
                         exchange_names=['bittrex'],
                         symbols=['ETH/BTC'])
         self.assertEqual(
@@ -63,7 +64,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__exchange_does_not_exist(self):
         with self.assertRaises(FileNotFoundError) as e:
-            load_ohlcvs(ohlcv_dir=test_dir,
+            load_ohlcvs(ohlcv_dir=ohlcv_dir,
                         exchange_names=['inexistent'],
                         symbols=['ETH/BTC'])
         self.assertEqual(
@@ -72,7 +73,7 @@ class LoadCSVTests(unittest.TestCase):
 
     def test__load_ohlcvs__defect_file(self):
         with self.assertRaises(ValueError) as e:
-            load_ohlcvs(ohlcv_dir=test_dir,
+            load_ohlcvs(ohlcv_dir=ohlcv_dir,
                         exchange_names=['defect'],
                         symbols=['XRP/ETH'])
         self.assertEqual(
@@ -80,7 +81,7 @@ class LoadCSVTests(unittest.TestCase):
             'Cannot parse symbol (XRP/ETH) file for exchange (defect)')
 
     def test__load_ohlcvs(self):
-        result = load_ohlcvs(ohlcv_dir=test_dir,
+        result = load_ohlcvs(ohlcv_dir=ohlcv_dir,
                              exchange_names=['bitmex', 'binance'],
                              symbols=['ETH/BTC', 'XRP/ETH'])
         self.assertEqual(sorted(result.keys()), ['binance', 'bitmex'])
@@ -94,7 +95,7 @@ class LoadCSVTests(unittest.TestCase):
         self.assert_frame_equal(result['bitmex']['ETH/BTC'], bitmex_eth_btc)
 
     def test__load_ohlcvs__all_symbols_per_exchange(self):
-        result = load_ohlcvs(ohlcv_dir=test_dir,
+        result = load_ohlcvs(ohlcv_dir=ohlcv_dir,
                              exchange_names=['bitmex'],
                              symbols=[])
         self.assertEqual(sorted(result.keys()), ['bitmex'])
