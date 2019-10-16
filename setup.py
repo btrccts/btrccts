@@ -18,7 +18,7 @@ setup(
     zip_safe=False,
     extras_require={
     },
-    install_requires=['ccxt'],
+    install_requires=['ccxt', 'pandas', 'numpy'],
     entry_points={
     },
 )
