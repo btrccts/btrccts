@@ -1,8 +1,16 @@
+import appdirs
 import logging
 import numpy
 import os
 import pandas
 from enum import Enum
+from functools import partial
+from sccts.backtest import BacktestContext
+from sccts.exchange_backend import ExchangeBackend
+from sccts.timeframe import Timeframe
+
+USER_CONFIG_DIR = appdirs.user_config_dir(__package__)
+USER_DATA_DIR = appdirs.user_data_dir(__package__)
 
 
 def serialize_symbol(symbol):
