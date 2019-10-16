@@ -9,7 +9,7 @@ from unittest.mock import Mock, call
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
-ohlcv_dir = os.path.join(data_dir, 'ohlcvs')
+ohlcv_dir = os.path.join(data_dir, 'ohlcv')
 
 binance_eth_btc = pandas.DataFrame(
     index=pandas.to_datetime(['2017-08-18 00:00:00', '2017-08-18 00:01:00',
