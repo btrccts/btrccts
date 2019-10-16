@@ -81,3 +81,28 @@ def main_loop(timeframe, algorithm):
     algorithm.exit(reason=ExitReason.FINISHED)
     logger.info('Finished main_loop')
     return algorithm
+
+
+def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
+                      start_balances,
+                      pd_start_date, pd_end_date, pd_timedelta,
+                      data_dir=USER_DATA_DIR):
+    timeframe = Timeframe(pd_start_date=pd_start_date,
+                          pd_end_date=pd_end_date,
+                          pd_timedelta=pd_timedelta)
+    ohlcv_dir = os.path.join(data_dir, 'ohlcv')
+    ohlcvs = load_ohlcvs(ohlcv_dir=ohlcv_dir,
+                         exchange_names=exchange_names,
+                         symbols=symbols)
+    exchange_backends = {}
+    for exchange_name in exchange_names:
+        exchange_backends[exchange_name] = ExchangeBackend(
+            timeframe=timeframe,
+            balances=start_balances.get(exchange_name, {}),
+            ohlcvs=ohlcvs.get(exchange_name, {}))
+    context = BacktestContext(timeframe=timeframe,
+                              exchange_backends=exchange_backends)
+    algorithm = AlgorithmClass(context=context,
+                               args=args)
+    return main_loop(timeframe=timeframe,
+                     algorithm=algorithm)
