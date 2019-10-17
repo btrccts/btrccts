@@ -1,7 +1,7 @@
 class AlgorithmBase:
 
     @staticmethod
-    def configure_parser(argparser):
+    def configure_argparser(argparser):
         pass
 
     def __init__(self, context, args):

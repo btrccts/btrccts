@@ -1,12 +1,13 @@
 import pandas
 import os
+import sys
 import unittest
 from sccts.algorithm import AlgorithmBase
 from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
-    execute_algorithm
+    execute_algorithm, parse_params_and_execute_algorithm
 from sccts.timeframe import Timeframe
 from tests.unit.common import pd_ts
-from unittest.mock import Mock, call
+from unittest.mock import Mock, call, patch
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
@@ -196,35 +197,50 @@ class MainLoopTests(unittest.TestCase):
             'INFO:sccts:Stopped because of KeyboardInterrupt: aa')
 
 
+class TestAlgo(AlgorithmBase):
+
+    @staticmethod
+    def configure_argparser(argparser):
+        argparser.add_argument('--algo-bool', action='store_true')
+        argparser.add_argument('--some-string', default='')
+
+    def __init__(self, context, args):
+        self.args = args
+        self.exit_reason = None
+        self.iterations = 0
+        self.kraken = context.create_exchange('kraken')
+        self.okex3 = context.create_exchange('okex3')
+
+    def next_iteration(self):
+        self.iterations += 1
+        if self.iterations == 1:
+            self.okex3.create_order(type='market', side='sell',
+                                    symbol='ETH/BTC', amount=2)
+        if self.iterations == 4:
+            self.kraken.create_order(type='market', side='buy',
+                                     symbol='BTC/USD', amount=0.1)
+
+    def exit(self, reason):
+        self.exit_reason = reason
+
+
+def assert_test_algo_result(self, result):
+    self.assertEqual(type(result), TestAlgo)
+    self.assertEqual(result.exit_reason, ExitReason.FINISHED)
+    self.assertEqual(result.iterations, 4)
+    self.assertEqual(result.okex3.fetch_balance()['total'],
+                     {'BTC': 199.7, 'ETH': 1.0})
+    self.assertEqual(result.kraken.fetch_balance()['total'],
+                     {'BTC': 0.1, 'USD': 99.09865})
+
+
 class ExecuteAlgorithmTests(unittest.TestCase):
 
     def test__execute_algorithm(self):
         # TODO: Patch load_markets for exchanges
-
-        class Algo(AlgorithmBase):
-
-            def __init__(self, context, args):
-                self.args = args
-                self.exit_reason = None
-                self.iterations = 0
-                self.kraken = context.create_exchange('kraken')
-                self.okex3 = context.create_exchange('okex3')
-
-            def next_iteration(self):
-                self.iterations += 1
-                if self.iterations == 1:
-                    self.okex3.create_order(type='market', side='sell',
-                                            symbol='ETH/BTC', amount=2)
-                if self.iterations == 4:
-                    self.kraken.create_order(type='market', side='buy',
-                                             symbol='BTC/USD', amount=0.1)
-
-            def exit(self, reason):
-                self.exit_reason = reason
-
         result = execute_algorithm(exchange_names=['kraken', 'okex3'],
                                    symbols=[],
-                                   AlgorithmClass=Algo,
+                                   AlgorithmClass=TestAlgo,
                                    args=self,
                                    start_balances={'okex3': {'ETH': 3},
                                                    'kraken': {'USD': 100}},
@@ -232,11 +248,130 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                    pd_end_date=pd_ts('2019-10-01 10:16'),
                                    pd_timedelta=pandas.Timedelta(minutes=2),
                                    data_dir=data_dir)
-        self.assertEqual(type(result), Algo)
-        self.assertEqual(result.exit_reason, ExitReason.FINISHED)
         self.assertEqual(result.args, self)
-        self.assertEqual(result.iterations, 4)
-        self.assertEqual(result.okex3.fetch_balance()['total'],
-                         {'BTC': 199.7, 'ETH': 1.0})
-        self.assertEqual(result.kraken.fetch_balance()['total'],
-                         {'BTC': 0.1, 'USD': 99.09865})
+        assert_test_algo_result(self, result)
+
+
+def execute_algorithm_return_args(**kwargs):
+    return kwargs['args']
+
+
+class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
+
+    def create_sys_argv(self, argv_params):
+        argv_dict = {'--data-directory': data_dir,
+                     '--exchanges': 'kraken',
+                     '--symbol': 'BTC/USD',
+                     '--start-date': '2001'}
+        argv_dict.update(argv_params)
+        sys_argv = ['file.py']
+        for x, y in argv_dict.items():
+            sys_argv.append(x)
+            if y is not None:
+                sys_argv.append(y)
+        return sys_argv
+
+    def test__parse_params_and_execute_algorithm(self):
+        # TODO: Patch load_markets for exchanges
+        sys_argv = self.create_sys_argv({
+            '--start-balances': '{"okex3": {"ETH": 3},'
+                                ' "kraken": {"USD": 100}}',
+            '--exchanges': 'kraken,okex3',
+            '--symbols': '',
+            '--start-date': '2019-10-01 10:10',
+            '--end-date': '2019-10-01 10:16',
+            '--algo-bool': None,
+            '--some-string': 'testSTR',
+            '--timedelta': '2m'})
+        with patch.object(sys, 'argv', sys_argv):
+            with self.assertLogs():
+                result = parse_params_and_execute_algorithm(TestAlgo)
+        assert_test_algo_result(self, result)
+        self.assertEqual(result.args.algo_bool, True)
+        self.assertEqual(result.args.some_string, 'testSTR')
+        self.assertEqual(result.args.live, False)
+
+    @patch('sccts.run.execute_algorithm')
+    def template__parse_params_and_execute_algorithm__check_call(
+            self, execute_algorithm, argv_params, check_params):
+        sys_argv = self.create_sys_argv(argv_params)
+        execute_algorithm.side_effect = execute_algorithm_return_args
+        with patch.object(sys, 'argv', sys_argv):
+            args = parse_params_and_execute_algorithm(TestAlgo)
+        params = {
+            'AlgorithmClass': TestAlgo,
+            'args': args,
+            'data_dir': data_dir,
+            'exchange_names': ['kraken'],
+            'pd_end_date': pd_ts('2009-01-01 00:00:00+0000'),
+            'pd_start_date': pd_ts('2001-01-01 00:00:00+0000'),
+            'pd_timedelta': pandas.Timedelta('0 days 00:01:00'),
+            'start_balances': {},
+            'symbols': ['BTC/USD'],
+        }
+        params.update(check_params)
+        execute_algorithm.assert_called_once_with(**params)
+
+    def template__parse_params_and_execute_algorithm__warning(
+            self, logs, argv_params, check_params):
+        with self.assertLogs() as cm:
+            self.template__parse_params_and_execute_algorithm__check_call(
+                argv_params=argv_params, check_params=check_params)
+        self.assertEqual(cm.output, logs)
+
+    def test__parse_params_and_execute_algorithm__no_symbols_warning(self):
+        self.template__parse_params_and_execute_algorithm__warning(
+            argv_params={'--symbols': ''}, check_params={'symbols': []},
+            logs=['WARNING:sccts:No symbols specified, load all ohlcvs '
+                  'per each exchange. This can lead to long start times'])
+
+    def test__parse_params_and_execute_algorithm__no_exchanges_warning(self):
+        self.template__parse_params_and_execute_algorithm__warning(
+            argv_params={'--exchanges': ''},
+            check_params={'exchange_names': []},
+            logs=['WARNING:sccts:No exchanges specified, do not load ohlcv'])
+
+    @patch('sccts.run.execute_algorithm')
+    def template__parse_params_and_execute_algorithm__exception(
+            self, execute_algorithm, argv_params, exception, exception_test):
+        sys_argv = self.create_sys_argv(argv_params)
+        with patch.object(sys, 'argv', sys_argv):
+            with self.assertRaises(exception) as e:
+                parse_params_and_execute_algorithm(TestAlgo)
+        self.assertEqual(str(e.exception), exception_test)
+        execute_algorithm.assert_not_called()
+
+    def test__parse_params_and_execute_algorithm__start_date_wrong(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--start-date': ''}, exception=ValueError,
+            exception_test='Start date is not valid')
+
+    def test__parse_params_and_execute_algorithm__end_date_wrong(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--end-date': ''}, exception=ValueError,
+            exception_test='End date is not valid')
+
+    def test__parse_params_and_execute_algorithm__timedelta_empty(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--timedelta': ''}, exception=ValueError,
+            exception_test='Timedelta is not valid')
+
+    def test__parse_params_and_execute_algorithm__timedelta_wrong(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--timedelta': '1X'}, exception=ValueError,
+            exception_test='Timedelta is not valid')
+
+    def test__parse_params_and_execute_algorithm__live(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--live': None}, exception=ValueError,
+            exception_test='Live mode is not supported yet')
+
+    def test__parse_params_and_execute_algorithm__multiple_exchanges(self):
+        self.template__parse_params_and_execute_algorithm__check_call(
+            argv_params={'--exchanges': 'kraken,okex3,bitfinex'},
+            check_params={'exchange_names': ['kraken', 'okex3', 'bitfinex']})
+
+    def test__parse_params_and_execute_algorithm__multiple_symbols(self):
+        self.template__parse_params_and_execute_algorithm__check_call(
+            argv_params={'--symbols': 'BTC/USD,ETH/BTC,XRP/ETH'},
+            check_params={'symbols': ['BTC/USD', 'ETH/BTC', 'XRP/ETH']})
