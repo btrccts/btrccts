@@ -160,7 +160,7 @@ class ExchangeAccount:
             'remaining': amount,
             'status': 'open',
             'fee': 0,  # TODO {'currency': 'BTC', 'cost': 0, 'rate': 0}
-            'trades': None,  # TODO: []
+            'trades': None,
         }
 
         if type_market:
