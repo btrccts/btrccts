@@ -1,5 +1,5 @@
 import unittest
-from sccts.backtest import BacktestContext
+from sccts.context import BacktestContext
 
 
 KRAKEN_BTC_USD = {

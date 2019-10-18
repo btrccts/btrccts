@@ -3,7 +3,7 @@ import unittest
 import pandas
 from unittest.mock import patch
 from sccts.timeframe import Timeframe
-from sccts.backtest import BacktestContext, ContextState
+from sccts.context import BacktestContext, ContextState
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 from tests.common import pd_ts
@@ -17,7 +17,7 @@ class BacktestContextTest(unittest.TestCase):
             backtest.create_exchange('not_an_exchange')
         self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
 
-    @patch('sccts.backtest.BacktestExchangeBase.__init__')
+    @patch('sccts.context.BacktestExchangeBase.__init__')
     def test__create_exchange__parameters(self, base_init_mock):
         base_init_mock.return_value = None
         bitfinex_backend = ExchangeBackend(timeframe=None)
@@ -33,8 +33,8 @@ class BacktestContextTest(unittest.TestCase):
         self.assertEqual(exchange.__class__.__bases__,
                          (BacktestExchangeBase, ccxt.bitfinex))
 
-    @patch('sccts.backtest.ExchangeBackend')
-    @patch('sccts.backtest.BacktestExchangeBase.__init__')
+    @patch('sccts.context.ExchangeBackend')
+    @patch('sccts.context.BacktestExchangeBase.__init__')
     def test__create_exchange__default_exchange_backend_parameters(
             self, base_init_mock, exchange_backend):
         base_init_mock.return_value = None

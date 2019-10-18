@@ -9,7 +9,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
 from functools import partial
-from sccts.backtest import BacktestContext
+from sccts.context import BacktestContext
 from sccts.exchange_backend import ExchangeBackend
 from sccts.timeframe import Timeframe
 
