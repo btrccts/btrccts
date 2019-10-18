@@ -1,7 +1,7 @@
 import ccxt
 import unittest
 import pandas
-from unittest.mock import patch
+from unittest.mock import patch, call
 from sccts.timeframe import Timeframe
 from sccts.context import BacktestContext, ContextState
 from sccts.exchange import BacktestExchangeBase
@@ -42,14 +42,22 @@ class BacktestContextTest(unittest.TestCase):
                               pd_end_date=pd_ts('2017-01-01 1:03'),
                               pd_timedelta=pandas.Timedelta(minutes=1))
         backtest = BacktestContext(timeframe=timeframe)
+        # Create two instances, to see if they get the same backend
+        backtest.create_exchange('binance', {'some': 'test'})
+        base_init_mock.assert_called_once_with(
+            config={'some': 'test'},
+            exchange_backend=exchange_backend.return_value)
         exchange = backtest.create_exchange('binance', {'some': 'test'})
         self.assertEqual(exchange.__class__.__bases__,
                          (BacktestExchangeBase, ccxt.binance))
         exchange_backend.assert_called_once_with(
             timeframe=timeframe)
-        base_init_mock.assert_called_once_with(
-            config={'some': 'test'},
-            exchange_backend=exchange_backend())
+        self.assertEqual(
+            base_init_mock.mock_calls,
+            [call(config={'some': 'test'},
+                  exchange_backend=exchange_backend.return_value),
+             call(config={'some': 'test'},
+                  exchange_backend=exchange_backend.return_value)])
 
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
