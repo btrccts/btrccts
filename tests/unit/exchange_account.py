@@ -2,6 +2,7 @@ import pandas
 import unittest
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
+from copy import deepcopy
 from sccts.exchange_account import ExchangeAccount
 from sccts.timeframe import Timeframe
 from tests.common import BTC_USD_MARKET, ETH_BTC_MARKET
@@ -401,7 +402,8 @@ class ExchangeAccountTest(unittest.TestCase):
         buy_id = account.create_order(market=ETH_BTC_MARKET, side='buy',
                                       type='market', amount=1, price=None)
         order = account.fetch_order(buy_id['id'])
-        order_copy = order.copy()
+        order_copy = deepcopy(order)
+        order['info']['test'] = 1
         for key in list(order.keys()):
             del order[key]
         self.assertEqual(order_copy, account.fetch_order(buy_id['id']))
@@ -462,10 +464,25 @@ class ExchangeAccountTest(unittest.TestCase):
         account.create_order(market=ETH_BTC_MARKET, side='buy',
                              type='market', amount=1, price=None)
         order = account.fetch_closed_orders()[0]
-        order_copy = order.copy()
+        order_copy = deepcopy(order)
+        order['info']['test'] = 1
         for key in list(order.keys()):
             del order[key]
         self.assertEqual([order_copy], account.fetch_closed_orders())
+
+    def test__fetch_open_orders__dont_return_internals(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 7,
+                                            'ETH': 2})
+        account.create_order(market=ETH_BTC_MARKET, side='buy',
+                             type='limit', amount=1, price=2)
+        order = account.fetch_open_orders()[0]
+        order_copy = deepcopy(order)
+        order['info']['test'] = 1
+        for key in list(order.keys()):
+            del order[key]
+        self.assertEqual([order_copy], account.fetch_open_orders())
 
     def test__cancel_order__market(self):
         account = ExchangeAccount(timeframe=self.timeframe,

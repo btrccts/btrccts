@@ -2,6 +2,7 @@ import pandas
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import BadRequest, InvalidOrder, OrderNotFound
 from collections import defaultdict
+from copy import deepcopy
 from decimal import Decimal
 from sccts.check_dataframe import _check_dataframe
 from sccts.convert_float import _convert_float_or_raise, _convert_float
@@ -261,7 +262,7 @@ class ExchangeAccount:
         if order is None:
             raise OrderNotFound('ExchangeAccount: order {} does not exist'
                                 .format(id))
-        return self._return_decimal_to_float(order.copy())
+        return self._return_decimal_to_float(deepcopy(order))
 
     def _filter_sort_orders(
             self, orders, since, limit, symbol, since_get, filter_non_zero):
@@ -280,7 +281,7 @@ class ExchangeAccount:
                                           since=since,
                                           filter_non_zero='filled',
                                           since_get='lastTradeTimestamp')
-        return [self._return_decimal_to_float(o.copy()) for o in orders]
+        return [self._return_decimal_to_float(deepcopy(o)) for o in orders]
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None):
         self._update_orders()
@@ -289,4 +290,4 @@ class ExchangeAccount:
                                           since=since,
                                           filter_non_zero=None,
                                           since_get='timestamp')
-        return [self._return_decimal_to_float(o.copy()) for o in orders]
+        return [self._return_decimal_to_float(deepcopy(o)) for o in orders]
