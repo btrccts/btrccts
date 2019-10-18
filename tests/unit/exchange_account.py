@@ -432,7 +432,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                                    amount=3, price=None)['id']
         account.create_order(market=BTC_USD_MARKET,
                              side='sell', type='limit',
-                             amount=1, price=50)['id']
+                             amount=1, price=50)
         limit_buy_btc_usd = account.create_order(market=BTC_USD_MARKET,
                                                  side='buy', type='limit',
                                                  amount=0.5, price=3)['id']
@@ -440,12 +440,14 @@ class ExchangeAccountTest(unittest.TestCase):
         market_sell_btc_usd_order = account.fetch_order(market_sell_btc_usd)
         self.assertEqual(account.fetch_closed_orders(),
                          [market_buy_eth_btc_order, market_sell_btc_usd_order])
+        # This fills limit orders
         self.timeframe.add_timedelta()
         limit_buy_btc_usd_order = account.fetch_order(limit_buy_btc_usd)
         self.assertEqual(account.fetch_closed_orders(),
                          [market_buy_eth_btc_order,
                           market_sell_btc_usd_order,
                           limit_buy_btc_usd_order])
+        # Test parameters
         self.assertEqual(account.fetch_closed_orders(symbol='BTC/USD'),
                          [market_sell_btc_usd_order, limit_buy_btc_usd_order])
         self.assertEqual(account.fetch_closed_orders(since=1483232460000),
@@ -453,8 +455,6 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_closed_orders(limit=2),
                          [market_buy_eth_btc_order,
                           market_sell_btc_usd_order])
-        self.assertEqual(account.fetch_closed_orders(since=1483232460000),
-                         [limit_buy_btc_usd_order])
 
     def test__fetch_closed_orders__dont_return_internals(self):
         account = ExchangeAccount(timeframe=self.timeframe,
@@ -469,6 +469,54 @@ class ExchangeAccountTest(unittest.TestCase):
         for key in list(order.keys()):
             del order[key]
         self.assertEqual([order_copy], account.fetch_closed_orders())
+
+    def test__fetch_open_orders__empty(self):
+        account = ExchangeAccount(timeframe=self.timeframe)
+        self.assertEqual(account.fetch_open_orders(), [])
+
+    def test__fetch_open_orders(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
+                                          'BTC/USD': self.btc_usd_ohlcvs},
+                                  balances={'BTC': 10})
+        limit_buy_eth_btc = account.create_order(market=ETH_BTC_MARKET,
+                                                 side='buy', type='limit',
+                                                 amount=2, price=3)['id']
+        limit_buy_eth_btc_order = account.fetch_order(limit_buy_eth_btc)
+        limit_sell_btc_usd = account.create_order(market=BTC_USD_MARKET,
+                                                  side='sell', type='limit',
+                                                  amount=3, price=10)['id']
+        limit_sell_btc_usd_order = account.fetch_order(limit_sell_btc_usd)
+        account.create_order(market=BTC_USD_MARKET,
+                             side='sell', type='market',
+                             amount=1, price=None)
+        self.assertEqual(account.fetch_open_orders(),
+                         [limit_buy_eth_btc_order, limit_sell_btc_usd_order])
+        self.timeframe.add_timedelta()
+        # order filled
+        self.assertEqual(account.fetch_open_orders(),
+                         [limit_sell_btc_usd_order])
+        limit_buy_btc_usd = account.create_order(market=BTC_USD_MARKET,
+                                                 side='buy', type='limit',
+                                                 amount=0.5, price=3)['id']
+        limit_buy_btc_usd_order = account.fetch_order(limit_buy_btc_usd)
+        limit_sell_eth_btc2 = account.create_order(market=ETH_BTC_MARKET,
+                                                   side='sell', type='limit',
+                                                   amount=0.1, price=2)['id']
+        limit_sell_eth_btc2_order = account.fetch_order(limit_sell_eth_btc2)
+        self.assertEqual(account.fetch_open_orders(),
+                         [limit_sell_btc_usd_order,
+                          limit_buy_btc_usd_order,
+                          limit_sell_eth_btc2_order])
+        # Test parameters
+        self.assertEqual(account.fetch_open_orders(symbol='BTC/USD'),
+                         [limit_sell_btc_usd_order, limit_buy_btc_usd_order])
+        self.assertEqual(account.fetch_open_orders(since=1483232460001),
+                         [limit_buy_btc_usd_order, limit_sell_eth_btc2_order])
+        self.assertEqual(account.fetch_open_orders(limit=2),
+                         [limit_sell_btc_usd_order, limit_buy_btc_usd_order])
+        self.assertEqual(account.fetch_open_orders(since=1483232460001, limit=1),
+                         [limit_buy_btc_usd_order])
 
     def test__fetch_open_orders__dont_return_internals(self):
         account = ExchangeAccount(timeframe=self.timeframe,
