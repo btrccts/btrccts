@@ -515,7 +515,8 @@ class ExchangeAccountTest(unittest.TestCase):
                          [limit_buy_btc_usd_order, limit_sell_eth_btc2_order])
         self.assertEqual(account.fetch_open_orders(limit=2),
                          [limit_sell_btc_usd_order, limit_buy_btc_usd_order])
-        self.assertEqual(account.fetch_open_orders(since=1483232460001, limit=1),
+        self.assertEqual(account.fetch_open_orders(since=1483232460001,
+                                                   limit=1),
                          [limit_buy_btc_usd_order])
 
     def test__fetch_open_orders__dont_return_internals(self):
