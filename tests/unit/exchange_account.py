@@ -610,6 +610,15 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_closed_orders(limit=2),
                          [market_buy_eth_btc_order,
                           market_sell_btc_usd_order])
+        # Canceled order
+        canceled = account.create_order(market=BTC_USD_MARKET,
+                                        side='buy', type='limit',
+                                        amount=0.1, price=1)['id']
+        account.cancel_order(canceled)
+        self.assertEqual(account.fetch_closed_orders(),
+                         [market_buy_eth_btc_order,
+                          market_sell_btc_usd_order,
+                          limit_buy_btc_usd_order])
 
     def test__fetch_closed_orders__dont_return_internals(self):
         account = ExchangeAccount(timeframe=self.timeframe,
@@ -673,6 +682,10 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_open_orders(since=1483232460001,
                                                    limit=1),
                          [limit_buy_btc_usd_order])
+        # canceled order
+        account.cancel_order(limit_sell_eth_btc2)
+        self.assertEqual(account.fetch_open_orders(),
+                         [limit_sell_btc_usd_order, limit_buy_btc_usd_order])
 
     def test__fetch_open_orders__dont_return_internals(self):
         account = ExchangeAccount(timeframe=self.timeframe,
