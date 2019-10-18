@@ -59,7 +59,7 @@ class ExchangeAccount:
             quote = private_order['quote']
             buy = private_order['buy']
 
-            self._remove_used(price, amount, base, quote, buy)
+            self._remove_used_balance(price, amount, base, quote, buy)
             self._update_balance(price, amount, base, quote, buy)
             self._fill_order(order, price, timestamp)
             self._move_to_closed_orders(order_id)
@@ -90,11 +90,11 @@ class ExchangeAccount:
                 'status': 'canceled',
             })
             private = self._private_order_info[id]
-            self._remove_used(amount=open_order['amount'],
-                              price=private['price'],
-                              base=private['base'],
-                              quote=private['quote'],
-                              buy=private['buy'])
+            self._remove_used_balance(amount=open_order['amount'],
+                                      price=private['price'],
+                                      base=private['base'],
+                                      quote=private['quote'],
+                                      buy=private['buy'])
             self._move_to_closed_orders(id)
             if private == self._next_private_order_to_update:
                 self._update_next_private_order_to_update()
@@ -230,7 +230,7 @@ class ExchangeAccount:
             self._balances[base].change_total(- amount)
             self._balances[quote].change_total(price * amount)
 
-    def _remove_used(self, price, amount, base, quote, buy):
+    def _remove_used_balance(self, price, amount, base, quote, buy):
         if buy:
             self._balances[quote].change_used(- price * amount)
         else:
