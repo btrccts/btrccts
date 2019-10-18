@@ -3,7 +3,7 @@ import unittest
 import pandas
 from unittest.mock import patch
 from sccts.timeframe import Timeframe
-from sccts.backtest import BacktestContext
+from sccts.backtest import BacktestContext, ContextState
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 from tests.unit.common import pd_ts
@@ -62,4 +62,4 @@ class BacktestContextTest(unittest.TestCase):
 
     def test__state(self):
         backtest = BacktestContext(timeframe=None)
-        self.assertEqual(backtest.state(), 'backtest')
+        self.assertEqual(backtest.state(), ContextState.BACKTEST)

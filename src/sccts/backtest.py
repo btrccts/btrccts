@@ -1,8 +1,15 @@
 import ccxt
 import functools
 from collections import defaultdict
+from enum import auto, Enum
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
+
+
+class ContextState(Enum):
+
+    BACKTEST = auto()
+    LIVE = auto()
 
 
 class BacktestContext:
@@ -30,4 +37,4 @@ class BacktestContext:
         return self._timeframe.date()
 
     def state(self):
-        return 'backtest'
+        return ContextState.BACKTEST
