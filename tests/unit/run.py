@@ -7,6 +7,7 @@ from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm
 from sccts.timeframe import Timeframe
 from tests.unit.common import pd_ts
+from tests.unit.exchange import patch_exchange_method
 from unittest.mock import Mock, call, patch
 
 here = os.path.dirname(__file__)
@@ -234,10 +235,40 @@ def assert_test_algo_result(self, result):
                      {'BTC': 0.1, 'USD': 99.09865})
 
 
+ETH_BTC_MARKET = {
+    'id': 'ETH/BTC',
+    'symbol': 'ETH/BTC',
+    'base': 'ETH',
+    'quote': 'BTC',
+    'baseId': 'ETH',
+    'quoteId': 'BTC',
+    'info': {},
+    'active': True,
+}
+BTC_USD_MARKET = {
+    'id': 'BTC/USD',
+    'symbol': 'BTC/USD',
+    'base': 'BTC',
+    'quote': 'USD',
+    'baseId': 'BTC',
+    'quoteId': 'USD',
+    'info': {},
+    'active': True,
+}
+
+
+def fetch_markets_return(markets):
+    result = {m['symbol']: m for m in markets}
+    return lambda *a, **b: result
+
+
 class ExecuteAlgorithmTests(unittest.TestCase):
 
-    def test__execute_algorithm(self):
-        # TODO: Patch load_markets for exchanges
+    @patch_exchange_method('okex3', 'fetch_markets')
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__execute_algorithm(self, okex_markets, binance_markets):
+        okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
+        binance_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         result = execute_algorithm(exchange_names=['kraken', 'okex3'],
                                    symbols=[],
                                    AlgorithmClass=TestAlgo,
@@ -271,8 +302,12 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                 sys_argv.append(y)
         return sys_argv
 
-    def test__parse_params_and_execute_algorithm(self):
-        # TODO: Patch load_markets for exchanges
+    @patch_exchange_method('okex3', 'fetch_markets')
+    @patch_exchange_method('binance', 'fetch_markets')
+    def test__parse_params_and_execute_algorithm(
+            self, okex_markets, binance_markets):
+        okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
+        binance_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         sys_argv = self.create_sys_argv({
             '--start-balances': '{"okex3": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
