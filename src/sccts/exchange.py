@@ -74,7 +74,7 @@ class BacktestExchangeBase:
 
     def fetch_currencies(self, params={}):
         self._check_has('fetchCurrencies')
-        return super().fetch_markets(params)
+        return super().fetch_currencies(params)
 
     def fetch_deposit_address(self, *args, **kwargs):
         self._check_has('fetchDepositAddress')

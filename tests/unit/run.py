@@ -265,9 +265,12 @@ class ExecuteAlgorithmTests(unittest.TestCase):
 
     @patch('ccxt.okex3.fetch_markets')
     @patch('ccxt.kraken.fetch_markets')
-    def test__execute_algorithm(self, kraken_markets, okex_markets):
+    @patch('ccxt.kraken.fetch_currencies')
+    def test__execute_algorithm(self, kraken_currencies,
+                                kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
+        kraken_currencies.return_value = []
         result = execute_algorithm(exchange_names=['kraken', 'okex3'],
                                    symbols=[],
                                    AlgorithmClass=TestAlgo,
@@ -303,10 +306,12 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     @patch('ccxt.okex3.fetch_markets')
     @patch('ccxt.kraken.fetch_markets')
+    @patch('ccxt.kraken.fetch_currencies')
     def test__parse_params_and_execute_algorithm(
-            self, kraken_markets, okex_markets):
+            self, kraken_currencies, kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
+        kraken_currencies.return_value = []
         sys_argv = self.create_sys_argv({
             '--start-balances': '{"okex3": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
