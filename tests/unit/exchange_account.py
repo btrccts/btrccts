@@ -24,6 +24,26 @@ class ExchangeAccountTest(unittest.TestCase):
                 'low': [1, 2, 3]}
         self.btc_usd_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
 
+    def setup_alternative_eth_btc_usd(self):
+        dates = pandas.to_datetime(['2017-06-01 1:00', '2017-06-01 1:01',
+                                    '2017-06-01 1:02', '2017-06-01 1:03'],
+                                   utc=True)
+        timeframe = Timeframe(pd_start_date=dates[0],
+                              pd_end_date=dates[-1],
+                              pd_timedelta=pandas.Timedelta(minutes=1))
+        eth_btc_data = {'high': [10, 9, 11, 9],
+                        'low': [9, 8, 7, 6]}
+        eth_btc_ohlcvs = pandas.DataFrame(data=eth_btc_data, index=dates)
+        btc_usd_data = {'high': [5, 6, 7, 8],
+                        'low': [4, 5, 6, 7]}
+        btc_usd_ohlcvs = pandas.DataFrame(data=btc_usd_data, index=dates)
+        account = ExchangeAccount(timeframe=timeframe,
+                                  ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
+                                          'BTC/USD': btc_usd_ohlcvs},
+                                  balances={'BTC': 50,
+                                            'ETH': 100})
+        return account, timeframe
+
     def test__init__ohlcvs_index_start_bigger_than_start_date(self):
         df = self.eth_btc_ohlcvs.drop(self.eth_btc_ohlcvs.index[0])
         with self.assertRaises(ValueError) as e:
@@ -635,6 +655,24 @@ class ExchangeAccountTest(unittest.TestCase):
                          'ExchangeAccount: cannot cancel canceled order 1')
         self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
+
+    def test__cancel_order__next_order_gets_filled(self):
+        account, timeframe = self.setup_alternative_eth_btc_usd()
+        # Create order that would get filled first
+        create_result = account.create_order(market=ETH_BTC_MARKET,
+                                             side='buy', type='limit',
+                                             amount=3, price=8.5)
+        first_buy_id = create_result['id']
+        account.create_order(market=ETH_BTC_MARKET,
+                             side='buy', type='limit',
+                             amount=2, price=6.1)
+        account.cancel_order(first_buy_id)
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        self.assertEqual(account.fetch_balance(),
+                         {'BTC': {'free': 37.8, 'total': 37.8, 'used': 0.0},
+                          'ETH': {'free': 102.0, 'total': 102.0, 'used': 0.0}})
 
     def setup_update_state_limit_sell(self):
         timeframe = Timeframe(pd_start_date=self.dates[0],

@@ -27,24 +27,6 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
                                             'ETH': 100})
         return account, timeframe
 
-    def test__cancel_order__next_order_gets_filled(self):
-        account, timeframe = self.setup_eth_btc_usd()
-        # Create order that would get filled first
-        create_result = account.create_order(market=ETH_BTC_MARKET,
-                                             side='buy', type='limit',
-                                             amount=3, price=8.5)
-        first_buy_id = create_result['id']
-        account.create_order(market=ETH_BTC_MARKET,
-                             side='buy', type='limit',
-                             amount=2, price=6.1)
-        account.cancel_order(first_buy_id)
-        timeframe.add_timedelta()
-        timeframe.add_timedelta()
-        timeframe.add_timedelta()
-        self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 37.8, 'total': 37.8, 'used': 0.0},
-                          'ETH': {'free': 102.0, 'total': 102.0, 'used': 0.0}})
-
     def test__cancel_order__does_not_get_filled(self):
         account, timeframe = self.setup_eth_btc_usd()
         create_result = account.create_order(market=ETH_BTC_MARKET,
