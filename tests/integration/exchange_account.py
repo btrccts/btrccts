@@ -27,24 +27,6 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
                                             'ETH': 100})
         return account, timeframe
 
-    def test__cancel_order__does_not_get_filled(self):
-        account, timeframe = self.setup_eth_btc_usd()
-        create_result = account.create_order(market=ETH_BTC_MARKET,
-                                             side='buy', type='limit',
-                                             amount=3, price=8.5)
-        order_id = create_result['id']
-        account.cancel_order(order_id)
-        timeframe.add_timedelta()
-        timeframe.add_timedelta()
-        timeframe.add_timedelta()
-        canceled_order = account.fetch_order(order_id)
-        self.assertEqual(canceled_order['lastTradeTimestamp'], None)
-        self.assertEqual(canceled_order['price'], None)
-        self.assertEqual(canceled_order['filled'], 0)
-        self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 50.0, 'total': 50.0, 'used': 0.0},
-                          'ETH': {'free': 100.0, 'total': 100.0, 'used': 0.0}})
-
     def test__create_order__multiple_limit_orders(self):
         account, timeframe = self.setup_eth_btc_usd()
         # Fill multiple orders at the same time
