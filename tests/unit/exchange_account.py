@@ -4,15 +4,12 @@ from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
 from sccts.exchange_account import ExchangeAccount
 from sccts.timeframe import Timeframe
+from tests.common import BTC_USD_MARKET, ETH_BTC_MARKET
 
 
 class ExchangeAccountTest(unittest.TestCase):
 
     def setUp(self):
-        self.eth_btc_market = {'base': 'ETH', 'quote': 'BTC',
-                               'symbol': 'ETH/BTC'}
-        self.btc_usd_market = {'base': 'BTC', 'quote': 'USD',
-                               'symbol': 'BTC/USD'}
         self.dates = pandas.to_datetime(['2017-01-01 1:00', '2017-01-01 1:01',
                                          '2017-01-01 1:02'], utc=True)
         self.timeframe = Timeframe(pd_start_date=self.dates[0],
@@ -117,7 +114,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__unsupported_type(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='stop',
             amount=5,
@@ -128,7 +125,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__market__price_set(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='market',
             amount=5,
@@ -147,7 +144,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__market__has_no_prices(self):
         self.template__create_order__error(
-            market=self.btc_usd_market,
+            market=BTC_USD_MARKET,
             side='buy',
             type='market',
             amount=5,
@@ -157,7 +154,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__unsupported_side(self):
         self.template__create_order__market_and_limit_error(
-            market=self.btc_usd_market,
+            market=BTC_USD_MARKET,
             side='buy',
             amount=5,
             price=1,
@@ -184,7 +181,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__amount_not_finite(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             amount=float('inf'),
             price=1,
@@ -193,7 +190,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__amount_not_a_number(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             amount='wrong number',
             price=1,
@@ -202,7 +199,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__amount_is_zero(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             amount=0,
             price=1,
@@ -211,7 +208,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__amount_less_than_zero(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             amount=-20,
             price=1,
@@ -220,7 +217,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__limit__price_not_finite(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='limit',
             amount=1,
@@ -230,7 +227,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__limit__price_not_a_number(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='limit',
             amount=1,
@@ -240,7 +237,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__limit__price_is_zero(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='limit',
             amount=1,
@@ -250,7 +247,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__limit__price_less_than_zero(self):
         self.template__create_order__error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             type='limit',
             amount=1,
@@ -260,7 +257,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__buy__insufficient_funds(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='buy',
             amount=20,
             price=1,
@@ -269,7 +266,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__create_order__sell__insufficient_funds(self):
         self.template__create_order__market_and_limit_error(
-            market=self.eth_btc_market,
+            market=ETH_BTC_MARKET,
             side='sell',
             amount=20000,
             price=1,
@@ -280,7 +277,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        account.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=ETH_BTC_MARKET, side='buy',
                              type='market', amount=1, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 0.997, 'total': 0.997, 'used': 0.0},
@@ -292,7 +289,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   balances={'BTC': 7,
                                             'ETH': 2})
         self.timeframe.add_timedelta()
-        account.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=ETH_BTC_MARKET, side='buy',
                              type='market', amount=1, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 2.994, 'total': 2.994, 'used': 0.0},
@@ -302,7 +299,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        account.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=ETH_BTC_MARKET, side='sell',
                              type='market', amount=2, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 0.9985, 'total': 0.9985,
@@ -314,7 +311,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         self.timeframe.add_timedelta()
-        account.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=ETH_BTC_MARKET, side='sell',
                              type='market', amount=2, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 1.997, 'total': 1.997, 'used': 0.0},
@@ -324,7 +321,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        account.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=ETH_BTC_MARKET, side='buy',
                              type='limit', amount=2, price=0.5)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 2, 'used': 1, 'total': 3.0}})
@@ -334,7 +331,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
         self.timeframe.add_timedelta()
-        account.create_order(market=self.eth_btc_market, side='sell',
+        account.create_order(market=ETH_BTC_MARKET, side='sell',
                              type='limit', amount=2, price=4)
         self.assertEqual(account.fetch_balance(),
                          {'ETH': {'free': 1.0, 'used': 2.0, 'total': 3.0}})
@@ -352,10 +349,10 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=ETH_BTC_MARKET, side='buy',
                                       type='market', amount=1, price=None)
         self.timeframe.add_timedelta()
-        sell_id = account.create_order(market=self.eth_btc_market, side='sell',
+        sell_id = account.create_order(market=ETH_BTC_MARKET, side='sell',
                                        type='market', amount=1, price=None)
         self.assertEqual(
             account.fetch_order(buy_id['id']),
@@ -401,7 +398,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=ETH_BTC_MARKET, side='buy',
                                       type='market', amount=1, price=None)
         order = account.fetch_order(buy_id['id'])
         order_copy = order.copy()
@@ -425,16 +422,16 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs,
                                           'BTC/USD': self.btc_usd_ohlcvs},
                                   balances={'BTC': 10})
-        market_buy_eth_btc = account.create_order(market=self.eth_btc_market,
+        market_buy_eth_btc = account.create_order(market=ETH_BTC_MARKET,
                                                   side='buy', type='market',
                                                   amount=2, price=None)['id']
-        market_sell_btc_usd = account.create_order(market=self.btc_usd_market,
+        market_sell_btc_usd = account.create_order(market=BTC_USD_MARKET,
                                                    side='sell', type='market',
                                                    amount=3, price=None)['id']
-        account.create_order(market=self.btc_usd_market,
+        account.create_order(market=BTC_USD_MARKET,
                              side='sell', type='limit',
                              amount=1, price=50)['id']
-        limit_buy_btc_usd = account.create_order(market=self.btc_usd_market,
+        limit_buy_btc_usd = account.create_order(market=BTC_USD_MARKET,
                                                  side='buy', type='limit',
                                                  amount=0.5, price=3)['id']
         market_buy_eth_btc_order = account.fetch_order(market_buy_eth_btc)
@@ -462,7 +459,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        account.create_order(market=self.eth_btc_market, side='buy',
+        account.create_order(market=ETH_BTC_MARKET, side='buy',
                              type='market', amount=1, price=None)
         order = account.fetch_closed_orders()[0]
         order_copy = order.copy()
@@ -475,7 +472,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 7,
                                             'ETH': 2})
-        buy_id = account.create_order(market=self.eth_btc_market, side='buy',
+        buy_id = account.create_order(market=ETH_BTC_MARKET, side='buy',
                                       type='market', amount=1, price=None)
         with self.assertRaises(BadRequest) as e:
             account.cancel_order(buy_id['id'])
@@ -493,7 +490,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'BTC': 3})
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=2, price=1)
         result = account.cancel_order(id=create_result['id'])
@@ -531,7 +528,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=10)
         result = account.cancel_order(id=create_result['id'])
@@ -562,7 +559,7 @@ class ExchangeAccountTest(unittest.TestCase):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=10)
         account.cancel_order(id=create_result['id'])
@@ -587,7 +584,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
                                           'BTC/USD': btc_usd_ohlcvs},
                                   balances={'ETH': 3})
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         order_id = create_result['id']
@@ -689,7 +686,7 @@ class ExchangeAccountTest(unittest.TestCase):
     def test__update_state__create_order__limit_sell(self):
         account, timeframe, order_id = self.setup_update_state_limit_sell()
         # Check if balance is available when first calling create_order
-        create_result = account.create_order(market=self.btc_usd_market,
+        create_result = account.create_order(market=BTC_USD_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         # cancel, so there is no used balance
@@ -743,7 +740,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                   ohlcvs={'ETH/BTC': eth_btc_ohlcvs,
                                           'BTC/USD': btc_usd_ohlcvs},
                                   balances={'BTC': 15})
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=1.5, price=4)
         order_id = create_result['id']
@@ -843,7 +840,7 @@ class ExchangeAccountTest(unittest.TestCase):
     def test__update_state__create_order__limit_buy(self):
         account, timeframe, order_id = self.setup_update_state_limit_buy()
         # Check if balance is available when first calling create_order
-        create_result = account.create_order(market=self.btc_usd_market,
+        create_result = account.create_order(market=BTC_USD_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=5)
         # cancel, so there is no used balance

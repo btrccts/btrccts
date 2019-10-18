@@ -9,8 +9,6 @@ from sccts.timeframe import Timeframe
 class ExchangeBackendTest(unittest.TestCase):
 
     def setUp(self):
-        self.btc_usd_market = {'base': 'BTC', 'quote': 'USD',
-                               'symbol': 'BTC/USD'}
         dates = pandas.to_datetime(['2017-01-01 1:00', '2017-01-01 1:01',
                                     '2017-01-01 1:02'], utc=True)
         self.init_timeframe = Timeframe(pd_start_date=dates[0],

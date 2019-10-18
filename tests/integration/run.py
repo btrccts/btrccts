@@ -5,7 +5,7 @@ import unittest
 from sccts.algorithm import AlgorithmBase
 from sccts.run import ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm
-from tests.unit.common import pd_ts
+from tests.common import pd_ts
 from unittest.mock import patch
 
 here = os.path.dirname(__file__)

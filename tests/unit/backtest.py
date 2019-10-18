@@ -6,7 +6,7 @@ from sccts.timeframe import Timeframe
 from sccts.backtest import BacktestContext, ContextState
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
-from tests.unit.common import pd_ts
+from tests.common import pd_ts
 
 
 class BacktestContextTest(unittest.TestCase):

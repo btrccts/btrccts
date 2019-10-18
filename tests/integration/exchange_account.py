@@ -2,15 +2,12 @@ import pandas
 import unittest
 from sccts.timeframe import Timeframe
 from sccts.exchange_account import ExchangeAccount
+from tests.common import BTC_USD_MARKET, ETH_BTC_MARKET
 
 
 class ExchangeAccountIntegrationTest(unittest.TestCase):
 
     def setup_eth_btc_usd(self):
-        self.eth_btc_market = {'base': 'ETH', 'quote': 'BTC',
-                               'symbol': 'ETH/BTC'}
-        self.btc_usd_market = {'base': 'BTC', 'quote': 'USD',
-                               'symbol': 'BTC/USD'}
         dates = pandas.to_datetime(['2017-06-01 1:00', '2017-06-01 1:01',
                                     '2017-06-01 1:02', '2017-06-01 1:03'],
                                    utc=True)
@@ -33,11 +30,11 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
     def test__cancel_order__next_order_gets_filled(self):
         account, timeframe = self.setup_eth_btc_usd()
         # Create order that would get filled first
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=3, price=8.5)
         first_buy_id = create_result['id']
-        account.create_order(market=self.eth_btc_market,
+        account.create_order(market=ETH_BTC_MARKET,
                              side='buy', type='limit',
                              amount=2, price=6.1)
         account.cancel_order(first_buy_id)
@@ -50,7 +47,7 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
 
     def test__cancel_order__does_not_get_filled(self):
         account, timeframe = self.setup_eth_btc_usd()
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=3, price=8.5)
         order_id = create_result['id']
@@ -69,21 +66,21 @@ class ExchangeAccountIntegrationTest(unittest.TestCase):
     def test__create_order__multiple_limit_orders(self):
         account, timeframe = self.setup_eth_btc_usd()
         # Fill multiple orders at the same time
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=1, price=7.5)
         same_time_buy_id = create_result['id']
-        create_result = account.create_order(market=self.btc_usd_market,
+        create_result = account.create_order(market=BTC_USD_MARKET,
                                              side='sell', type='limit',
                                              amount=2, price=6.5)
         same_time_sell_id = create_result['id']
         # Fill on earlier date then order created before
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=3, price=8.5)
         first_buy_id = create_result['id']
         # Fill at last
-        create_result = account.create_order(market=self.eth_btc_market,
+        create_result = account.create_order(market=ETH_BTC_MARKET,
                                              side='buy', type='limit',
                                              amount=2, price=6.1)
         last_buy_id = create_result['id']

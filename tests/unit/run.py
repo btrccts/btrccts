@@ -6,8 +6,9 @@ from sccts.algorithm import AlgorithmBase
 from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm
 from sccts.timeframe import Timeframe
-from tests.unit.common import pd_ts
 from unittest.mock import Mock, call, patch
+from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
+    pd_ts
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
@@ -232,33 +233,6 @@ def assert_test_algo_result(self, result):
                      {'BTC': 199.7, 'ETH': 1.0})
     self.assertEqual(result.kraken.fetch_balance()['total'],
                      {'BTC': 0.1, 'USD': 99.09865})
-
-
-ETH_BTC_MARKET = {
-    'id': 'ETH/BTC',
-    'symbol': 'ETH/BTC',
-    'base': 'ETH',
-    'quote': 'BTC',
-    'baseId': 'ETH',
-    'quoteId': 'BTC',
-    'info': {},
-    'active': True,
-}
-BTC_USD_MARKET = {
-    'id': 'BTC/USD',
-    'symbol': 'BTC/USD',
-    'base': 'BTC',
-    'quote': 'USD',
-    'baseId': 'BTC',
-    'quoteId': 'USD',
-    'info': {},
-    'active': True,
-}
-
-
-def fetch_markets_return(markets):
-    result = {m['symbol']: m for m in markets}
-    return lambda *a, **b: result
 
 
 class ExecuteAlgorithmTests(unittest.TestCase):

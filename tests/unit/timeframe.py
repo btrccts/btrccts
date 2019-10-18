@@ -1,7 +1,7 @@
 import pandas
 import unittest
 from sccts.timeframe import Timeframe
-from tests.unit.common import pd_ts
+from tests.common import pd_ts
 
 
 class TimeframeTest(unittest.TestCase):
