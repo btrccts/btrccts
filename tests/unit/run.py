@@ -7,7 +7,6 @@ from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm
 from sccts.timeframe import Timeframe
 from tests.unit.common import pd_ts
-from tests.unit.exchange import patch_exchange_method
 from unittest.mock import Mock, call, patch
 
 here = os.path.dirname(__file__)
@@ -264,11 +263,11 @@ def fetch_markets_return(markets):
 
 class ExecuteAlgorithmTests(unittest.TestCase):
 
-    @patch_exchange_method('okex3', 'fetch_markets')
-    @patch_exchange_method('binance', 'fetch_markets')
-    def test__execute_algorithm(self, okex_markets, binance_markets):
+    @patch('ccxt.okex3.fetch_markets')
+    @patch('ccxt.kraken.fetch_markets')
+    def test__execute_algorithm(self, kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
-        binance_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
+        kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         result = execute_algorithm(exchange_names=['kraken', 'okex3'],
                                    symbols=[],
                                    AlgorithmClass=TestAlgo,
@@ -302,12 +301,12 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                 sys_argv.append(y)
         return sys_argv
 
-    @patch_exchange_method('okex3', 'fetch_markets')
-    @patch_exchange_method('binance', 'fetch_markets')
+    @patch('ccxt.okex3.fetch_markets')
+    @patch('ccxt.kraken.fetch_markets')
     def test__parse_params_and_execute_algorithm(
-            self, okex_markets, binance_markets):
+            self, kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
-        binance_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
+        kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         sys_argv = self.create_sys_argv({
             '--start-balances': '{"okex3": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
