@@ -121,10 +121,11 @@ class BacktestExchangeBase:
                    values.volume] for values in data.itertuples()]
         return result
 
-    def fetch_open_orders(self, *args, **kwargs):
+    def fetch_open_orders(
+            self, symbol=None, since=None, limit=None, params={}):
         self._check_has('fetchOpenOrders')
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_open_orders')
+        return self._exchange_backend.fetch_open_orders(
+            symbol=symbol, since=since, limit=limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self._check_has('fetchOrder')

@@ -23,7 +23,7 @@ ccxt_has_other = ['CORS', ]
 ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
                         'createOrder', 'fetchCurrencies', 'fetchMarkets',
                         'fetchOrder', 'fetchOHLCV', 'fetchBalance',
-                        'fetchClosedOrders']
+                        'fetchClosedOrders', 'fetchOpenOrders']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -89,6 +89,11 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     def test__fetch_closed_orders(self):
         self.template__propagate_method_call(
             'fetch_closed_orders',
+            {'symbol': 'BTC/USD', 'since': 5123, 'limit': 80})
+
+    def test__fetch_open_orders(self):
+        self.template__propagate_method_call(
+            'fetch_open_orders',
             {'symbol': 'BTC/USD', 'since': 5123, 'limit': 80})
 
     def test__fetch_balance(self):
