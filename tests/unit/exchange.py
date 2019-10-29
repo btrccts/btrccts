@@ -94,7 +94,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     def test__fetch_open_orders(self):
         self.template__propagate_method_call(
             'fetch_open_orders',
-            {'symbol': 'BTC/USD', 'since': 5123, 'limit': 80})
+            {'symbol': 'ETH/BTC', 'since': 523, 'limit': 8})
 
     def test__fetch_balance(self):
         self.binance_backend_mock.fetch_balance.return_value = {

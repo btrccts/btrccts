@@ -32,6 +32,10 @@ class ExchangeBackend:
     def cancel_order(self, id, symbol=None):
         return self._account.cancel_order(id=id, symbol=symbol)
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None):
+        return self._account.fetch_open_orders(symbol=symbol, since=since,
+                                               limit=limit)
+
     def fetch_closed_orders(self, symbol=None, since=None, limit=None):
         return self._account.fetch_closed_orders(symbol=symbol, since=since,
                                                  limit=limit)

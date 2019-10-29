@@ -149,6 +149,11 @@ class ExchangeBackendTest(unittest.TestCase):
             kwargs={'symbol': 'BTC/ETH', 'since': 0, 'limit': 15},
             methodname='fetch_closed_orders')
 
+    def test__fetch_open_orders(self):
+        self.template_exchange_account_method_propagated(
+            kwargs={'symbol': 'BTC/ETH', 'since': 110, 'limit': 150},
+            methodname='fetch_open_orders')
+
     def test__fetch_balance(self):
         self.template_exchange_account_method_propagated(
             kwargs={},
