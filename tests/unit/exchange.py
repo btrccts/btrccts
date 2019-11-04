@@ -23,7 +23,7 @@ ccxt_has_other = ['CORS', ]
 ccxt_has_implemented = ['cancelOrder', 'createLimitOrder', 'createMarketOrder',
                         'createOrder', 'fetchCurrencies', 'fetchMarkets',
                         'fetchOrder', 'fetchOHLCV', 'fetchBalance',
-                        'fetchClosedOrders', 'fetchOpenOrders']
+                        'fetchClosedOrders', 'fetchOpenOrders', 'fetchTicker']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -51,6 +51,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             'fetchOHLCV': ['BTC/USD', '1m'],
             'cancelOrder': ['id'],
             'fetchOrder': ['id'],
+            'fetchTicker': ['BTC/USD'],
         }
         exchange = self.backtest.create_exchange('binance')
         for i in ccxt_has:

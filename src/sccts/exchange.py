@@ -151,10 +151,9 @@ class BacktestExchangeBase:
         raise NotImplementedError('BacktestExchange does not support method '
                                   'fetch_status')
 
-    def fetch_ticker(self, *args, **kwargs):
+    def fetch_ticker(self, symbol, params={}):
         self._check_has('fetchTicker')
-        raise NotImplementedError('BacktestExchange does not support method '
-                                  'fetch_ticker')
+        return self._exchange_backend.fetch_ticker(symbol=symbol)
 
     def fetch_tickers(self, *args, **kwargs):
         self._check_has('fetchTickers')
