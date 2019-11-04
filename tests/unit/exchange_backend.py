@@ -306,3 +306,44 @@ class ExchangeBackendTest(unittest.TestCase):
                                           since=1483232330000)
         self.assertEqual(str(e.exception), 'ExchangeBackend: fetch_ohlcv: no '
                                            'date availabe at since')
+
+    def test__fetch_ticker(self):
+        timeframe = Timeframe(pd_start_date=self.fetch_ohlcv_ohlcvs.index[0],
+                              pd_end_date=self.fetch_ohlcv_ohlcvs.index[-1],
+                              pd_timedelta=pandas.Timedelta(minutes=0.5))
+        backend = ExchangeBackend(ohlcvs={'BTC/USD': self.fetch_ohlcv_ohlcvs},
+                                  timeframe=timeframe,
+                                  balances={})
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        timeframe.add_timedelta()
+        self.assertEqual(backend.fetch_ticker('BTC/USD'),
+                         {'symbol': 'BTC/USD',
+                          'timestamp': 1483232520000,
+                          'datetime': '2017-01-01T01:02:00.000Z',
+                          'high': 9.0,
+                          'low': 7.0,
+                          'bid': None,
+                          'bidVolume': None,
+                          'ask': None,
+                          'askVolume': None,
+                          'vwap': None,
+                          'open': 8.0,
+                          'close': 12.0,
+                          'last': None,
+                          'previousClose': None,
+                          'change': None,
+                          'percentage': None,
+                          'average': None,
+                          'baseVolume': None,
+                          'quoteVolume': None,
+                          'info': {}})
+
+    def test__fetch_ticker__exception(self):
+        backend = ExchangeBackend(ohlcvs={},
+                                  timeframe=self.fetch_ohlcv_timeframe,
+                                  balances={})
+        with self.assertRaises(BadSymbol) as e:
+            backend.fetch_ticker('BTC/USD')
+        self.assertEqual(str(e.exception),
+                         'ExchangeBackend: no prices for BTC/USD')

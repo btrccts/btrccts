@@ -40,6 +40,36 @@ class ExchangeBackend:
         return self._account.fetch_closed_orders(symbol=symbol, since=since,
                                                  limit=limit)
 
+    def fetch_ticker(self, symbol):
+        ohlcv = self._ohlcvs.get(symbol)
+        if ohlcv is None:
+            raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
+        current_date = self._timeframe.date().floor('1T')
+        row = ohlcv.loc[current_date]
+        timestamp = int(current_date.value / 10**6)
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': Exchange.iso8601(timestamp),
+            'high': row['high'],
+            'low': row['low'],
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': row['open'],
+            'close': row['close'],
+            'last': None,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': {},
+        }
+
     def fetch_ohlcv_dataframe(self, symbol, timeframe='1m', since=None,
                               limit=None, params={}):
         # Exchanges in the real world have different behaviour, when there is
