@@ -145,7 +145,8 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
     parser.add_argument('--live', action='store_true',
                         help='Trade live on exchanges')
     parser.add_argument('--start-balances', default='{}',
-                        help='Trade live on exchanges')
+                        help='Balance at start (json): '
+                             '{"exchange": {"BTC": 3}}')
     AlgorithmClass.configure_argparser(parser)
     args = parser.parse_args()
     logger = logging.getLogger(__package__)
