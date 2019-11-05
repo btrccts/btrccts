@@ -8,6 +8,8 @@ from sccts.check_dataframe import _check_dataframe
 from sccts.convert_float import _convert_float_or_raise, _convert_float
 from sccts.balance import Balance
 
+DECIMAL_ONE = Decimal('1')
+
 
 class ExchangeAccount:
 
@@ -58,10 +60,12 @@ class ExchangeAccount:
             base = private_order['base']
             quote = private_order['quote']
             buy = private_order['buy']
+            fee_percentage = private_order['fee_percentage']
 
             self._remove_used_balance(price, amount, base, quote, buy)
-            self._update_balance(price, amount, base, quote, buy)
-            self._fill_order(order, price, timestamp)
+            self._update_balance(price, amount, base, quote, buy,
+                                 fee_percentage)
+            self._fill_order(order, buy, price, timestamp, fee_percentage)
             self._move_to_closed_orders(order_id)
 
             self._update_next_private_order_to_update()
@@ -159,7 +163,9 @@ class ExchangeAccount:
             'filled': 0,
             'remaining': amount,
             'status': 'open',
-            'fee': 0,  # TODO {'currency': 'BTC', 'cost': 0, 'rate': 0}
+            'fee': {'currency': base if buy else quote,
+                    'cost': None,
+                    'rate': None},
             'trades': None,
         }
 
@@ -177,10 +183,17 @@ class ExchangeAccount:
                 price = (1 + factor) * _convert_float(ohlcv['high'][date])
             else:
                 price = (1 - factor) * _convert_float(ohlcv['low'][date])
-            self._update_balance(price, amount, base, quote, buy)
-            self._fill_order(order, price, timestamp)
+            fee_percentage = market.get('taker', 0)
+            fee_percentage = _convert_float_or_raise(fee_percentage,
+                                                     'ExchangeAccount: fee')
+            self._update_balance(price, amount, base, quote, buy,
+                                 fee_percentage)
+            self._fill_order(order, buy, price, timestamp, fee_percentage)
             self._closed_orders[order_id] = order
         if type_limit:
+            fee_percentage = market.get('maker', 0)
+            fee_percentage = _convert_float_or_raise(fee_percentage,
+                                                     'ExchangeAccount: fee')
             if buy:
                 self._balances[quote].change_used(price * amount)
             else:
@@ -192,6 +205,7 @@ class ExchangeAccount:
                 'quote': quote,
                 'price': price,
                 'buy': buy,
+                'fee_percentage': fee_percentage,
                 'fillable_date': self._limit_order_fillable_date(
                     symbol, buy, price),
             }
@@ -220,15 +234,16 @@ class ExchangeAccount:
         else:
             return None
 
-    def _update_balance(self, price, amount, base, quote, buy):
+    def _update_balance(self, price, amount, base, quote, buy, fee_percentage):
         # First decrease balance, then increase, so
         # decrease can throw and increase wont be affected
+        multiplier = DECIMAL_ONE - fee_percentage
         if buy:
             self._balances[quote].change_total(- price * amount)
-            self._balances[base].change_total(amount)
+            self._balances[base].change_total(amount * multiplier)
         else:
             self._balances[base].change_total(- amount)
-            self._balances[quote].change_total(price * amount)
+            self._balances[quote].change_total(price * amount * multiplier)
 
     def _remove_used_balance(self, price, amount, base, quote, buy):
         if buy:
@@ -236,15 +251,21 @@ class ExchangeAccount:
         else:
             self._balances[base].change_used(- amount)
 
-    def _fill_order(self, order, price, timestamp):
+    def _fill_order(self, order, buy, price, timestamp, fee_percentage):
+        amount = order['amount']
+        amount_price = amount * price
         order.update({
             'average': price,
-            'cost': order['amount'] * price,
-            'filled': order['amount'],
+            'cost': amount_price,
+            'filled': amount,
             'lastTradeTimestamp': timestamp,
             'price': price,
             'remaining': 0,
             'status': 'closed',
+        })
+        order['fee'].update({
+            'rate': fee_percentage,
+            'cost': fee_percentage * (amount if buy else amount_price),
         })
 
     def fetch_balance(self):

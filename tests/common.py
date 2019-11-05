@@ -8,6 +8,8 @@ ETH_BTC_MARKET = {
     'quote': 'BTC',
     'baseId': 'ETH',
     'quoteId': 'BTC',
+    'maker': 0.005,
+    'taker': 0.01,
     'info': {},
     'active': True,
 }
@@ -18,6 +20,8 @@ BTC_USD_MARKET = {
     'quote': 'USD',
     'baseId': 'BTC',
     'quoteId': 'USD',
+    'maker': 0.001,
+    'taker': 0.002,
     'info': {},
     'active': True,
 }

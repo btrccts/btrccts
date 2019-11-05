@@ -230,9 +230,9 @@ def assert_test_algo_result(self, result):
     self.assertEqual(result.exit_reason, ExitReason.FINISHED)
     self.assertEqual(result.iterations, 4)
     self.assertEqual(result.okex3.fetch_balance()['total'],
-                     {'BTC': 199.7, 'ETH': 1.0})
+                     {'BTC': 197.703, 'ETH': 1.0})
     self.assertEqual(result.kraken.fetch_balance()['total'],
-                     {'BTC': 0.1, 'USD': 99.09865})
+                     {'BTC': 0.0998, 'USD': 99.09865})
 
 
 class ExecuteAlgorithmTests(unittest.TestCase):

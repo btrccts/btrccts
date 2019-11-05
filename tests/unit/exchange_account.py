@@ -8,6 +8,12 @@ from sccts.timeframe import Timeframe
 from tests.common import BTC_USD_MARKET, ETH_BTC_MARKET
 
 
+def copy_and_update(m, u):
+    res = m.copy()
+    res.update(u)
+    return res
+
+
 class ExchangeAccountTest(unittest.TestCase):
 
     def setUp(self):
@@ -294,6 +300,50 @@ class ExchangeAccountTest(unittest.TestCase):
             exception=InsufficientFunds,
             exception_text='Balance too little')
 
+    def test__create_order__limit__fee_not_a_number(self):
+        market = copy_and_update(ETH_BTC_MARKET, {'maker': 'asd'})
+        self.template__create_order__error(
+            market=market,
+            side='buy',
+            type='limit',
+            amount=1,
+            price=1,
+            exception=BadRequest,
+            exception_text='ExchangeAccount: fee needs to be a number')
+
+    def test__create_order__limit__fee_not_finite(self):
+        market = copy_and_update(ETH_BTC_MARKET, {'maker': float('inf')})
+        self.template__create_order__error(
+            market=market,
+            side='buy',
+            type='limit',
+            amount=1,
+            price=1,
+            exception=BadRequest,
+            exception_text='ExchangeAccount: fee needs to be finite')
+
+    def test__create_order__market__fee_not_a_number(self):
+        market = copy_and_update(ETH_BTC_MARKET, {'taker': 'asd'})
+        self.template__create_order__error(
+            market=market,
+            side='buy',
+            type='market',
+            price=None,
+            amount=1,
+            exception=BadRequest,
+            exception_text='ExchangeAccount: fee needs to be a number')
+
+    def test__create_order__market__fee_not_finite(self):
+        market = copy_and_update(ETH_BTC_MARKET, {'taker': float('inf')})
+        self.template__create_order__error(
+            market=market,
+            side='buy',
+            type='market',
+            price=None,
+            amount=1,
+            exception=BadRequest,
+            exception_text='ExchangeAccount: fee needs to be finite')
+
     def test__create_order__market_buy__create_balance(self):
         account = ExchangeAccount(timeframe=self.timeframe,
                                   ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
@@ -302,7 +352,7 @@ class ExchangeAccountTest(unittest.TestCase):
                              type='market', amount=1, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 0.997, 'total': 0.997, 'used': 0.0},
-                          'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
+                          'ETH': {'free': 0.99, 'total': 0.99, 'used': 0.0}})
 
     def test__create_order__market_buy__balance_available(self):
         account = ExchangeAccount(timeframe=self.timeframe,
@@ -314,7 +364,7 @@ class ExchangeAccountTest(unittest.TestCase):
                              type='market', amount=1, price=None)
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 2.994, 'total': 2.994, 'used': 0.0},
-                          'ETH': {'free': 3.0, 'total': 3.0, 'used': 0.0}})
+                          'ETH': {'free': 2.99, 'total': 2.99, 'used': 0.0}})
 
     def test__create_order__market_sell__create_balance(self):
         account = ExchangeAccount(timeframe=self.timeframe,
@@ -323,7 +373,8 @@ class ExchangeAccountTest(unittest.TestCase):
         account.create_order(market=ETH_BTC_MARKET, side='sell',
                              type='market', amount=2, price=None)
         self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 0.9985, 'total': 0.9985,
+                         {'BTC': {'free': 0.988515,
+                                  'total': 0.988515,
                                   'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
@@ -335,7 +386,9 @@ class ExchangeAccountTest(unittest.TestCase):
         account.create_order(market=ETH_BTC_MARKET, side='sell',
                              type='market', amount=2, price=None)
         self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 1.997, 'total': 1.997, 'used': 0.0},
+                         {'BTC': {'free': 1.97703,
+                                  'total': 1.97703,
+                                  'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def test__create_order__limit_buy(self):
@@ -417,7 +470,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 7.5,
              'cost': 7.5,
              'datetime': '2017-06-01T01:00:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.005, 'currency': 'ETH', 'rate': 0.005},
              'filled': 1.0,
              'id': '1',
              'info': {},
@@ -436,7 +489,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 6.5,
              'cost': 13.0,
              'datetime': '2017-06-01T01:00:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.013, 'currency': 'USD', 'rate': 0.001},
              'filled': 2.0,
              'id': '2',
              'info': {},
@@ -455,7 +508,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 8.5,
              'cost': 25.5,
              'datetime': '2017-06-01T01:00:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.015, 'currency': 'ETH', 'rate': 0.005},
              'filled': 3.0,
              'id': '3',
              'info': {},
@@ -474,7 +527,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 6.1,
              'cost': 12.2,
              'datetime': '2017-06-01T01:00:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.01, 'currency': 'ETH', 'rate': 0.005},
              'filled': 2.0,
              'id': '4',
              'info': {},
@@ -487,10 +540,11 @@ class ExchangeAccountTest(unittest.TestCase):
              'timestamp': 1496278800000,
              'trades': None,
              'type': 'limit'})
-        self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 2.8, 'total': 2.8, 'used': 0.0},
-                          'ETH': {'free': 106.0, 'total': 106.0, 'used': 0.0},
-                          'USD': {'free': 13.0, 'total': 13.0, 'used': 0.0}})
+        self.assertEqual(
+            account.fetch_balance(),
+            {'BTC': {'free': 2.8, 'total': 2.8, 'used': 0.0},
+             'ETH': {'free': 105.97, 'total': 105.97, 'used': 0.0},
+             'USD': {'free': 12.987, 'total': 12.987, 'used': 0.0}})
 
     def test__fetch_balance(self):
         account = ExchangeAccount(timeframe=self.timeframe,
@@ -516,7 +570,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 2.003,
              'cost': 2.003,
              'datetime': '2017-01-01T01:01:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.01, 'currency': 'ETH', 'rate': 0.01},
              'filled': 1.0,
              'id': '1',
              'info': {},
@@ -535,7 +589,7 @@ class ExchangeAccountTest(unittest.TestCase):
              'average': 0.9985,
              'cost': 0.9985,
              'datetime': '2017-01-01T01:02:00.000Z',
-             'fee': 0,
+             'fee': {'cost': 0.009985, 'currency': 'BTC', 'rate': 0.01},
              'filled': 1.0,
              'id': '2',
              'info': {},
@@ -739,7 +793,9 @@ class ExchangeAccountTest(unittest.TestCase):
                               'average': None,
                               'cost': None,
                               'datetime': '2017-01-01T01:01:00.000Z',
-                              'fee': 0,
+                              'fee': {'cost': None,
+                                      'currency': 'ETH',
+                                      'rate': None},
                               'filled': 0,
                               'id': '1',
                               'info': {},
@@ -775,7 +831,9 @@ class ExchangeAccountTest(unittest.TestCase):
                           'average': None,
                           'cost': None,
                           'datetime': '2017-01-01T01:01:00.000Z',
-                          'fee': 0,
+                          'fee': {'cost': None,
+                                  'currency': 'BTC',
+                                  'rate': None},
                           'filled': 0,
                           'id': '1',
                           'info': {},
@@ -820,7 +878,9 @@ class ExchangeAccountTest(unittest.TestCase):
         timeframe.add_timedelta()
         self.assertEqual(account.fetch_balance(),
                          {'BTC': {'free': 37.8, 'total': 37.8, 'used': 0.0},
-                          'ETH': {'free': 102.0, 'total': 102.0, 'used': 0.0}})
+                          'ETH': {'free': 101.99,
+                                  'total': 101.99,
+                                  'used': 0.0}})
 
     def test__cancel_order__does_not_get_filled(self):
         account, timeframe = self.setup_alternative_eth_btc_usd()
@@ -869,7 +929,7 @@ class ExchangeAccountTest(unittest.TestCase):
                 'average': None,
                 'cost': None,
                 'datetime': '2017-01-01T01:00:00.000Z',
-                'fee': 0,
+                'fee': {'cost': None, 'currency': 'BTC', 'rate': None},
                 'filled': 0,
                 'id': '1',
                 'info': {},
@@ -915,7 +975,7 @@ class ExchangeAccountTest(unittest.TestCase):
                 'average': 5.0,
                 'cost': 10,
                 'datetime': '2017-01-01T01:00:00.000Z',
-                'fee': 0,
+                'fee': {'cost': 0.05, 'currency': 'BTC', 'rate': 0.005},
                 'filled': 2.0,
                 'id': '1',
                 'info': {},
@@ -943,7 +1003,7 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def check_update_state_limit_sell_fetch_balance_filled(self, account):
         self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 10.0, 'total': 10.0, 'used': 0.0},
+                         {'BTC': {'free': 9.95, 'total': 9.95, 'used': 0.0},
                           'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
 
     def check_update_state_limit_sell_filled(self, account, order_id):
@@ -1025,7 +1085,7 @@ class ExchangeAccountTest(unittest.TestCase):
                 'average': None,
                 'cost': None,
                 'datetime': '2017-01-01T01:00:00.000Z',
-                'fee': 0,
+                'fee': {'cost': None, 'currency': 'ETH', 'rate': None},
                 'filled': 0,
                 'id': '1',
                 'info': {},
@@ -1071,7 +1131,7 @@ class ExchangeAccountTest(unittest.TestCase):
                 'average': 4.0,
                 'cost': 6,
                 'datetime': '2017-01-01T01:00:00.000Z',
-                'fee': 0,
+                'fee': {'cost': 0.0075, 'currency': 'ETH', 'rate': 0.005},
                 'filled': 1.5,
                 'id': '1',
                 'info': {},
@@ -1097,9 +1157,10 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(account.fetch_open_orders(limit=5), [])
 
     def check_update_state_limit_buy_fetch_balance_filled(self, account):
-        self.assertEqual(account.fetch_balance(),
-                         {'BTC': {'free': 9.0, 'total': 9.0, 'used': 0.0},
-                          'ETH': {'free': 1.5, 'total': 1.5, 'used': 0.0}})
+        self.assertEqual(
+            account.fetch_balance(),
+            {'BTC': {'free': 9.0, 'total': 9.0, 'used': 0.0},
+             'ETH': {'free': 1.4925, 'total': 1.4925, 'used': 0.0}})
 
     def check_update_state_limit_buy_filled(self, account, order_id):
         self.check_update_state_limit_buy_fetch_order_filled(account, order_id)
@@ -1148,3 +1209,37 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(str(e.exception),
                          'ExchangeAccount: cannot cancel closed order 1')
         self.check_update_state_limit_buy_filled(account, order_id)
+
+    def test__create_order__market_sell__no_maker_fee(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'ETH': 3})
+        self.timeframe.add_timedelta()
+        eth_btc_market_no_taker = ETH_BTC_MARKET.copy()
+        del eth_btc_market_no_taker['taker']
+        result = account.create_order(market=eth_btc_market_no_taker,
+                                      side='sell',
+                                      type='market', amount=2, price=None)
+        self.assertEqual(account.fetch_order(result['id'])['fee'],
+                         {'cost': 0.0, 'currency': 'BTC', 'rate': 0.0})
+        self.assertEqual(account.fetch_balance(),
+                         {'BTC': {'free': 1.997,
+                                  'total': 1.997,
+                                  'used': 0.0},
+                          'ETH': {'free': 1.0, 'total': 1.0, 'used': 0.0}})
+
+    def test__create_order__limit_buy__no_taker_fee(self):
+        account = ExchangeAccount(timeframe=self.timeframe,
+                                  ohlcvs={'ETH/BTC': self.eth_btc_ohlcvs},
+                                  balances={'BTC': 3})
+        eth_btc_market_no_taker = ETH_BTC_MARKET.copy()
+        del eth_btc_market_no_taker['maker']
+        result = account.create_order(market=eth_btc_market_no_taker,
+                                      side='buy',
+                                      type='limit', amount=2, price=1)
+        self.timeframe.add_timedelta()
+        self.assertEqual(account.fetch_order(result['id'])['fee'],
+                         {'cost': 0.0, 'currency': 'ETH', 'rate': 0.0})
+        self.assertEqual(account.fetch_balance(),
+                         {'BTC': {'free': 1.0, 'total': 1.0, 'used': 0.0},
+                          'ETH': {'free': 2.0, 'total': 2.0, 'used': 0.0}})
