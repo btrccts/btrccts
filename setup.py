@@ -20,5 +20,8 @@ setup(
     },
     install_requires=['ccxt', 'pandas', 'numpy'],
     entry_points={
+        'console_scripts': [
+            'sccts=sccts:_main',
+        ]
     },
 )
