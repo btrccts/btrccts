@@ -18,7 +18,7 @@ setup(
     zip_safe=False,
     extras_require={
     },
-    install_requires=['ccxt', 'pandas', 'numpy'],
+    install_requires=['ccxt', 'pandas', 'numpy', 'appdirs'],
     entry_points={
         'console_scripts': [
             'sccts=sccts:_main',
