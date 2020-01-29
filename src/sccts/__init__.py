@@ -6,9 +6,9 @@ from unittest.mock import patch
 def _load_algorithm_from_file(filepath):
     with open(sys.argv[1]) as f:
         source = f.read()
-    l = {}
-    exec(source, {}, l)
-    Algorithm = l.get('Algorithm')
+    file_scope = {}
+    exec(source, {}, file_scope)
+    Algorithm = file_scope.get('Algorithm')
     if Algorithm is not None:
         return Algorithm
     raise ValueError('The file {} needs to contain the Algorithm class '
