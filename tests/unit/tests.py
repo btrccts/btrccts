@@ -6,7 +6,8 @@ from tests.unit.exchange_account import ExchangeAccountTest
 from tests.unit.exchange_backend import ExchangeBackendTest
 from tests.unit.pep_checker import Pep8Test
 from tests.unit.run import LoadCSVTests, MainLoopTests, \
-    ExecuteAlgorithmTests, ParseParamsAndExecuteAlgorithmTests
+    ExecuteAlgorithmTests, ParseParamsAndExecuteAlgorithmTests, \
+    SleepUntilTests
 from tests.unit.timeframe import TimeframeTest
 
 
@@ -23,5 +24,6 @@ def test_suite():
         unittest.makeSuite(ParseParamsAndExecuteAlgorithmTests),
         unittest.makeSuite(Pep8Test),
         unittest.makeSuite(TimeframeTest),
+        unittest.makeSuite(SleepUntilTests),
     ])
     return suite

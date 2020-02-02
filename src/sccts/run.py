@@ -5,6 +5,7 @@ import logging
 import numpy
 import os
 import pandas
+import time
 from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
@@ -15,6 +16,7 @@ from sccts.timeframe import Timeframe
 
 USER_CONFIG_DIR = appdirs.user_config_dir(__package__)
 USER_DATA_DIR = appdirs.user_data_dir(__package__)
+SLEEP_SECONDS = 1
 
 
 def serialize_symbol(symbol):
@@ -67,7 +69,20 @@ class ExitReason(Enum):
     FINISHED = auto()
 
 
-def main_loop(timeframe, algorithm):
+def sleep_until(date):
+    # Use a loop, so if the system clock changes, we dont sleep too long/short
+    while True:
+        now = pandas.Timestamp.now(tz='UTC')
+        if date <= now:
+            return
+        sleep_sec = SLEEP_SECONDS
+        diff = (date - now).value / 10**9
+        if diff < SLEEP_SECONDS:
+            sleep_sec = diff
+        time.sleep(sleep_sec)
+
+
+def main_loop(timeframe, algorithm, live=False):
     logger = logging.getLogger(__package__)
     logger.info('Starting main_loop')
     while timeframe.date() is not None:

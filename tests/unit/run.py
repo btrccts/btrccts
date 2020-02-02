@@ -4,7 +4,7 @@ import sys
 import unittest
 from sccts.algorithm import AlgorithmBase
 from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
-    execute_algorithm, parse_params_and_execute_algorithm
+    execute_algorithm, parse_params_and_execute_algorithm, sleep_until
 from sccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
@@ -388,3 +388,54 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         self.template__parse_params_and_execute_algorithm__check_call(
             argv_params={'--symbols': 'BTC/USD,ETH/BTC,XRP/ETH'},
             check_params={'symbols': ['BTC/USD', 'ETH/BTC', 'XRP/ETH']})
+
+
+class SleepUntilTests(unittest.TestCase):
+
+    @patch('sccts.run.time.sleep')
+    def test__sleep_until__none(self, sleep_mock):
+        with self.assertRaises(TypeError):
+            sleep_until(None)
+            sleep_mock.assert_not_called()
+
+    @patch('sccts.run.pandas.Timestamp.now')
+    @patch('sccts.run.time.sleep')
+    def test__sleep_until__one_longer_sleep(self, sleep_mock, now_mock):
+        dates = pandas.to_datetime(
+            ['2017-08-18 00:00:00', '2017-08-18 00:01:00'], utc=True)
+        now_mock.side_effect = dates
+        sleep_until(dates[1])
+        sleep_mock.assert_called_once_with(1)
+        self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
+
+    @patch('sccts.run.pandas.Timestamp.now')
+    @patch('sccts.run.time.sleep')
+    def test__sleep_until__one_partial_sleep(self, sleep_mock, now_mock):
+        dates = pandas.to_datetime(
+            ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01'], utc=True)
+        now_mock.side_effect = dates
+        sleep_until(dates[1])
+        sleep_mock.assert_called_once_with(0.8)
+        self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
+
+    @patch('sccts.run.pandas.Timestamp.now')
+    @patch('sccts.run.time.sleep')
+    def test__sleep_until__multiple_sleeps(self, sleep_mock, now_mock):
+        dates = pandas.to_datetime(
+            ['2017-08-18 00:00:00', '2017-08-18 00:00:01.123',
+             '2017-08-18 00:00:02.24', '2017-08-18 00:00:03.1'], utc=True)
+        now_mock.side_effect = dates
+        sleep_until(pandas.Timestamp('2017-08-18 00:00:03', tz='UTC'))
+        self.assertEqual(sleep_mock.mock_calls, [call(1), call(1), call(0.76)])
+        self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
+
+    @patch('sccts.run.pandas.Timestamp.now')
+    @patch('sccts.run.time.sleep')
+    def test__sleep_until__clock_changed(self, sleep_mock, now_mock):
+        dates = pandas.to_datetime(
+            ['2017-08-18 00:01:00', '2017-08-18 00:00:59',
+             '2017-08-18 00:01:00', '2017-08-18 00:01:01'], utc=True)
+        now_mock.side_effect = dates
+        sleep_until(pandas.Timestamp('2017-08-18 00:01:01', tz='UTC'))
+        self.assertEqual(sleep_mock.mock_calls, [call(1)] * 3)
+        self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
