@@ -59,3 +59,24 @@ class TimeframeTest(unittest.TestCase):
                       pd_end_date=pd_ts('2017-01-01 1:35'),
                       pd_timedelta=pandas.Timedelta(minutes=15))
         self.assertEqual(t.end_date(), pd_ts('2017-01-01 1:35'))
+
+    def test__add_timedelta_until__no_add(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 1:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=15))
+        t.add_timedelta_until(pd_ts('2017-01-01 1:15'))
+        self.assertEqual(t.date(), pd_ts('2017-01-01 1:00'))
+
+    def test__add_timedelta_until__single(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 2:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=15))
+        t.add_timedelta_until(pd_ts('2017-01-01 1:29'))
+        self.assertEqual(t.date(), pd_ts('2017-01-01 1:15'))
+
+    def test__add_timedelta_until__add_multiple_times(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 2:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=15))
+        t.add_timedelta_until(pd_ts('2017-01-01 2:31'))
+        self.assertEqual(t.date(), pd_ts('2017-01-01 2:30'))

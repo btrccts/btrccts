@@ -18,6 +18,10 @@ class Timeframe:
             return None
         return self._pd_current_date
 
+    def add_timedelta_until(self, date):
+        while self._pd_current_date + self._pd_timedelta < date:
+            self.add_timedelta()
+
     def start_date(self):
         return self._pd_start_date
 
