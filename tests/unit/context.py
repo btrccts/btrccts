@@ -68,6 +68,15 @@ class BacktestContextTest(unittest.TestCase):
         t.add_timedelta()
         self.assertEqual(backtest.date(), pd_ts('2017-01-01 1:01'))
 
+    def test__real_date(self):
+        t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
+                      pd_end_date=pd_ts('2017-01-01 1:35'),
+                      pd_timedelta=pandas.Timedelta(minutes=1))
+        backtest = BacktestContext(timeframe=t)
+        self.assertEqual(backtest.real_date(), pd_ts('2017-01-01 1:00'))
+        t.add_timedelta()
+        self.assertEqual(backtest.real_date(), pd_ts('2017-01-01 1:01'))
+
     def test__state(self):
         backtest = BacktestContext(timeframe=None)
         self.assertEqual(backtest.state(), ContextState.BACKTEST)

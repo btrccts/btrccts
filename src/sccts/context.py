@@ -37,6 +37,9 @@ class BacktestContext:
     def date(self):
         return self._timeframe.date()
 
+    def real_date(self):
+        return self._timeframe.date()
+
     def state(self):
         return ContextState.BACKTEST
 
