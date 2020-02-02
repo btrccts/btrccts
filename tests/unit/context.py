@@ -71,3 +71,9 @@ class BacktestContextTest(unittest.TestCase):
     def test__state(self):
         backtest = BacktestContext(timeframe=None)
         self.assertEqual(backtest.state(), ContextState.BACKTEST)
+
+    def test__stop__stopped(self):
+        backtest = BacktestContext(timeframe=None)
+        self.assertEqual(backtest.stopped(), False)
+        backtest.stop()
+        self.assertEqual(backtest.stopped(), True)

@@ -20,6 +20,7 @@ class BacktestContext:
         for key in exchange_backends:
             self._exchange_backends[key] = exchange_backends[key]
         self._timeframe = timeframe
+        self._stopped = False
 
     def create_exchange(self, exchange_id, config={}):
         if exchange_id not in ccxt.exchanges:
@@ -38,3 +39,9 @@ class BacktestContext:
 
     def state(self):
         return ContextState.BACKTEST
+
+    def stopped(self):
+        return self._stopped
+
+    def stop(self):
+        self._stopped = True
