@@ -17,6 +17,8 @@ def _load_algorithm_from_file(filepath):
                      'called Algorithm'.format(filepath))
 
 
+# Warning: this is not documented and not officially supported
+# There is a problem, global imports are not supported via the exec approach
 def _main():
     if len(sys.argv) < 2:
         print('File to load needs to be first parameter')
