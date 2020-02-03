@@ -1,4 +1,5 @@
 import sys
+import os
 from sccts.run import parse_params_and_execute_algorithm
 from sccts.algorithm import AlgorithmBase
 from unittest.mock import patch
@@ -23,6 +24,7 @@ def _main():
 
     argv_mod = sys.argv.copy()
     filepath = argv_mod[1]
+    sys.path.append(os.path.abspath(os.path.dirname(filepath)))
     AlgorithmClass = _load_algorithm_from_file(filepath)
     del argv_mod[1]
     with patch.object(sys, 'argv', argv_mod):
