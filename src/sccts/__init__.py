@@ -1,12 +1,13 @@
 import sys
 from sccts.run import parse_params_and_execute_algorithm
+from sccts.algorithm import AlgorithmBase
 from unittest.mock import patch
 
 
 def _load_algorithm_from_file(filepath):
     with open(sys.argv[1]) as f:
         source = f.read()
-    file_scope = {}
+    file_scope = {'AlgorithmBase': AlgorithmBase}
     exec(source, {}, file_scope)
     Algorithm = file_scope.get('Algorithm')
     if Algorithm is not None:
