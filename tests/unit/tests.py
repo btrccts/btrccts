@@ -1,5 +1,5 @@
 import unittest
-from tests.unit.context import BacktestContextTest
+from tests.unit.context import BacktestContextTest, LiveContextTest
 from tests.unit.balance import BalanceTest
 from tests.unit.exchange import BacktestExchangeBaseTest
 from tests.unit.exchange_account import ExchangeAccountTest
@@ -14,6 +14,7 @@ from tests.unit.timeframe import TimeframeTest
 def test_suite():
     suite = unittest.TestSuite([
         unittest.makeSuite(BacktestContextTest),
+        unittest.makeSuite(LiveContextTest),
         unittest.makeSuite(BacktestExchangeBaseTest),
         unittest.makeSuite(BalanceTest),
         unittest.makeSuite(ExchangeAccountTest),
