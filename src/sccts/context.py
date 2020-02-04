@@ -75,7 +75,7 @@ class LiveContext:
         else:
             logger = logging.getLogger(__package__)
             logger.warning('Config file for exchange {} does not exist: {}'
-                .format(exchange_id, config_file))
+                           .format(exchange_id, config_file))
         loaded_config.update(config)
         return exchange(loaded_config)
 
