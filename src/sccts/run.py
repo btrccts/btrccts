@@ -105,6 +105,14 @@ def main_loop(timeframe, algorithm, live=False):
                 algorithm.exit(reason=ExitReason.EXCEPTION)
                 raise e
         timeframe.add_timedelta()
+        if live:
+            # We already added a timedelta.
+            # If the algo took longer then timedelta,
+            # we want to do the next round immediately
+            timeframe.add_timedelta_until(pandas.Timestamp.now(tz='UTC'))
+            next_date = timeframe.date()
+            if next_date is not None:
+                sleep_until(next_date)
     algorithm.exit(reason=ExitReason.FINISHED)
     logger.info('Finished main_loop')
     return algorithm
