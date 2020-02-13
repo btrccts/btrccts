@@ -41,13 +41,13 @@ class TestAlgo(AlgorithmBase):
         self.exit_reason = reason
 
 
-def assert_test_algo_result(self, result):
-    self.assertEqual(type(result), TestAlgo)
-    self.assertEqual(result.exit_reason, ExitReason.FINISHED)
-    self.assertEqual(result.iterations, 4)
-    self.assertEqual(result.okex3.fetch_balance()['total'],
+def assert_test_algo_result(test, result):
+    test.assertEqual(type(result), TestAlgo)
+    test.assertEqual(result.exit_reason, ExitReason.FINISHED)
+    test.assertEqual(result.iterations, 4)
+    test.assertEqual(result.okex3.fetch_balance()['total'],
                      {'BTC': 199.40045, 'ETH': 1.0})
-    self.assertEqual(result.kraken.fetch_balance()['total'],
+    test.assertEqual(result.kraken.fetch_balance()['total'],
                      {'BTC': 0.09974, 'USD': 99.09865})
 
 
@@ -56,6 +56,14 @@ class LiveTestAlgo(AlgorithmBase):
     def __init__(self, context, args):
         self.iterations = 0
         self.iteration_dates = []
+        self.args = args
+        self.kraken = context.create_exchange('kraken', {'test': 1})
+        self.bitfinex = context.create_exchange('bitfinex', {'xxx': 'yyy'})
+
+    @staticmethod
+    def configure_argparser(argparser):
+        argparser.add_argument('--algo-bool', action='store_true')
+        argparser.add_argument('--some-string', default='')
 
     @staticmethod
     def get_test_time_parameters():
@@ -79,7 +87,8 @@ class LiveTestAlgo(AlgorithmBase):
         self.exit_reason = reason
 
 
-def assert_test_live_algo_result(test, result, time_parameters):
+def assert_test_live_algo_result(test, result, time_parameters,
+                                 complete=False):
     test.assertEqual(type(result), LiveTestAlgo)
     test.assertEqual(result.exit_reason, ExitReason.FINISHED)
     test.assertEqual(result.iterations, 6)
@@ -97,6 +106,17 @@ def assert_test_live_algo_result(test, result, time_parameters):
          start + 6 * delta,
          start + 7.5 * delta,
          ])
+    if complete:
+        test.assertEqual(result.args.algo_bool, True)
+        test.assertEqual(result.args.some_string, 'testSTR')
+        test.assertEqual(result.args.live, True)
+        test.assertEqual(result.kraken.apiKey, '254642562462')
+        test.assertEqual(result.kraken.secret, '23523afasd')
+        test.assertEqual(result.kraken.param, True)
+        test.assertEqual(result.bitfinex.apiKey, 'bf2')
+        test.assertEqual(result.bitfinex.secret, 'key12345')
+        test.assertEqual(result.bitfinex.xxx, 'yyy')
+        test.assertEqual(result.kraken.test, 1)
 
 
 class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
@@ -106,6 +126,8 @@ class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
                                    symbols=[],
                                    AlgorithmClass=TestAlgo,
                                    args=self,
+                                   live=False,
+                                   auth_aliases={},
                                    start_balances={'okex3': {'ETH': 3},
                                                    'kraken': {'USD': 100}},
                                    pd_start_date=pd_ts('2019-10-01 10:10'),
@@ -130,8 +152,10 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
         argv_dict.update(argv_params)
         sys_argv = ['file.py']
         for x, y in argv_dict.items():
+            if y is None:
+                continue
             sys_argv.append(x)
-            if y is not None:
+            if y is not True:
                 sys_argv.append(y)
         return sys_argv
 
@@ -143,7 +167,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',
-            '--algo-bool': None,
+            '--algo-bool': True,
             '--some-string': 'testSTR',
             '--timedelta': '2m'})
         with patch.object(sys, 'argv', sys_argv):
@@ -153,6 +177,23 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
         self.assertEqual(result.args.algo_bool, True)
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)
+
+    def test__parse_params_and_execute_algorithm__live(self):
+        time_params = LiveTestAlgo.get_test_time_parameters()
+        sys_argv = self.create_sys_argv({
+            '--start-date': None,
+            '--end-date': str(time_params['pd_end_date']),
+            '--algo-bool': True,
+            '--live': True,
+            '--some-string': 'testSTR',
+            '--config-directory': 'tests/integration/run/config_dir',
+            '--auth-aliases': '{"kraken": "kraken_5"}',
+            '--timedelta': '{}s'.format(
+                int(time_params['pd_timedelta'].total_seconds()))})
+        with patch.object(sys, 'argv', sys_argv):
+            with self.assertLogs():
+                result = parse_params_and_execute_algorithm(LiveTestAlgo)
+        assert_test_live_algo_result(self, result, time_params, True)
 
 
 class MainLoopIntegrationTest(unittest.TestCase):

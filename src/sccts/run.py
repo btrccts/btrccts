@@ -10,7 +10,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
 from functools import partial
-from sccts.context import BacktestContext
+from sccts.context import BacktestContext, LiveContext
 from sccts.exchange_backend import ExchangeBackend
 from sccts.timeframe import Timeframe
 
@@ -121,7 +121,9 @@ def main_loop(timeframe, algorithm, live=False):
 def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
                       start_balances,
                       pd_start_date, pd_end_date, pd_timedelta,
-                      data_dir=USER_DATA_DIR):
+                      live, auth_aliases,
+                      data_dir=USER_DATA_DIR,
+                      conf_dir=USER_CONFIG_DIR):
     timeframe = Timeframe(pd_start_date=pd_start_date,
                           pd_end_date=pd_end_date,
                           pd_timedelta=pd_timedelta)
@@ -129,18 +131,24 @@ def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
     ohlcvs = load_ohlcvs(ohlcv_dir=ohlcv_dir,
                          exchange_names=exchange_names,
                          symbols=symbols)
-    exchange_backends = {}
-    for exchange_name in exchange_names:
-        exchange_backends[exchange_name] = ExchangeBackend(
-            timeframe=timeframe,
-            balances=start_balances.get(exchange_name, {}),
-            ohlcvs=ohlcvs.get(exchange_name, {}))
-    context = BacktestContext(timeframe=timeframe,
-                              exchange_backends=exchange_backends)
+    if live:
+        context = LiveContext(timeframe=timeframe,
+                              conf_dir=conf_dir,
+                              auth_aliases=auth_aliases)
+    else:
+        exchange_backends = {}
+        for exchange_name in exchange_names:
+            exchange_backends[exchange_name] = ExchangeBackend(
+                timeframe=timeframe,
+                balances=start_balances.get(exchange_name, {}),
+                ohlcvs=ohlcvs.get(exchange_name, {}))
+        context = BacktestContext(timeframe=timeframe,
+                                  exchange_backends=exchange_backends)
     algorithm = AlgorithmClass(context=context,
                                args=args)
     return main_loop(timeframe=timeframe,
-                     algorithm=algorithm)
+                     algorithm=algorithm,
+                     live=live)
 
 
 def parse_params_and_execute_algorithm(AlgorithmClass):
@@ -162,7 +170,7 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
     parser.add_argument('--config-directory', default=USER_CONFIG_DIR,
                         help='directory where config is stored'
                              ' (e.g. exchange parameters')
-    parser.add_argument('--auth-aliases', default=None,
+    parser.add_argument('--auth-aliases', default='{}',
                         help='Auth aliases for different exchange'
                              ' config files')
     parser.add_argument('--live', action='store_true',
@@ -187,23 +195,24 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
         if len(symbols) == 0:
             logger.warning('No symbols specified, load all ohlcvs per each '
                            'exchange. This can lead to long start times')
-    if args.live:
-        raise ValueError('Live mode is not supported yet')
-        if args.start_date != '':
-            raise ValueError('Start date cannot be set in live mode')
-        if args.start_balance != '':
-            raise ValueError('Start balance cannot be set in live mode')
-        pd_start_date = pandas.Timestamp.now()
-        start_balances = None
-    else:
-        pd_start_date = pandas.to_datetime(args.start_date, utc=True)
-        start_balances = json.loads(args.start_balances)
-    pd_end_date = pandas.to_datetime(args.end_date, utc=True)
     try:
         pd_timedelta = pandas.Timedelta(
             Exchange.parse_timeframe(args.timedelta), unit='s')
     except (NotSupported, ValueError):
         raise ValueError('Timedelta is not valid')
+    auth_aliases = {}
+    if args.live:
+        if args.start_date != '':
+            raise ValueError('Start date cannot be set in live mode')
+        if args.start_balances != '{}':
+            raise ValueError('Start balance cannot be set in live mode')
+        pd_start_date = pandas.Timestamp.now(tz='UTC').floor(pd_timedelta)
+        start_balances = None
+        auth_aliases = json.loads(args.auth_aliases)
+    else:
+        pd_start_date = pandas.to_datetime(args.start_date, utc=True)
+        start_balances = json.loads(args.start_balances)
+    pd_end_date = pandas.to_datetime(args.end_date, utc=True)
     if pandas.isnull(pd_start_date):
         raise ValueError('Start date is not valid')
     if pandas.isnull(pd_end_date):
@@ -214,7 +223,10 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
                              pd_start_date=pd_start_date,
                              pd_end_date=pd_end_date,
                              pd_timedelta=pd_timedelta,
+                             conf_dir=args.config_directory,
                              data_dir=args.data_directory,
                              AlgorithmClass=AlgorithmClass,
                              args=args,
+                             auth_aliases=auth_aliases,
+                             live=args.live,
                              start_balances=start_balances)

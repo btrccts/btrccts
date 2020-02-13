@@ -12,6 +12,7 @@ from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
+config_dir = os.path.join(here, 'run', 'config_dir')
 ohlcv_dir = os.path.join(data_dir, 'ohlcv')
 
 binance_eth_btc = pandas.DataFrame(
@@ -247,6 +248,8 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         kraken_currencies.return_value = []
         result = execute_algorithm(exchange_names=['kraken', 'okex3'],
                                    symbols=[],
+                                   live=False,
+                                   auth_aliases={},
                                    AlgorithmClass=TestAlgo,
                                    args=self,
                                    start_balances={'okex3': {'ETH': 3},
@@ -267,14 +270,17 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     def create_sys_argv(self, argv_params):
         argv_dict = {'--data-directory': data_dir,
+                     '--config-directory': config_dir,
                      '--exchanges': 'kraken',
                      '--symbol': 'BTC/USD',
                      '--start-date': '2001'}
         argv_dict.update(argv_params)
         sys_argv = ['file.py']
         for x, y in argv_dict.items():
+            if y is None:
+                continue
             sys_argv.append(x)
-            if y is not None:
+            if y is not True:
                 sys_argv.append(y)
         return sys_argv
 
@@ -293,7 +299,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',
-            '--algo-bool': None,
+            '--algo-bool': True,
             '--some-string': 'testSTR',
             '--timedelta': '2m'})
         with patch.object(sys, 'argv', sys_argv):
@@ -315,11 +321,14 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             'AlgorithmClass': TestAlgo,
             'args': args,
             'data_dir': data_dir,
+            'conf_dir': config_dir,
             'exchange_names': ['kraken'],
             'pd_end_date': pd_ts('2009-01-01 00:00:00+0000'),
             'pd_start_date': pd_ts('2001-01-01 00:00:00+0000'),
             'pd_timedelta': pandas.Timedelta('0 days 00:01:00'),
             'start_balances': {},
+            'live': False,
+            'auth_aliases': {},
             'symbols': ['BTC/USD'],
         }
         params.update(check_params)
@@ -374,11 +383,6 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             argv_params={'--timedelta': '1X'}, exception=ValueError,
             exception_test='Timedelta is not valid')
 
-    def test__parse_params_and_execute_algorithm__live(self):
-        self.template__parse_params_and_execute_algorithm__exception(
-            argv_params={'--live': None}, exception=ValueError,
-            exception_test='Live mode is not supported yet')
-
     def test__parse_params_and_execute_algorithm__multiple_exchanges(self):
         self.template__parse_params_and_execute_algorithm__check_call(
             argv_params={'--exchanges': 'kraken,okex3,bitfinex'},
@@ -388,6 +392,43 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         self.template__parse_params_and_execute_algorithm__check_call(
             argv_params={'--symbols': 'BTC/USD,ETH/BTC,XRP/ETH'},
             check_params={'symbols': ['BTC/USD', 'ETH/BTC', 'XRP/ETH']})
+
+    # Live mode tests
+    def test__parse_params_and_execute_algorithm__live_start_date(self):
+        now_floor = pandas.Timestamp.now(tz='UTC').floor('1T')
+        self.template__parse_params_and_execute_algorithm__check_call(
+            argv_params={'--live': True, '--start-date': None},
+            check_params={'live': True,
+                          'pd_start_date': now_floor,
+                          'start_balances': None})
+
+    def test__parse_params_and_execute_algorithm__live_auth_aliases(self):
+        now_floor = pandas.Timestamp.now(tz='UTC').floor('1T')
+        self.template__parse_params_and_execute_algorithm__check_call(
+            argv_params={'--live': True,
+                         '--start-date': None,
+                         '--auth-aliases': '{"binance": "binance_5", '
+                                           ' "bitfinex": "b5"}'},
+            check_params={'live': True,
+                          'pd_start_date': now_floor,
+                          'start_balances': None,
+                          'auth_aliases': {'binance': 'binance_5',
+                                           'bitfinex': 'b5'}})
+
+    def test__parse_params_and_execute_algorithm__live_start_date_set(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={'--live': True, '--start-date': '2001'},
+            exception=ValueError,
+            exception_test='Start date cannot be set in live mode')
+
+    def test__parse_params_and_execute_algorithm__live_start_balance_set(self):
+        self.template__parse_params_and_execute_algorithm__exception(
+            argv_params={
+                '--live': True, '--start-date': None,
+                '--start-balances': '{"okex3": {"ETH": 3},'
+                                    ' "kraken": {"USD": 100}}'},
+            exception=ValueError,
+            exception_test='Start balance cannot be set in live mode')
 
 
 class SleepUntilTests(unittest.TestCase):
