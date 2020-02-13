@@ -1,24 +1,23 @@
 import sys
 import os
+import importlib.util
 from sccts.run import parse_params_and_execute_algorithm
-from sccts.algorithm import AlgorithmBase
+from sccts.algorithm import AlgorithmBase  # noqa
 from unittest.mock import patch
 
 
+__all__ = ['AlgorithmBase', 'parse_params_and_execute_algorithm']
+
+
+# TODO: Test these functions
 def _load_algorithm_from_file(filepath):
-    with open(sys.argv[1]) as f:
-        source = f.read()
-    file_scope = {'AlgorithmBase': AlgorithmBase}
-    exec(source, {}, file_scope)
-    Algorithm = file_scope.get('Algorithm')
-    if Algorithm is not None:
-        return Algorithm
-    raise ValueError('The file {} needs to contain the Algorithm class '
-                     'called Algorithm'.format(filepath))
+    spec = importlib.util.spec_from_file_location("Algorithm", filepath)
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo)
+    Algorithm = getattr(foo, 'Algorithm')
+    return Algorithm
 
 
-# Warning: this is not documented and not officially supported
-# There is a problem, global imports are not supported via the exec approach
 def _main():
     if len(sys.argv) < 2:
         print('File to load needs to be first parameter')
