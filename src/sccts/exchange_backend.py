@@ -82,7 +82,7 @@ class ExchangeBackend:
         ohlcv = self._ohlcvs.get(symbol)
         if ohlcv is None:
             raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
-        current_date = self._timeframe.date().floor('1T')
+        pd_current_date = self._timeframe.date().floor('1T')
         if limit is None:
             limit = 5
         timeframe_sec = Exchange.parse_timeframe(timeframe)
@@ -97,11 +97,12 @@ class ExchangeBackend:
             raise BadRequest('ExchangeBackend: fetch_ohlcv: no date availabe '
                              'at since')
         pd_until = pd_since + limit * pd_timeframe - pandas.Timedelta('1m')
-        if pd_until > current_date:
+        if pd_until >= pd_current_date + pd_timeframe:
             raise BadRequest(
                 'ExchangeBackend: fetch_ohlcv:'
                 ' since.ceil(timeframe) + limit * timeframe'
                 ' needs to be in the past')
+        pd_until = min(pd_until, pd_current_date)
         data = ohlcv[pd_since:pd_until]
         return data.resample(pd_timeframe).agg({
             'open': 'first',

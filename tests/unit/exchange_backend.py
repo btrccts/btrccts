@@ -175,24 +175,64 @@ class ExchangeBackendTest(unittest.TestCase):
                                   balances={})
         with self.assertRaises(BadRequest) as e:
             backend.fetch_ohlcv_dataframe(
-                symbol=symbol, timeframe='1m', since=1483232610000, limit=17)
+                symbol=symbol, timeframe='1m', since=1483232550000, limit=18)
         self.assertEqual(
             str(e.exception),
             'ExchangeBackend: fetch_ohlcv: since.ceil(timeframe) + limit'
             ' * timeframe needs to be in the past')
 
-    def test__fetch_ohlcv_dataframe__access_future_timeframe(self):
+    def test__fetch_ohlcv_dataframe__access_future__timeframe(self):
         symbol = 'BTC/USD'
         backend = ExchangeBackend(ohlcvs={symbol: self.fetch_ohlcv_ohlcvs},
                                   timeframe=self.fetch_ohlcv_timeframe,
                                   balances={})
         with self.assertRaises(BadRequest) as e:
             backend.fetch_ohlcv_dataframe(
-                symbol=symbol, timeframe='2m', since=1483232610000, limit=9)
+                symbol=symbol, timeframe='2m', since=1483232610000, limit=10)
         self.assertEqual(
             str(e.exception),
             'ExchangeBackend: fetch_ohlcv: since.ceil(timeframe) + limit'
             ' * timeframe needs to be in the past')
+
+    def test__fetch_ohlcv_dataframe__partial_data_agg(self):
+        symbol = 'BTC/USD'
+        backend = ExchangeBackend(ohlcvs={symbol: self.fetch_ohlcv_ohlcvs},
+                                  timeframe=self.fetch_ohlcv_timeframe,
+                                  balances={})
+        result = backend.fetch_ohlcv_dataframe(
+            symbol=symbol, timeframe='6m', since=1483232610000, limit=3)
+        pandas.testing.assert_frame_equal(
+            result,
+            pandas.DataFrame(
+                data={
+                    'open': [24.0, 48.0, 72.0],
+                    'high': [45.0, 69.0, 77.0],
+                    'low': [23.0, 47.0, 71.0],
+                    'close': [48.0, 72.0, 80.0],
+                    'volume': [780.0, 924.0, 340.0]},
+                dtype=float,
+                index=pandas.date_range(
+                    '2017-01-01 01:06', '2017-01-01 01:18', 3, tz='UTC')))
+
+    def test__fetch_ohlcv_dataframe__partial_data(self):
+        symbol = 'BTC/USD'
+        backend = ExchangeBackend(ohlcvs={symbol: self.fetch_ohlcv_ohlcvs},
+                                  timeframe=self.fetch_ohlcv_timeframe,
+                                  balances={})
+        result = backend.fetch_ohlcv_dataframe(
+            symbol=symbol, timeframe='3m', since=1483233000000, limit=3)
+        pandas.testing.assert_frame_equal(
+            result,
+            pandas.DataFrame(
+                data={
+                    'open': [48.0, 60.0, 72.0],
+                    'high': [57.0, 69.0, 77.0],
+                    'low': [47.0, 59.0, 71.0],
+                    'close': [60.0, 72.0, 80.0],
+                    'volume': [444.0, 480.0, 340.0]},
+                dtype=float,
+                index=pandas.date_range(
+                    '2017-01-01 01:12', '2017-01-01 01:18', 3, tz='UTC')))
 
     def test__fetch_ohlcv_dataframe(self):
         symbol = 'BTC/USD'
