@@ -191,6 +191,7 @@ class ExchangeAccount:
             self._fill_order(order, buy, price, timestamp, fee_percentage)
             self._closed_orders[order_id] = order
         if type_limit:
+            # TODO Probably use taker fee, if the order can be filled now
             fee_percentage = market.get('maker', 0)
             fee_percentage = _convert_float_or_raise(fee_percentage,
                                                      'ExchangeAccount: fee')
