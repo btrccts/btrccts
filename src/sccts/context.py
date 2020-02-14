@@ -10,6 +10,10 @@ from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 
 
+class StopException(BaseException):
+    pass
+
+
 class ContextState(Enum):
 
     BACKTEST = auto()
@@ -24,7 +28,6 @@ class BacktestContext:
         for key in exchange_backends:
             self._exchange_backends[key] = exchange_backends[key]
         self._timeframe = timeframe
-        self._stopped = False
 
     def create_exchange(self, exchange_id, config={}):
         if exchange_id not in ccxt.exchanges:
@@ -47,17 +50,13 @@ class BacktestContext:
     def state(self):
         return ContextState.BACKTEST
 
-    def stopped(self):
-        return self._stopped
-
-    def stop(self):
-        self._stopped = True
+    def stop(self, msg):
+        raise StopException(msg)
 
 
 class LiveContext:
 
     def __init__(self, timeframe, conf_dir, auth_aliases={}):
-        self._stopped = False
         self._timeframe = timeframe
         self._auth_aliases = auth_aliases
         self._conf_dir = conf_dir
@@ -88,8 +87,5 @@ class LiveContext:
     def state(self):
         return ContextState.LIVE
 
-    def stopped(self):
-        return self._stopped
-
-    def stop(self):
-        self._stopped = True
+    def stop(self, msg):
+        raise StopException(msg)

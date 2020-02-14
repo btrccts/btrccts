@@ -3,7 +3,8 @@ import unittest
 import pandas
 from unittest.mock import patch, call
 from sccts.timeframe import Timeframe
-from sccts.context import BacktestContext, ContextState, LiveContext
+from sccts.context import BacktestContext, ContextState, LiveContext, \
+    StopException
 from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 from tests.common import pd_ts
@@ -81,11 +82,11 @@ class BacktestContextTest(unittest.TestCase):
         backtest = BacktestContext(timeframe=None)
         self.assertEqual(backtest.state(), ContextState.BACKTEST)
 
-    def test__stop__stopped(self):
-        backtest = BacktestContext(timeframe=None)
-        self.assertEqual(backtest.stopped(), False)
-        backtest.stop()
-        self.assertEqual(backtest.stopped(), True)
+    def test__stop(self):
+        context = LiveContext(timeframe=None, conf_dir='')
+        with self.assertRaises(StopException) as e:
+            context.stop('msg')
+        self.assertEqual(str(e.exception), 'msg')
 
 
 class LiveContextTest(unittest.TestCase):
@@ -156,8 +157,8 @@ class LiveContextTest(unittest.TestCase):
         context = LiveContext(timeframe=None, conf_dir='')
         self.assertEqual(context.state(), ContextState.LIVE)
 
-    def test__stop__stopped(self):
+    def test__stop(self):
         context = LiveContext(timeframe=None, conf_dir='')
-        self.assertEqual(context.stopped(), False)
-        context.stop()
-        self.assertEqual(context.stopped(), True)
+        with self.assertRaises(StopException) as e:
+            context.stop('stop')
+        self.assertEqual(str(e.exception), 'stop')
