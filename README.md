@@ -1,6 +1,6 @@
 # btrccts
 
-Simulate CryptoCurrency Trading Strategies
+BackTest and Run CryptoCurrency Trading Strategies
 
 ## Development setup
 
