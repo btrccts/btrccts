@@ -2,11 +2,11 @@ import ccxt
 import unittest
 import pandas
 from unittest.mock import patch, call
-from sccts.timeframe import Timeframe
-from sccts.context import BacktestContext, ContextState, LiveContext, \
+from btrccts.timeframe import Timeframe
+from btrccts.context import BacktestContext, ContextState, LiveContext, \
     StopException
-from sccts.exchange import BacktestExchangeBase
-from sccts.exchange_backend import ExchangeBackend
+from btrccts.exchange import BacktestExchangeBase
+from btrccts.exchange_backend import ExchangeBackend
 from tests.common import pd_ts
 
 
@@ -18,7 +18,7 @@ class BacktestContextTest(unittest.TestCase):
             backtest.create_exchange('not_an_exchange')
         self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
 
-    @patch('sccts.context.BacktestExchangeBase.__init__')
+    @patch('btrccts.context.BacktestExchangeBase.__init__')
     def test__create_exchange__parameters(self, base_init_mock):
         base_init_mock.return_value = None
         bitfinex_backend = ExchangeBackend(timeframe=None)
@@ -34,8 +34,8 @@ class BacktestContextTest(unittest.TestCase):
         self.assertEqual(exchange.__class__.__bases__,
                          (BacktestExchangeBase, ccxt.bitfinex))
 
-    @patch('sccts.context.ExchangeBackend')
-    @patch('sccts.context.BacktestExchangeBase.__init__')
+    @patch('btrccts.context.ExchangeBackend')
+    @patch('btrccts.context.BacktestExchangeBase.__init__')
     def test__create_exchange__default_exchange_backend_parameters(
             self, base_init_mock, exchange_backend):
         base_init_mock.return_value = None
@@ -114,11 +114,11 @@ class LiveContextTest(unittest.TestCase):
         base_init_mock.return_value = None
         context = LiveContext(timeframe=None, conf_dir='/dir',
                               auth_aliases={'binance': 'bb'})
-        with self.assertLogs('sccts') as cm:
+        with self.assertLogs('btrccts') as cm:
             exchange = context.create_exchange('binance', {'parameter': 123})
         self.assertEqual(
             cm.output,
-            ['WARNING:sccts:Config file for exchange binance does not'
+            ['WARNING:btrccts:Config file for exchange binance does not'
              ' exist: /dir/bb.json'])
         base_init_mock.assert_called_once_with({'parameter': 123})
         self.assertTrue(isinstance(exchange, ccxt.binance))
@@ -146,7 +146,7 @@ class LiveContextTest(unittest.TestCase):
         t.add_timedelta()
         self.assertEqual(context.date(), pd_ts('2017-01-01 1:01'))
 
-    @patch('sccts.context.pandas.Timestamp.now')
+    @patch('btrccts.context.pandas.Timestamp.now')
     def test__real_date(self, now_mock):
         context = LiveContext(timeframe=None, conf_dir='')
         result = context.real_date()

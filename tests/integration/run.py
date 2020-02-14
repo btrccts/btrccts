@@ -3,10 +3,10 @@ import time
 import os
 import sys
 import unittest
-from sccts.algorithm import AlgorithmBase
-from sccts.run import ExitReason, \
+from btrccts.algorithm import AlgorithmBase
+from btrccts.run import ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
-from sccts.timeframe import Timeframe
+from btrccts.timeframe import Timeframe
 from tests.common import pd_ts
 from unittest.mock import patch, MagicMock
 

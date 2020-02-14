@@ -2,7 +2,7 @@ import unittest
 import re
 import pandas
 from unittest.mock import MagicMock, patch
-from sccts.context import BacktestContext
+from btrccts.context import BacktestContext
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import InvalidOrder, BadRequest
 from tests.common import BTC_USD_MARKET

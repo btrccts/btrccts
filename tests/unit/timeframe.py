@@ -1,6 +1,6 @@
 import pandas
 import unittest
-from sccts.timeframe import Timeframe
+from btrccts.timeframe import Timeframe
 from tests.common import pd_ts
 
 

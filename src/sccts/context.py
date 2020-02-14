@@ -6,8 +6,8 @@ import functools
 import logging
 from collections import defaultdict
 from enum import auto, Enum
-from sccts.exchange import BacktestExchangeBase
-from sccts.exchange_backend import ExchangeBackend
+from btrccts.exchange import BacktestExchangeBase
+from btrccts.exchange_backend import ExchangeBackend
 
 
 class StopException(SystemExit):

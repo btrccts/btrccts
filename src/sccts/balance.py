@@ -1,6 +1,6 @@
 from ccxt.base.errors import InsufficientFunds
 from decimal import Decimal
-from sccts.convert_float import _convert_float
+from btrccts.convert_float import _convert_float
 
 _BALANCE_CHECK = True
 

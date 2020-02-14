@@ -4,9 +4,9 @@ from ccxt.base.errors import BadRequest, InvalidOrder, OrderNotFound
 from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
-from sccts.check_dataframe import _check_dataframe
-from sccts.convert_float import _convert_float_or_raise, _convert_float
-from sccts.balance import Balance
+from btrccts.check_dataframe import _check_dataframe
+from btrccts.convert_float import _convert_float_or_raise, _convert_float
+from btrccts.balance import Balance
 
 DECIMAL_ONE = Decimal('1')
 

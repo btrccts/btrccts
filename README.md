@@ -1,4 +1,4 @@
-# sccts
+# btrccts
 
 Simulate CryptoCurrency Trading Strategies
 

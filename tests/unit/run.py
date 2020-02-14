@@ -2,11 +2,11 @@ import pandas
 import os
 import sys
 import unittest
-from sccts.algorithm import AlgorithmBase
-from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
+from btrccts.algorithm import AlgorithmBase
+from btrccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm, sleep_until, \
     StopException
-from sccts.timeframe import Timeframe
+from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
     pd_ts
@@ -133,7 +133,7 @@ class MainLoopTests(unittest.TestCase):
         algorithm = Mock(spec=AlgorithmBase)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, 0, error, 0]
-        with self.assertLogs('sccts') as cm:
+        with self.assertLogs('btrccts') as cm:
             result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
         self.assertEqual(result, algorithm)
         self.assertEqual(algorithm.mock_calls,
@@ -145,18 +145,18 @@ class MainLoopTests(unittest.TestCase):
                           call.exit(reason=ExitReason.FINISHED)])
         self.assertEqual(len(cm.output), 4)
         self.assertEqual(cm.output[0:2],
-                         ['INFO:sccts:Starting main_loop',
-                          'ERROR:sccts:Error occured during next_iteration'])
+                         ['INFO:btrccts:Starting main_loop',
+                          'ERROR:btrccts:Error occured during next_iteration'])
         self.assertTrue(cm.output[2].startswith(
-            'ERROR:sccts:a\nTraceback (most recent call last):\n  File'))
-        self.assertEqual(cm.output[3], 'INFO:sccts:Finished main_loop')
+            'ERROR:btrccts:a\nTraceback (most recent call last):\n  File'))
+        self.assertEqual(cm.output[3], 'INFO:btrccts:Finished main_loop')
 
     def test__main_loop__handle_exception_throws(self):
         algorithm = Mock(spec=AlgorithmBase)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, error, 0, 0]
         algorithm.handle_exception.side_effect = AttributeError('side')
-        with self.assertLogs('sccts') as cm:
+        with self.assertLogs('btrccts') as cm:
             with self.assertRaises(AttributeError) as e:
                 main_loop(timeframe=self.timeframe, algorithm=algorithm)
         self.assertEqual(str(e.exception), 'side')
@@ -167,41 +167,41 @@ class MainLoopTests(unittest.TestCase):
                           call.exit(reason=ExitReason.EXCEPTION)])
         self.assertEqual(len(cm.output), 5)
         self.assertEqual(cm.output[0:2],
-                         ['INFO:sccts:Starting main_loop',
-                          'ERROR:sccts:Error occured during next_iteration'])
+                         ['INFO:btrccts:Starting main_loop',
+                          'ERROR:btrccts:Error occured during next_iteration'])
         self.assertTrue(cm.output[2].startswith(
-            'ERROR:sccts:a\nTraceback (most recent call last):\n  File'))
-        self.assertEqual(cm.output[3], 'ERROR:sccts:Exiting because of '
+            'ERROR:btrccts:a\nTraceback (most recent call last):\n  File'))
+        self.assertEqual(cm.output[3], 'ERROR:btrccts:Exiting because of '
                                        'exception in handle_exception')
         self.assertTrue(cm.output[4].startswith(
-            'ERROR:sccts:side\nTraceback (most recent call last):\n  File'))
+            'ERROR:btrccts:side\nTraceback (most recent call last):\n  File'))
 
     def template__main_loop__exit_exception(self, exception_class, log_str):
         algorithm = Mock(spec=AlgorithmBase)
         algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
-        with self.assertLogs('sccts') as cm:
+        with self.assertLogs('btrccts') as cm:
             result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.next_iteration(),
                           call.exit(reason=ExitReason.STOPPED)])
         self.assertEqual(cm.output,
-                         ['INFO:sccts:Starting main_loop', log_str])
+                         ['INFO:btrccts:Starting main_loop', log_str])
         self.assertEqual(algorithm, result)
 
     def test__main_loop__systemexit(self):
         self.template__main_loop__exit_exception(
-            SystemExit, 'INFO:sccts:Stopped because of SystemExit: aa')
+            SystemExit, 'INFO:btrccts:Stopped because of SystemExit: aa')
 
     def test__main_loop__keyboardinterrupt(self):
         self.template__main_loop__exit_exception(
             KeyboardInterrupt,
-            'INFO:sccts:Stopped because of KeyboardInterrupt: aa')
+            'INFO:btrccts:Stopped because of KeyboardInterrupt: aa')
 
     def test__main_loop__stop(self):
         self.template__main_loop__exit_exception(
             StopException,
-            'INFO:sccts:Stopped because of StopException: aa')
+            'INFO:btrccts:Stopped because of StopException: aa')
 
 
 class TestAlgo(AlgorithmBase):
@@ -315,7 +315,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)
 
-    @patch('sccts.run.execute_algorithm')
+    @patch('btrccts.run.execute_algorithm')
     def template__parse_params_and_execute_algorithm__check_call(
             self, execute_algorithm, argv_params, check_params):
         sys_argv = self.create_sys_argv(argv_params)
@@ -349,16 +349,16 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
     def test__parse_params_and_execute_algorithm__no_symbols_warning(self):
         self.template__parse_params_and_execute_algorithm__warning(
             argv_params={'--symbols': ''}, check_params={'symbols': []},
-            logs=['WARNING:sccts:No symbols specified, load all ohlcvs '
+            logs=['WARNING:btrccts:No symbols specified, load all ohlcvs '
                   'per each exchange. This can lead to long start times'])
 
     def test__parse_params_and_execute_algorithm__no_exchanges_warning(self):
         self.template__parse_params_and_execute_algorithm__warning(
             argv_params={'--exchanges': ''},
             check_params={'exchange_names': []},
-            logs=['WARNING:sccts:No exchanges specified, do not load ohlcv'])
+            logs=['WARNING:btrccts:No exchanges specified, do not load ohlcv'])
 
-    @patch('sccts.run.execute_algorithm')
+    @patch('btrccts.run.execute_algorithm')
     def template__parse_params_and_execute_algorithm__exception(
             self, execute_algorithm, argv_params, exception, exception_test):
         sys_argv = self.create_sys_argv(argv_params)
@@ -438,14 +438,14 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
 class SleepUntilTests(unittest.TestCase):
 
-    @patch('sccts.run.time.sleep')
+    @patch('btrccts.run.time.sleep')
     def test__sleep_until__none(self, sleep_mock):
         with self.assertRaises(TypeError):
             sleep_until(None)
             sleep_mock.assert_not_called()
 
-    @patch('sccts.run.pandas.Timestamp.now')
-    @patch('sccts.run.time.sleep')
+    @patch('btrccts.run.pandas.Timestamp.now')
+    @patch('btrccts.run.time.sleep')
     def test__sleep_until__one_longer_sleep(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00', '2017-08-18 00:01:00'], utc=True)
@@ -454,8 +454,8 @@ class SleepUntilTests(unittest.TestCase):
         sleep_mock.assert_called_once_with(1)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
 
-    @patch('sccts.run.pandas.Timestamp.now')
-    @patch('sccts.run.time.sleep')
+    @patch('btrccts.run.pandas.Timestamp.now')
+    @patch('btrccts.run.time.sleep')
     def test__sleep_until__one_partial_sleep(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01'], utc=True)
@@ -464,8 +464,8 @@ class SleepUntilTests(unittest.TestCase):
         sleep_mock.assert_called_once_with(0.8)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
 
-    @patch('sccts.run.pandas.Timestamp.now')
-    @patch('sccts.run.time.sleep')
+    @patch('btrccts.run.pandas.Timestamp.now')
+    @patch('btrccts.run.time.sleep')
     def test__sleep_until__multiple_sleeps(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00', '2017-08-18 00:00:01.123',
@@ -475,8 +475,8 @@ class SleepUntilTests(unittest.TestCase):
         self.assertEqual(sleep_mock.mock_calls, [call(1), call(1), call(0.76)])
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
 
-    @patch('sccts.run.pandas.Timestamp.now')
-    @patch('sccts.run.time.sleep')
+    @patch('btrccts.run.pandas.Timestamp.now')
+    @patch('btrccts.run.time.sleep')
     def test__sleep_until__clock_changed(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:01:00', '2017-08-18 00:00:59',

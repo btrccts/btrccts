@@ -2,8 +2,8 @@ import pandas
 import unittest
 from ccxt.base.errors import BadRequest, BadSymbol
 from unittest.mock import patch, MagicMock
-from sccts.exchange_backend import ExchangeBackend
-from sccts.timeframe import Timeframe
+from btrccts.exchange_backend import ExchangeBackend
+from btrccts.timeframe import Timeframe
 
 
 class ExchangeBackendTest(unittest.TestCase):
@@ -100,7 +100,7 @@ class ExchangeBackendTest(unittest.TestCase):
         self.assertEqual(str(e.exception),
                          "ohlcv could not convert string to float: 'asd'")
 
-    @patch("sccts.exchange_backend.ExchangeAccount")
+    @patch("btrccts.exchange_backend.ExchangeAccount")
     def test__init(self, mock):
         ohlcvs_mock = MagicMock()
         timeframe_mock = MagicMock()
@@ -112,7 +112,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                      timeframe=timeframe_mock,
                                      balances=balances_mock)
 
-    @patch("sccts.exchange_backend.ExchangeAccount")
+    @patch("btrccts.exchange_backend.ExchangeAccount")
     def template_exchange_account_method_propagated(
             self, mock, kwargs, methodname):
         ohlcvs = {}

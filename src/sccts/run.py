@@ -10,9 +10,9 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
 from functools import partial
-from sccts.context import BacktestContext, LiveContext, StopException
-from sccts.exchange_backend import ExchangeBackend
-from sccts.timeframe import Timeframe
+from btrccts.context import BacktestContext, LiveContext, StopException
+from btrccts.exchange_backend import ExchangeBackend
+from btrccts.timeframe import Timeframe
 
 USER_CONFIG_DIR = appdirs.user_config_dir(__package__)
 USER_DATA_DIR = appdirs.user_data_dir(__package__)

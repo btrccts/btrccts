@@ -3,8 +3,8 @@ import unittest
 from ccxt.base.errors import BadRequest, InsufficientFunds, InvalidOrder, \
     OrderNotFound
 from copy import deepcopy
-from sccts.exchange_account import ExchangeAccount
-from sccts.timeframe import Timeframe
+from btrccts.exchange_account import ExchangeAccount
+from btrccts.timeframe import Timeframe
 from tests.common import BTC_USD_MARKET, ETH_BTC_MARKET
 
 

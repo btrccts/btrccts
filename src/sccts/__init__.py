@@ -1,8 +1,8 @@
 import sys
 import os
 import importlib.util
-from sccts.run import parse_params_and_execute_algorithm
-from sccts.algorithm import AlgorithmBase  # noqa
+from btrccts.run import parse_params_and_execute_algorithm
+from btrccts.algorithm import AlgorithmBase  # noqa
 from unittest.mock import patch
 
 

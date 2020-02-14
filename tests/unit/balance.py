@@ -1,7 +1,7 @@
 import unittest
 from ccxt.base.errors import InsufficientFunds
 from decimal import Decimal
-from sccts.balance import Balance
+from btrccts.balance import Balance
 
 
 class BalanceTest(unittest.TestCase):

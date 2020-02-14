@@ -1,8 +1,8 @@
 import pandas
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import BadRequest, BadSymbol
-from sccts.check_dataframe import _check_dataframe
-from sccts.exchange_account import ExchangeAccount
+from btrccts.check_dataframe import _check_dataframe
+from btrccts.exchange_account import ExchangeAccount
 
 
 class ExchangeBackend:
