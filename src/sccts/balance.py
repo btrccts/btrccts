@@ -2,6 +2,14 @@ from ccxt.base.errors import InsufficientFunds
 from decimal import Decimal
 from sccts.convert_float import _convert_float
 
+_BALANCE_CHECK = True
+
+
+# This will be removed in the future, when ccxt margin trading api is defined
+def __disable_balance_check():
+    global _BALANCE_CHECK
+    _BALANCE_CHECK = False
+
 
 class Balance:
 
@@ -21,14 +29,14 @@ class Balance:
     def change_total(self, change):
         change = _convert_float(change)
         new_value = self._total + change
-        if new_value < Decimal('0'):
+        if _BALANCE_CHECK and new_value < Decimal('0'):
             raise InsufficientFunds('Balance too little')
         self._total = new_value
 
     def change_used(self, change):
         change = _convert_float(change)
         new_value = self._used + change
-        if new_value > self._total:
+        if _BALANCE_CHECK and new_value > self._total:
             raise InsufficientFunds('Balance too little')
         self._used = new_value
 
