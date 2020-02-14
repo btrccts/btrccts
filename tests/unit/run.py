@@ -4,7 +4,8 @@ import sys
 import unittest
 from sccts.algorithm import AlgorithmBase
 from sccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
-    execute_algorithm, parse_params_and_execute_algorithm, sleep_until
+    execute_algorithm, parse_params_and_execute_algorithm, sleep_until, \
+    StopException
 from sccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
@@ -179,15 +180,14 @@ class MainLoopTests(unittest.TestCase):
         algorithm = Mock(spec=AlgorithmBase)
         algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
         with self.assertLogs('sccts') as cm:
-            with self.assertRaises(exception_class) as e:
-                main_loop(timeframe=self.timeframe, algorithm=algorithm)
-        self.assertEqual(str(e.exception), 'aa')
+            result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.next_iteration(),
                           call.exit(reason=ExitReason.STOPPED)])
         self.assertEqual(cm.output,
                          ['INFO:sccts:Starting main_loop', log_str])
+        self.assertEqual(algorithm, result)
 
     def test__main_loop__systemexit(self):
         self.template__main_loop__exit_exception(
@@ -197,6 +197,11 @@ class MainLoopTests(unittest.TestCase):
         self.template__main_loop__exit_exception(
             KeyboardInterrupt,
             'INFO:sccts:Stopped because of KeyboardInterrupt: aa')
+
+    def test__main_loop__stop(self):
+        self.template__main_loop__exit_exception(
+            StopException,
+            'INFO:sccts:Stopped because of StopException: aa')
 
 
 class TestAlgo(AlgorithmBase):

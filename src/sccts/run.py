@@ -10,7 +10,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
 from functools import partial
-from sccts.context import BacktestContext, LiveContext
+from sccts.context import BacktestContext, LiveContext, StopException
 from sccts.exchange_backend import ExchangeBackend
 from sccts.timeframe import Timeframe
 
@@ -88,11 +88,11 @@ def main_loop(timeframe, algorithm, live=False):
     while timeframe.date() is not None:
         try:
             algorithm.next_iteration()
-        except (SystemExit, KeyboardInterrupt) as e:
+        except (SystemExit, KeyboardInterrupt, StopException) as e:
             logger.info('Stopped because of {}: {}'.format(
                 type(e).__name__, e))
             algorithm.exit(reason=ExitReason.STOPPED)
-            raise e
+            return algorithm
         except BaseException as e:
             logger.error('Error occured during next_iteration')
             logger.exception(e)

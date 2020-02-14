@@ -10,7 +10,7 @@ from sccts.exchange import BacktestExchangeBase
 from sccts.exchange_backend import ExchangeBackend
 
 
-class StopException(BaseException):
+class StopException(SystemExit):
     pass
 
 
