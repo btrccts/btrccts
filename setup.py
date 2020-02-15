@@ -1,10 +1,14 @@
 from setuptools import setup, find_packages
 
+with open('README.md', encoding='utf-8') as f:
+    readme = f.read()
+
 
 setup(
     name='btrccts',
     version='0.0.1',
     description='BackTest and Run CryptoCurrency Trading Strategies',
+    long_description=readme,
     classifiers=[
         'Programming Language :: Python',
         'Intended Audience :: Developers',
