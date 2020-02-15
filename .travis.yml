@@ -1,0 +1,21 @@
+language: python
+python:
+  - "3.8"
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+before_install:
+- set -e
+- python3 --version
+- sudo apt-get install python3-pip python3-venv flake8
+- flake8 .
+- pip3 install --upgrade setuptools pip
+- pip3 install -e .
+- pip3 install -e .
+- pip install -e .[dev]
+# TODO: --no-deps, requirements file
+# TODO: hashes
+script:
+- python3 -m unittest tests/unit/tests.py
+- python3 -m unittest tests/integration/tests.py
