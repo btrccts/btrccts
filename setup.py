@@ -22,7 +22,7 @@ setup(
     ],
     author='Simon Brand',
     author_email='simon.brand@postadigitale.de',
-    url='',
+    url='https://github.com/btrccts/btrccts/',
     keywords='btrccts',
     package_dir={'': 'src'},
     packages=find_packages('src/'),
