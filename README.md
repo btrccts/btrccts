@@ -108,10 +108,9 @@ The data directory contains the ohlcv data:
 `data_directory/ohlcv/EXCHANGE/BASE/QUOTE.csv`
 e.g.
 `data_directory/ohlcv/binance/BTC/USD.csv`
-```
 
 Data files are in the following format (readable with `pandas.read_csv`)
-```
+```csv
 ,open,high,low,close,volume
 2019-10-01 10:10:00+00:00,200,300,100,300,1000
 2019-10-01 10:11:00+00:00,300,400,200,400,2000
