@@ -144,8 +144,8 @@ but this is not what is happening in the real world (executing market orders imm
 - Limit order
 
 Limit orders are filled, when the price is reached. Limit orders get filled
-all at once, there is no volume calculation yet. If your bot uses hugh limit orders,
-keep in mind that the behaviour on the exchange can be a partiall fill and leaving the
+all at once, there is no volume calculation yet. If your bot uses huge limit orders,
+keep in mind that the behavior on the exchange can be a partiall fill and leaving the
 order open until filled.
 
 
