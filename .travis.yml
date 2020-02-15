@@ -11,9 +11,10 @@ before_install:
 - sudo apt-get install python3-pip python3-venv flake8
 - flake8 .
 - pip3 install --upgrade setuptools pip
-- pip3 install --upgrade pycodestyle pyflakes
 - pip3 install -r requirements.txt
 - pip3 install -e . --no-deps
+# Run algo to see all needed requirements are here
+- python3 examples/print_time.py --start-date 2017-01-01 --end-date 2017-01-02
 # - pip3 install -e .
 # - bash -c 'req="$(pip freeze | grep -v btrccts)" ; pip3 install hashin ; touch requirements.txt ; hashin ${req} ; cat requirements.txt'
 # - bash -c 'pip3 install pipdeptree ; pipdeptree -fl ; exit 0'
