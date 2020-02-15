@@ -2,6 +2,12 @@
 
 ### [Install](#install) - [Usage](#usage) - [Manual](#manual) - [Development](#development)
 
+This library provides an easy way to backtest trading strategies and run them live with ccxt.
+The purpose of this library is to provide a framework and an backtest exchange with the same
+interface than ccxt - nothing less and nothing more.
+If you want an library to compute performance metrics out of trades/orders,
+you need an additional library.
+
 ## Install
 
 The easiest way to install the BTRCCTS library is to use a package manager:
