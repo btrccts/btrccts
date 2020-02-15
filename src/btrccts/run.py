@@ -17,6 +17,10 @@ from btrccts.timeframe import Timeframe
 USER_CONFIG_DIR = appdirs.user_config_dir(__package__)
 USER_DATA_DIR = appdirs.user_data_dir(__package__)
 SLEEP_SECONDS = 1
+HELP_EPILOG = """
+Default config directory: {data}
+Default data directory: {config}
+""".format(config=USER_CONFIG_DIR, data=USER_DATA_DIR)
 
 
 def serialize_symbol(symbol):
@@ -152,7 +156,8 @@ def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
 
 
 def parse_params_and_execute_algorithm(AlgorithmClass):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        epilog=HELP_EPILOG, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--start-date', default='',
                         help='Date to start backtesting, ignored in live mode')
     parser.add_argument('--end-date', default='2009-01-01',
