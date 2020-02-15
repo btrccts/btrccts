@@ -4,7 +4,7 @@ import os
 import sys
 import unittest
 from btrccts.algorithm import AlgorithmBase
-from btrccts.run import ExitReason, \
+from btrccts.run import ExitReason, sleep_until, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
 from tests.common import pd_ts
@@ -68,6 +68,9 @@ class LiveTestAlgo(AlgorithmBase):
     @staticmethod
     def get_test_time_parameters():
         pd_timedelta = pandas.Timedelta(seconds=2)
+        # Sleep until the beginning of the start, to be sure there is
+        # no timing issue
+        sleep_until(pandas.Timestamp.now(tz='UTC').ceil(pd_timedelta))
         start = pandas.Timestamp.now(tz='UTC').floor(pd_timedelta)
         return {
             'pd_start_date': start,
