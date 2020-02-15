@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name='btrccts',
     version='0.0.1',
-    description='Simulate CryptoCurrency Trading Strategies',
+    description='BackTest and Run CryptoCurrency Trading Strategies',
     classifiers=[
         'Programming Language :: Python',
         'Intended Audience :: Developers',
