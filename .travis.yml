@@ -14,7 +14,7 @@ cache:
 before_install:
 - set -e
 - python3 --version
-- sudo apt-get install python3-pip python3-venv flake8
+- sudo apt-get install python3-pip flake8
 - flake8 .
 - pip3 install --upgrade setuptools pip
 - pip3 install -r requirements.txt
