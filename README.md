@@ -46,6 +46,10 @@ class Algorithm(AlgorithmBase):
         # You can access your own defined parameters
         print('Pyramiding:', args.pyramiding)
 
+        # You can access predefined parameters like exchanges and symbols
+        print('Exchanges:', args.exchanges)
+        print('Symbols:', args.symbols)
+
     def next_iteration(self):
         # This method is executed each time interval
 
