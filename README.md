@@ -1,4 +1,5 @@
-# btrccts - BackTest and Run CryptoCurrency Trading Strategies
+# btrccts
+## BackTest and Run CryptoCurrency Trading Strategies
 
 ### [Install](#install) - [Usage](#usage) - [Manual](#manual) - [Development](#development)
 
