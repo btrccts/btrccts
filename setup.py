@@ -29,6 +29,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     extras_require={
+        'dev': ['pycodestyle', 'pyflakes'],
     },
     install_requires=['ccxt', 'pandas', 'numpy', 'appdirs'],
     entry_points={
