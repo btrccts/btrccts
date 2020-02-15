@@ -1,6 +1,6 @@
 import pandas
-from sccts.algorithm import AlgorithmBase
-from sccts.run import parse_params_and_execute_algorithm
+from btrccts.algorithm import AlgorithmBase
+from btrccts.run import parse_params_and_execute_algorithm
 
 
 class Algorithm(AlgorithmBase):
