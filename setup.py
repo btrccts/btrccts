@@ -7,6 +7,18 @@ setup(
     description='Simulate CryptoCurrency Trading Strategies',
     classifiers=[
         'Programming Language :: Python',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Financial and Insurance Industry',
+        'Topic :: Software Development :: Build Tools',
+        'Topic :: Office/Business :: Financial :: Investment',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Operating System :: OS Independent',
+        'Environment :: Console'
     ],
     author='Simon Brand',
     author_email='simon.brand@postadigitale.de',
