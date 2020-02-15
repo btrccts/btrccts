@@ -162,7 +162,7 @@ only the last interval is rescheduled.
 Setup a virtualenv:
 
 ```shell
-git clone TODO
+git clone git@github.com:btrccts/btrccts.git
 python3 -m venv .venv
 .venv/bin/pip install -r etc/requirements.txt
 .venv/bin/pip install -r etc/requirements_dev.txt
