@@ -9,6 +9,7 @@ setup(
     version='0.0.2',
     description='BackTest and Run CryptoCurrency Trading Strategies',
     long_description=readme,
+    long_description_content_type='text/markdown',
     classifiers=[
         'Programming Language :: Python',
         'Intended Audience :: Developers',
