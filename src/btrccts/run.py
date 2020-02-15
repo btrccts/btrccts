@@ -23,10 +23,6 @@ Default data directory: {config}
 """.format(config=USER_CONFIG_DIR, data=USER_DATA_DIR)
 
 
-def serialize_symbol(symbol):
-    return symbol.replace('/', '_')
-
-
 def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
     result = {}
     complete_exchange = False
@@ -38,16 +34,20 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
         exchange_path = os.path.join(ohlcv_dir, exchange_name)
         if complete_exchange:
             try:
-                symbols = [x[:-4].replace('_', '/')
-                           for x in os.listdir(exchange_path)
-                           if x.endswith('.csv')]
-            except FileNotFoundError:
+                symbols = []
+                for base in os.listdir(exchange_path):
+                    quote_path = os.path.join(exchange_path, base)
+                    if os.path.isdir(quote_path):
+                        for quote in os.listdir(quote_path):
+                            if quote.endswith('.csv'):
+                                symbols.append(os.path.join(base, quote[:-4]))
+            except (FileNotFoundError, NotADirectoryError):
                 raise FileNotFoundError(
                     'Cannot find ohlcv directory for exchange ({})'
                     .format(exchange_name))
         for symbol in symbols:
             file_path = os.path.join(exchange_path,
-                                     '{}.csv'.format(serialize_symbol(symbol)))
+                                     '{}.csv'.format(symbol))
             try:
                 ohlcv = pandas.read_csv(
                     file_path,

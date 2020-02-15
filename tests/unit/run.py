@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 from btrccts.algorithm import AlgorithmBase
-from btrccts.run import load_ohlcvs, serialize_symbol, main_loop, ExitReason, \
+from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm, sleep_until, \
     StopException
 from btrccts.timeframe import Timeframe
@@ -57,9 +57,6 @@ class LoadCSVTests(unittest.TestCase):
     def assert_frame_equal(self, d1, d2):
         pandas.testing.assert_frame_equal(d1.sort_index(axis=1),
                                           d2.sort_index(axis=1))
-
-    def test__serialize_symbol(self):
-        self.assertEqual(serialize_symbol('BTC/USD'), 'BTC_USD')
 
     def test__load_ohlcvs__all_symbols_no_exchange_directory(self):
         with self.assertRaises(FileNotFoundError) as e:
