@@ -13,7 +13,7 @@ you need an additional library.
 
 The easiest way to install the BTRCCTS library is to use a package manager:
 
-- TODO: link to python package
+- https://pypi.org/project/btrccts/
 
 You can also clone the repository, see [Development](development)
 
