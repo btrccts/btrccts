@@ -1,16 +1,171 @@
-# btrccts
+# btrccts - BackTest and Run CryptoCurrency Trading Strategies
 
-BackTest and Run CryptoCurrency Trading Strategies
+### [Install](#install) - [Usage](#usage) - [Manual](#manual) - [Development](#development)
 
-## Development setup
+## Install
+
+The easiest way to install the BTRCCTS library is to use a package manager:
+
+- TODO: link to python package
+
+You can also clone the repository, see [Development](development)
+
+## Usage
+
+For example algorithms see in [Examples](examples/)
+```python
+from btrccts import parse_params_and_execute_algorithm, AlgorithmBase
+
+
+class Algorithm(AlgorithmBase):
+
+    @staticmethod
+    def configure_argparser(argparser):
+        # Here you can add additional arguments to the argparser
+        argparser.add_argument('--pyramiding', default=1, type=int)
+
+    def __init__(self, context, args):
+        # Context is used to create exchanges or get the current time
+        self._context = context
+        self._args = args
+
+        # This will create a kraken exchange instance
+        # The interface in backtesting and live mode is identical to CCXT.
+        # See: [CCXT](https://github.com/ccxt/ccxt/wiki)
+        # In live mode, this will be a plain ccxt instance of the exchange
+        # The exchange keys will be read from the config directory (see --help)
+        self._kraken = context.create_exchange('kraken')
+
+        # You can access your own defined parameters
+        print('Pyramiding:', args.pyramiding)
+
+    def next_iteration(self):
+        # This method is executed each time interval
+
+        # This is the current context date:
+        print('context date', self._context.date())
+
+        # Use the exchange to load OHLCV data
+        ohlcv_len = 10
+        ohlcv_offset = ohlcv_len * 60 * 1000
+        ohlcv_start = int(self._context.date().value / 1000000 - ohlcv_offset)
+        print(self._kraken.fetch_ohlcv(
+            'BTC/USD', '1m', ohlcv_start, ohlcv_len))
+
+        # Use the exchange to create a market order
+        self._order_id = self._kraken.create_order(
+            type='market', side='buy', symbol='BTC/USD', amount=0.1)
+
+        # If you want to stop the algorithm in context or live mode, you can
+        # do this:
+        self._context.stop('stop message')
+
+    def handle_exception(self, e):
+        # This method is called, when next_iteration raises an exception, e.g.
+        # because of an exchange error or a programming error.
+        # If this method raises an exception, the algorith will stop with
+        # reason EXCEPTION
+        # If you are not in live mode, it is advicable to rethrow the
+        # exception to fix the programming error.
+        print(e)
+        if not self._args.live:
+            raise e
+
+    def exit(self, reason):
+        # This method is called, when the algorithm exits and should be used
+        # to cleanup (e.g. cancel open orders).
+        # reason contains information on why the algorithm exits.
+        # e.g. STOPPED, EXCEPTION, FINISHED
+        print("Done", reason)
+
+
+# This method parses commandline parameters (see --help)
+# and runs the Algorithm according to the parameters
+result = parse_params_and_execute_algorithm(Algorithm)
+# The result is an instance of Algorithm, you can now use saved
+# information or exchanges to benchmark your performance.
+print(result._kraken.fetch_closed_orders())
+```
+
+To run this algorithm, just execute the file with python.
+e.g. `.venv/bin/python examples/algo_readme.py --start-date 2017-12-01 --end-date 2017-12-02 --timedelta 1h --exchanges kraken --symbols BTC/USD --start-balances '{"kraken": {"USD": 10000}}'`
+
+
+## Manual
+
+### Data and directories
+
+Run your algorithm with `--help` to see the path to your config and data directories.
+
+The data directory contains the ohlcv data:
+`data_directory/ohlcv/EXCHANGE/BASE/QUOTE.csv`
+e.g.
+`data_directory/ohlcv/binance/BTC/USD.csv`
+```
+
+Data files are in the following format (readable with `pandas.read_csv`)
+```
+,open,high,low,close,volume
+2019-10-01 10:10:00+00:00,200,300,100,300,1000
+2019-10-01 10:11:00+00:00,300,400,200,400,2000
+2019-10-01 10:12:00+00:00,400,500,300,500,3000
+```
+The data files are not yet provided with this library. You have to provide them yourself.
+
+
+The config directory contains exchange keys.
+e.g. `config_directory/binance.json`:
+```json
+{
+    "apiKey": "key material",
+    "secret": "secret stuff"
+}
+```
+If an alias is provided (e.g. `--auth-aliases '{"kraken": "kraken_wma"}'`,
+the file `config_directory/kraken_wma.json` is used.
+
+
+### How orders get filled
+
+- Market order
+
+Market orders are executed immediatly with a price a little worse than current low/high.
+Since we only have ohlcv data, we cannot use the next data, because this would introduce
+a look-ahead bias
+Some other backtesting libraries would wait until the next round to fill market orders,
+but this is not what is happening in the real world (executing market orders immediatly).
+
+- Limit order
+
+Limit orders are filled, when the price is reached. Limit orders get filled
+all at once, there is no volume calculation yet. If your bot uses hugh limit orders,
+keep in mind that the behaviour on the exchange can be a partiall fill and leaving the
+order open until filled.
+
+
+### When next round is initiated in live mode / How interval is handled in live mode
+
+When the algorithm is started, it will immediatly execute `next_iteration`.
+Now the library waits until the next time interval and executes `next_iteration`.
+If the `next_iteration` call takes longer than the interval, `next_iteration` is
+called immediatly again. If `next_iteration` takes longer than multiple intervals,
+only the last interval is rescheduled.
+
+## Development
 
 Setup a virtualenv:
 
-    python3 -m venv .venv
-    # TODO: provide requirements file with hashes
-    .venv/bin/pip install -e .
+```shell
+git clone TODO
+python3 -m venv .venv
+.venv/bin/pip install -r etc/requirements.txt
+.venv/bin/pip install -r etc/requirements_dev.txt
+.venv/bin/pip install -e . --no-deps
+```
 
-## Run tests
+### Run tests
 
-    .venv/bin/python -m unittest tests/unit/tests.py
-    .venv/bin/python -m unittest tests/integration/tests.py
+```shell
+.venv/bin/python -m unittest tests/unit/tests.py
+.venv/bin/python -m unittest tests/integration/tests.py
+```
