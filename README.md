@@ -103,6 +103,12 @@ print(result._kraken.fetch_closed_orders())
 To run this algorithm, just execute the file with python.
 e.g. `.venv/bin/python examples/algo_readme.py --start-date 2017-12-01 --end-date 2017-12-02 --timedelta 1h --exchanges kraken --symbols BTC/USD --start-balances '{"kraken": {"USD": 10000}}'`
 
+If you dont want the function to parse commandline parameters for you, you can use
+```python
+from btrccts.run import execute_algorithm
+execute_algorithm(...)
+```
+
 
 ## Manual
 
