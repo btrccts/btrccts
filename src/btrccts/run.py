@@ -132,14 +132,14 @@ def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
                           pd_end_date=pd_end_date,
                           pd_timedelta=pd_timedelta)
     ohlcv_dir = os.path.join(data_dir, 'ohlcv')
-    ohlcvs = load_ohlcvs(ohlcv_dir=ohlcv_dir,
-                         exchange_names=exchange_names,
-                         symbols=symbols)
     if live:
         context = LiveContext(timeframe=timeframe,
                               conf_dir=conf_dir,
                               auth_aliases=auth_aliases)
     else:
+        ohlcvs = load_ohlcvs(ohlcv_dir=ohlcv_dir,
+                             exchange_names=exchange_names,
+                             symbols=symbols)
         exchange_backends = {}
         for exchange_name in exchange_names:
             exchange_backends[exchange_name] = ExchangeBackend(

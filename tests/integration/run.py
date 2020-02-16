@@ -188,8 +188,10 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
             '--end-date': str(time_params['pd_end_date']),
             '--algo-bool': True,
             '--live': True,
+            '--exchanges': 'kraken',
             '--some-string': 'testSTR',
             '--config-directory': 'tests/integration/run/config_dir',
+            '--data-directory': '/',
             '--auth-aliases': '{"kraken": "kraken_5"}',
             '--timedelta': '{}s'.format(
                 int(time_params['pd_timedelta'].total_seconds()))})
