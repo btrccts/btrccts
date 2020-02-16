@@ -28,3 +28,4 @@ before_install:
 script:
 - python3 -m unittest tests/unit/tests.py
 - python3 -m unittest tests/integration/tests.py
+- pip3 install -r version_hashes.txt
