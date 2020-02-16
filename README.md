@@ -15,6 +15,8 @@ The easiest way to install the BTRCCTS library is to use a package manager:
 
 - https://pypi.org/project/btrccts/
 
+The python package hashes can be found in the requirements.txt.
+
 You can also clone the repository, see [Development](development)
 
 ## Usage
