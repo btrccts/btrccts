@@ -129,6 +129,8 @@ Data files are in the following format (readable with `pandas.read_csv`)
 2019-10-01 10:12:00+00:00,400,500,300,500,3000
 ```
 The data files are not yet provided with this library. You have to provide them yourself.
+The data file needs to cover the complete period (you want to run the bot) in 1 minute interval.
+You can specify the period with `--start-date` and `--end-date`.
 
 
 The config directory contains exchange keys.
