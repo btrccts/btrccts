@@ -91,32 +91,38 @@ def main_loop(timeframe, algorithm, live=False):
     logger.info('Starting main_loop')
     while timeframe.date() is not None:
         try:
-            algorithm.next_iteration()
-        except (SystemExit, KeyboardInterrupt, StopException) as e:
+            try:
+                algorithm.next_iteration()
+            except (SystemExit, KeyboardInterrupt, StopException) as e:
+                logger.info('Stopped because of {}: {}'.format(
+                    type(e).__name__, e))
+                algorithm.exit(reason=ExitReason.STOPPED)
+                return algorithm
+            except BaseException as e:
+                logger.error('Error occured during next_iteration')
+                logger.exception(e)
+                try:
+                    algorithm.handle_exception(e)
+                except BaseException as e:
+                    logger.error(
+                        'Exiting because of exception in handle_exception')
+                    logger.exception(e)
+                    algorithm.exit(reason=ExitReason.EXCEPTION)
+                    raise e
+            timeframe.add_timedelta()
+            if live:
+                # We already added a timedelta.
+                # If the algo took longer then timedelta,
+                # we want to do the next round immediately
+                timeframe.add_timedelta_until(pandas.Timestamp.now(tz='UTC'))
+                next_date = timeframe.date()
+                if next_date is not None:
+                    sleep_until(next_date)
+        except (SystemExit, KeyboardInterrupt) as e:
             logger.info('Stopped because of {}: {}'.format(
                 type(e).__name__, e))
             algorithm.exit(reason=ExitReason.STOPPED)
             return algorithm
-        except BaseException as e:
-            logger.error('Error occured during next_iteration')
-            logger.exception(e)
-            try:
-                algorithm.handle_exception(e)
-            except BaseException as e:
-                logger.error(
-                    'Exiting because of exception in handle_exception')
-                logger.exception(e)
-                algorithm.exit(reason=ExitReason.EXCEPTION)
-                raise e
-        timeframe.add_timedelta()
-        if live:
-            # We already added a timedelta.
-            # If the algo took longer then timedelta,
-            # we want to do the next round immediately
-            timeframe.add_timedelta_until(pandas.Timestamp.now(tz='UTC'))
-            next_date = timeframe.date()
-            if next_date is not None:
-                sleep_until(next_date)
     algorithm.exit(reason=ExitReason.FINISHED)
     logger.info('Finished main_loop')
     return algorithm

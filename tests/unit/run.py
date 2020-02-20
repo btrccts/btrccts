@@ -200,6 +200,34 @@ class MainLoopTests(unittest.TestCase):
             StopException,
             'INFO:btrccts:Stopped because of StopException: aa')
 
+    @patch('btrccts.run.time.sleep')
+    def template__main_loop__exit_exception_during_sleep(
+            self, exception_class, log_str, sleep_mock):
+        algorithm = Mock(spec=AlgorithmBase)
+        sleep_mock.side_effect = [exception_class('aa')]
+        # We need to use future dates, because we are in live mode
+        timeframe = Timeframe(pd_start_date=pd_ts('2217-01-01 1:00'),
+                              pd_end_date=pd_ts('2217-01-01 1:03'),
+                              pd_timedelta=pandas.Timedelta(minutes=1))
+        with self.assertLogs('btrccts') as cm:
+            result = main_loop(timeframe=timeframe, algorithm=algorithm,
+                               live=True)
+        self.assertEqual(algorithm.mock_calls,
+                         [call.next_iteration(),
+                          call.exit(reason=ExitReason.STOPPED)])
+        self.assertEqual(cm.output,
+                         ['INFO:btrccts:Starting main_loop', log_str])
+        self.assertEqual(algorithm, result)
+
+    def test__main_loop__systemexit_in_sleep(self):
+        self.template__main_loop__exit_exception_during_sleep(
+            SystemExit, 'INFO:btrccts:Stopped because of SystemExit: aa')
+
+    def test__main_loop__keyboardinterrupt_in_sleep(self):
+        self.template__main_loop__exit_exception_during_sleep(
+            KeyboardInterrupt,
+            'INFO:btrccts:Stopped because of KeyboardInterrupt: aa')
+
 
 class TestAlgo(AlgorithmBase):
 
