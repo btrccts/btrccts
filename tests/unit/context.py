@@ -106,6 +106,7 @@ class LiveContextTest(unittest.TestCase):
         exchange = context.create_exchange('bitfinex', {'parameter': 2})
         base_init_mock.assert_called_once_with(
             {'apiKey': '555',
+             'enableRateLimit': True,
              'parameter': 2})
         self.assertTrue(isinstance(exchange, ccxt.bitfinex))
 
@@ -120,7 +121,8 @@ class LiveContextTest(unittest.TestCase):
             cm.output,
             ['WARNING:btrccts:Config file for exchange binance does not'
              ' exist: /dir/bb.json'])
-        base_init_mock.assert_called_once_with({'parameter': 123})
+        base_init_mock.assert_called_once_with({'parameter': 123,
+                                                'enableRateLimit': True})
         self.assertTrue(isinstance(exchange, ccxt.binance))
 
     @patch('ccxt.binance.__init__')
@@ -129,11 +131,13 @@ class LiveContextTest(unittest.TestCase):
         context = LiveContext(timeframe=None,
                               conf_dir='tests/unit/context/config',
                               auth_aliases={'binance': 'binance_mod'})
-        exchange = context.create_exchange('binance', {'parameter': 2})
+        exchange = context.create_exchange(
+            'binance', {'parameter': 2, 'enableRateLimit': False})
         base_init_mock.assert_called_once_with(
             {'apiKey': 'testkey',
              'secret': 'secret',
              'other': True,
+             'enableRateLimit': False,
              'parameter': 2})
         self.assertTrue(isinstance(exchange, ccxt.binance))
 

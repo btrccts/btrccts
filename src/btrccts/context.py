@@ -67,16 +67,16 @@ class LiveContext:
         exchange = getattr(ccxt, exchange_id)
         config_file = os.path.join(self._conf_dir, '{}.json'.format(
             self._auth_aliases.get(exchange_id, exchange_id)))
-        loaded_config = {}
+        exchange_config = {'enableRateLimit': True}
         if os.path.isfile(config_file):
             with open(config_file) as f:
-                loaded_config = json.load(f)
+                exchange_config.update(json.load(f))
         else:
             logger = logging.getLogger(__package__)
             logger.warning('Config file for exchange {} does not exist: {}'
                            .format(exchange_id, config_file))
-        loaded_config.update(config)
-        return exchange(loaded_config)
+        exchange_config.update(config)
+        return exchange(exchange_config)
 
     def date(self):
         return self._timeframe.date()
