@@ -172,7 +172,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
             '--end-date': '2019-10-01 10:16',
             '--algo-bool': True,
             '--some-string': 'testSTR',
-            '--timedelta': '2m'})
+            '--interval': '2m'})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
                 result = parse_params_and_execute_algorithm(TestAlgo)
@@ -193,7 +193,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
             '--config-directory': 'tests/integration/run/config_dir',
             '--data-directory': '/',
             '--auth-aliases': '{"kraken": "kraken_5"}',
-            '--timedelta': '{}s'.format(
+            '--interval': '{}s'.format(
                 int(time_params['pd_timedelta'].total_seconds()))})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():

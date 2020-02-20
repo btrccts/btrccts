@@ -331,7 +331,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             '--end-date': '2019-10-01 10:16',
             '--algo-bool': True,
             '--some-string': 'testSTR',
-            '--timedelta': '2m'})
+            '--interval': '2m'})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
                 result = parse_params_and_execute_algorithm(TestAlgo)
@@ -403,15 +403,15 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             argv_params={'--end-date': ''}, exception=ValueError,
             exception_test='End date is not valid')
 
-    def test__parse_params_and_execute_algorithm__timedelta_empty(self):
+    def test__parse_params_and_execute_algorithm__interval_empty(self):
         self.template__parse_params_and_execute_algorithm__exception(
-            argv_params={'--timedelta': ''}, exception=ValueError,
-            exception_test='Timedelta is not valid')
+            argv_params={'--interval': ''}, exception=ValueError,
+            exception_test='Interval is not valid')
 
-    def test__parse_params_and_execute_algorithm__timedelta_wrong(self):
+    def test__parse_params_and_execute_algorithm__interval_wrong(self):
         self.template__parse_params_and_execute_algorithm__exception(
-            argv_params={'--timedelta': '1X'}, exception=ValueError,
-            exception_test='Timedelta is not valid')
+            argv_params={'--interval': '1X'}, exception=ValueError,
+            exception_test='Interval is not valid')
 
     def test__parse_params_and_execute_algorithm__multiple_exchanges(self):
         self.template__parse_params_and_execute_algorithm__check_call(

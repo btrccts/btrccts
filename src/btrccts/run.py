@@ -168,7 +168,7 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
                         help='Date to start backtesting, ignored in live mode')
     parser.add_argument('--end-date', default='2009-01-01',
                         help='Date to end backtesting')
-    parser.add_argument('--timedelta', default='1m',
+    parser.add_argument('--interval', default='1m',
                         help='Timedelta between each iteration')
     parser.add_argument('--exchanges', default='',
                         help='Exchange ids comma separated to load ohlcv')
@@ -208,9 +208,9 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
                            'exchange. This can lead to long start times')
     try:
         pd_timedelta = pandas.Timedelta(
-            Exchange.parse_timeframe(args.timedelta), unit='s')
+            Exchange.parse_timeframe(args.interval), unit='s')
     except (NotSupported, ValueError):
-        raise ValueError('Timedelta is not valid')
+        raise ValueError('Interval is not valid')
     auth_aliases = {}
     if args.live:
         if args.start_date != '':
