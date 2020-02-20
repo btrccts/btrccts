@@ -21,7 +21,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                          '2017-01-01 1:02'], utc=True)
         self.timeframe = Timeframe(pd_start_date=self.dates[0],
                                    pd_end_date=self.dates[-1],
-                                   pd_timedelta=pandas.Timedelta(minutes=1))
+                                   pd_interval=pandas.Timedelta(minutes=1))
         self.timeframe.add_timedelta()
         data = {'high': [6, 2, 4],
                 'low': [5, 0.5, 1]}
@@ -36,7 +36,7 @@ class ExchangeAccountTest(unittest.TestCase):
                                    utc=True)
         timeframe = Timeframe(pd_start_date=dates[0],
                               pd_end_date=dates[-1],
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+                              pd_interval=pandas.Timedelta(minutes=1))
         eth_btc_data = {'high': [10, 9, 11, 9],
                         'low': [9, 8, 7, 6]}
         eth_btc_ohlcvs = pandas.DataFrame(data=eth_btc_data, index=dates)
@@ -903,7 +903,7 @@ class ExchangeAccountTest(unittest.TestCase):
     def setup_update_state_limit_sell(self):
         timeframe = Timeframe(pd_start_date=self.dates[0],
                               pd_end_date=self.dates[-1],
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+                              pd_interval=pandas.Timedelta(minutes=1))
         data = {'high': [3, 4, 5],
                 'low': [2, 3, 4]}
         eth_btc_ohlcvs = pandas.DataFrame(data=data, index=self.dates)
@@ -1059,7 +1059,7 @@ class ExchangeAccountTest(unittest.TestCase):
     def setup_update_state_limit_buy(self):
         timeframe = Timeframe(pd_start_date=self.dates[0],
                               pd_end_date=self.dates[-1],
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+                              pd_interval=pandas.Timedelta(minutes=1))
         data = {'high': [7, 6, 5],
                 'low': [6, 5, 4]}
         eth_btc_ohlcvs = pandas.DataFrame(data=data, index=self.dates)

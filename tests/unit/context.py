@@ -41,7 +41,7 @@ class BacktestContextTest(unittest.TestCase):
         base_init_mock.return_value = None
         timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                               pd_end_date=pd_ts('2017-01-01 1:03'),
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+                              pd_interval=pandas.Timedelta(minutes=1))
         backtest = BacktestContext(timeframe=timeframe)
         # Create two instances, to see if they get the same backend
         backtest.create_exchange('binance', {'some': 'test'})
@@ -63,7 +63,7 @@ class BacktestContextTest(unittest.TestCase):
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                       pd_end_date=pd_ts('2017-01-01 1:35'),
-                      pd_timedelta=pandas.Timedelta(minutes=1))
+                      pd_interval=pandas.Timedelta(minutes=1))
         backtest = BacktestContext(timeframe=t)
         self.assertEqual(backtest.date(), pd_ts('2017-01-01 1:00'))
         t.add_timedelta()
@@ -72,7 +72,7 @@ class BacktestContextTest(unittest.TestCase):
     def test__real_date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                       pd_end_date=pd_ts('2017-01-01 1:35'),
-                      pd_timedelta=pandas.Timedelta(minutes=1))
+                      pd_interval=pandas.Timedelta(minutes=1))
         backtest = BacktestContext(timeframe=t)
         self.assertEqual(backtest.real_date(), pd_ts('2017-01-01 1:00'))
         t.add_timedelta()
@@ -140,7 +140,7 @@ class LiveContextTest(unittest.TestCase):
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                       pd_end_date=pd_ts('2017-01-01 1:35'),
-                      pd_timedelta=pandas.Timedelta(minutes=1))
+                      pd_interval=pandas.Timedelta(minutes=1))
         context = LiveContext(timeframe=t, conf_dir='')
         self.assertEqual(context.date(), pd_ts('2017-01-01 1:00'))
         t.add_timedelta()

@@ -67,15 +67,15 @@ class LiveTestAlgo(AlgorithmBase):
 
     @staticmethod
     def get_test_time_parameters():
-        pd_timedelta = pandas.Timedelta(seconds=2)
+        pd_interval = pandas.Timedelta(seconds=2)
         # Sleep until the beginning of the start, to be sure there is
         # no timing issue
-        sleep_until(pandas.Timestamp.now(tz='UTC').ceil(pd_timedelta))
-        start = pandas.Timestamp.now(tz='UTC').floor(pd_timedelta)
+        sleep_until(pandas.Timestamp.now(tz='UTC').ceil(pd_interval))
+        start = pandas.Timestamp.now(tz='UTC').floor(pd_interval)
         return {
             'pd_start_date': start,
-            'pd_end_date': start + 7 * pd_timedelta,
-            'pd_timedelta': pd_timedelta,
+            'pd_end_date': start + 7 * pd_interval,
+            'pd_interval': pd_interval,
         }
 
     def next_iteration(self):
@@ -99,7 +99,7 @@ def assert_test_live_algo_result(test, result, time_parameters,
     round_to = pandas.Timedelta(seconds=0.1)
     iteration_dates_round = [i.round(round_to) for i in result.iteration_dates]
     start = time_parameters['pd_start_date']
-    delta = time_parameters['pd_timedelta']
+    delta = time_parameters['pd_interval']
     test.assertTrue(start < result.iteration_dates[0] < start + delta)
     test.assertEqual(
         iteration_dates_round[1:],
@@ -135,7 +135,7 @@ class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
                                                    'kraken': {'USD': 100}},
                                    pd_start_date=pd_ts('2019-10-01 10:10'),
                                    pd_end_date=pd_ts('2019-10-01 10:16'),
-                                   pd_timedelta=pandas.Timedelta(minutes=2),
+                                   pd_interval=pandas.Timedelta(minutes=2),
                                    data_dir=data_dir)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result)
@@ -194,7 +194,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
             '--data-directory': '/',
             '--auth-aliases': '{"kraken": "kraken_5"}',
             '--interval': '{}s'.format(
-                int(time_params['pd_timedelta'].total_seconds()))})
+                int(time_params['pd_interval'].total_seconds()))})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
                 result = parse_params_and_execute_algorithm(LiveTestAlgo)
@@ -208,7 +208,7 @@ class MainLoopIntegrationTest(unittest.TestCase):
         time_params = LiveTestAlgo.get_test_time_parameters()
         timeframe = Timeframe(pd_start_date=time_params['pd_start_date'],
                               pd_end_date=time_params['pd_end_date'],
-                              pd_timedelta=time_params['pd_timedelta'])
+                              pd_interval=time_params['pd_interval'])
         result = main_loop(timeframe=timeframe, algorithm=algo, live=True)
 
         assert_test_live_algo_result(self, result, time_params)

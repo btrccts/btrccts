@@ -13,7 +13,7 @@ class ExchangeBackendTest(unittest.TestCase):
                                     '2017-01-01 1:02'], utc=True)
         self.init_timeframe = Timeframe(pd_start_date=dates[0],
                                         pd_end_date=dates[-1],
-                                        pd_timedelta=pandas.Timedelta(
+                                        pd_interval=pandas.Timedelta(
                                             minutes=1))
         data = {'open': [4, 7, 11],
                 'high': [5, 8, 12],
@@ -32,7 +32,7 @@ class ExchangeBackendTest(unittest.TestCase):
         self.fetch_ohlcv_ohlcvs = pandas.DataFrame(data=data, index=dates)
         self.fetch_ohlcv_timeframe = Timeframe(
             pd_start_date=dates[17], pd_end_date=dates[-1],
-            pd_timedelta=pandas.Timedelta(minutes=1))
+            pd_interval=pandas.Timedelta(minutes=1))
         self.fetch_ohlcv_timeframe.add_timedelta()
 
     def test__init__ohlcvs__index_start_bigger_than_start_date(self):
@@ -350,7 +350,7 @@ class ExchangeBackendTest(unittest.TestCase):
     def test__fetch_ticker(self):
         timeframe = Timeframe(pd_start_date=self.fetch_ohlcv_ohlcvs.index[0],
                               pd_end_date=self.fetch_ohlcv_ohlcvs.index[-1],
-                              pd_timedelta=pandas.Timedelta(minutes=0.5))
+                              pd_interval=pandas.Timedelta(minutes=0.5))
         backend = ExchangeBackend(ohlcvs={'BTC/USD': self.fetch_ohlcv_ohlcvs},
                                   timeframe=timeframe,
                                   balances={})

@@ -130,13 +130,13 @@ def main_loop(timeframe, algorithm, live=False):
 
 def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
                       start_balances,
-                      pd_start_date, pd_end_date, pd_timedelta,
+                      pd_start_date, pd_end_date, pd_interval,
                       live, auth_aliases,
                       data_dir=USER_DATA_DIR,
                       conf_dir=USER_CONFIG_DIR):
     timeframe = Timeframe(pd_start_date=pd_start_date,
                           pd_end_date=pd_end_date,
-                          pd_timedelta=pd_timedelta)
+                          pd_interval=pd_interval)
     ohlcv_dir = os.path.join(data_dir, 'ohlcv')
     if live:
         context = LiveContext(timeframe=timeframe,
@@ -207,7 +207,7 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
             logger.warning('No symbols specified, load all ohlcvs per each '
                            'exchange. This can lead to long start times')
     try:
-        pd_timedelta = pandas.Timedelta(
+        pd_interval = pandas.Timedelta(
             Exchange.parse_timeframe(args.interval), unit='s')
     except (NotSupported, ValueError):
         raise ValueError('Interval is not valid')
@@ -217,7 +217,7 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
             raise ValueError('Start date cannot be set in live mode')
         if args.start_balances != '{}':
             raise ValueError('Start balance cannot be set in live mode')
-        pd_start_date = pandas.Timestamp.now(tz='UTC').floor(pd_timedelta)
+        pd_start_date = pandas.Timestamp.now(tz='UTC').floor(pd_interval)
         start_balances = None
         auth_aliases = json.loads(args.auth_aliases)
     else:
@@ -233,7 +233,7 @@ def parse_params_and_execute_algorithm(AlgorithmClass):
                              symbols=symbols,
                              pd_start_date=pd_start_date,
                              pd_end_date=pd_end_date,
-                             pd_timedelta=pd_timedelta,
+                             pd_interval=pd_interval,
                              conf_dir=args.config_directory,
                              data_dir=args.data_directory,
                              AlgorithmClass=AlgorithmClass,

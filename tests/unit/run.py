@@ -124,7 +124,7 @@ class MainLoopTests(unittest.TestCase):
     def setUp(self):
         self.timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                                    pd_end_date=pd_ts('2017-01-01 1:03'),
-                                   pd_timedelta=pandas.Timedelta(minutes=1))
+                                   pd_interval=pandas.Timedelta(minutes=1))
 
     def test__main_loop__successful(self):
         algorithm = Mock(spec=AlgorithmBase)
@@ -208,7 +208,7 @@ class MainLoopTests(unittest.TestCase):
         # We need to use future dates, because we are in live mode
         timeframe = Timeframe(pd_start_date=pd_ts('2217-01-01 1:00'),
                               pd_end_date=pd_ts('2217-01-01 1:03'),
-                              pd_timedelta=pandas.Timedelta(minutes=1))
+                              pd_interval=pandas.Timedelta(minutes=1))
         with self.assertLogs('btrccts') as cm:
             result = main_loop(timeframe=timeframe, algorithm=algorithm,
                                live=True)
@@ -286,7 +286,7 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                                    'kraken': {'USD': 100}},
                                    pd_start_date=pd_ts('2019-10-01 10:10'),
                                    pd_end_date=pd_ts('2019-10-01 10:16'),
-                                   pd_timedelta=pandas.Timedelta(minutes=2),
+                                   pd_interval=pandas.Timedelta(minutes=2),
                                    data_dir=data_dir)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result)
@@ -355,7 +355,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             'exchange_names': ['kraken'],
             'pd_end_date': pd_ts('2009-01-01 00:00:00+0000'),
             'pd_start_date': pd_ts('2001-01-01 00:00:00+0000'),
-            'pd_timedelta': pandas.Timedelta('0 days 00:01:00'),
+            'pd_interval': pandas.Timedelta('0 days 00:01:00'),
             'start_balances': {},
             'live': False,
             'auth_aliases': {},
