@@ -44,6 +44,8 @@ class Algorithm(AlgorithmBase):
         # In live mode, this will be a plain ccxt instance of the exchange
         # The exchange keys will be read from the config directory (see --help)
         self._kraken = context.create_exchange('kraken')
+        # In live mode, markets are not loaded by the library
+        self._kraken.load_markets()
 
         # You can access your own defined parameters
         print('Pyramiding:', args.pyramiding)
@@ -143,6 +145,14 @@ e.g. `config_directory/binance.json`:
 ```
 If an alias is provided (e.g. `--auth-aliases '{"kraken": "kraken_wma"}'`,
 the file `config_directory/kraken_wma.json` is used.
+
+
+### Differences between live and backtesting mode
+
+- In backtesting mode the markets from the exchanges are loaded upon exchange creation.
+This needs to be done, because market information is needed for order handling.
+In live mode, the markets are not loaded via the library, because the library does not
+know how you want to handle e.g. errors or reloading the market.
 
 
 ### How orders get filled

@@ -19,6 +19,8 @@ class Algorithm(AlgorithmBase):
         # In live mode, this will be a plain ccxt instance of the exchange
         # The exchange keys will be read from the config directory (see --help)
         self._kraken = context.create_exchange('kraken')
+        # In live mode, markets are not loaded by the library
+        self._kraken.load_markets()
 
         # You can access your own defined parameters
         print('Pyramiding:', args.pyramiding)
