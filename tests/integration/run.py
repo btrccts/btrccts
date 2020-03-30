@@ -26,13 +26,13 @@ class TestAlgo(AlgorithmBase):
         self.exit_reason = None
         self.iterations = 0
         self.kraken = context.create_exchange('kraken')
-        self.okex3 = context.create_exchange('okex3')
+        self.okex = context.create_exchange('okex')
 
     def next_iteration(self):
         self.iterations += 1
         if self.iterations == 1:
-            self.okex3.create_order(type='market', side='sell',
-                                    symbol='ETH/BTC', amount=2)
+            self.okex.create_order(type='market', side='sell',
+                                   symbol='ETH/BTC', amount=2)
         if self.iterations == 4:
             self.kraken.create_order(type='market', side='buy',
                                      symbol='BTC/USD', amount=0.1)
@@ -45,7 +45,7 @@ def assert_test_algo_result(test, result):
     test.assertEqual(type(result), TestAlgo)
     test.assertEqual(result.exit_reason, ExitReason.FINISHED)
     test.assertEqual(result.iterations, 4)
-    test.assertEqual(result.okex3.fetch_balance()['total'],
+    test.assertEqual(result.okex.fetch_balance()['total'],
                      {'BTC': 199.40045, 'ETH': 1.0})
     test.assertEqual(result.kraken.fetch_balance()['total'],
                      {'BTC': 0.09974, 'USD': 99.09865})
@@ -125,13 +125,13 @@ def assert_test_live_algo_result(test, result, time_parameters,
 class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
     def test__execute_algorithm(self):
-        result = execute_algorithm(exchange_names=['kraken', 'okex3'],
+        result = execute_algorithm(exchange_names=['kraken', 'okex'],
                                    symbols=[],
                                    AlgorithmClass=TestAlgo,
                                    args=self,
                                    live=False,
                                    auth_aliases={},
-                                   start_balances={'okex3': {'ETH': 3},
+                                   start_balances={'okex': {'ETH': 3},
                                                    'kraken': {'USD': 100}},
                                    pd_start_date=pd_ts('2019-10-01 10:10'),
                                    pd_end_date=pd_ts('2019-10-01 10:16'),
@@ -164,9 +164,9 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
     def test__parse_params_and_execute_algorithm(self):
         sys_argv = self.create_sys_argv({
-            '--start-balances': '{"okex3": {"ETH": 3},'
+            '--start-balances': '{"okex": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
-            '--exchanges': 'kraken,okex3',
+            '--exchanges': 'kraken,okex',
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',

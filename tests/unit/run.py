@@ -241,13 +241,13 @@ class TestAlgo(AlgorithmBase):
         self.exit_reason = None
         self.iterations = 0
         self.kraken = context.create_exchange('kraken')
-        self.okex3 = context.create_exchange('okex3')
+        self.okex = context.create_exchange('okex')
 
     def next_iteration(self):
         self.iterations += 1
         if self.iterations == 1:
-            self.okex3.create_order(type='market', side='sell',
-                                    symbol='ETH/BTC', amount=2)
+            self.okex.create_order(type='market', side='sell',
+                                   symbol='ETH/BTC', amount=2)
         if self.iterations == 4:
             self.kraken.create_order(type='market', side='buy',
                                      symbol='BTC/USD', amount=0.1)
@@ -260,7 +260,7 @@ def assert_test_algo_result(self, result):
     self.assertEqual(type(result), TestAlgo)
     self.assertEqual(result.exit_reason, ExitReason.FINISHED)
     self.assertEqual(result.iterations, 4)
-    self.assertEqual(result.okex3.fetch_balance()['total'],
+    self.assertEqual(result.okex.fetch_balance()['total'],
                      {'BTC': 197.703, 'ETH': 1.0})
     self.assertEqual(result.kraken.fetch_balance()['total'],
                      {'BTC': 0.0998, 'USD': 99.09865})
@@ -268,7 +268,7 @@ def assert_test_algo_result(self, result):
 
 class ExecuteAlgorithmTests(unittest.TestCase):
 
-    @patch('ccxt.okex3.fetch_markets')
+    @patch('ccxt.okex.fetch_markets')
     @patch('ccxt.kraken.fetch_markets')
     @patch('ccxt.kraken.fetch_currencies')
     def test__execute_algorithm(self, kraken_currencies,
@@ -276,13 +276,13 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = []
-        result = execute_algorithm(exchange_names=['kraken', 'okex3'],
+        result = execute_algorithm(exchange_names=['kraken', 'okex'],
                                    symbols=[],
                                    live=False,
                                    auth_aliases={},
                                    AlgorithmClass=TestAlgo,
                                    args=self,
-                                   start_balances={'okex3': {'ETH': 3},
+                                   start_balances={'okex': {'ETH': 3},
                                                    'kraken': {'USD': 100}},
                                    pd_start_date=pd_ts('2019-10-01 10:10'),
                                    pd_end_date=pd_ts('2019-10-01 10:16'),
@@ -314,7 +314,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                 sys_argv.append(y)
         return sys_argv
 
-    @patch('ccxt.okex3.fetch_markets')
+    @patch('ccxt.okex.fetch_markets')
     @patch('ccxt.kraken.fetch_markets')
     @patch('ccxt.kraken.fetch_currencies')
     def test__parse_params_and_execute_algorithm(
@@ -323,9 +323,9 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = []
         sys_argv = self.create_sys_argv({
-            '--start-balances': '{"okex3": {"ETH": 3},'
+            '--start-balances': '{"okex": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
-            '--exchanges': 'kraken,okex3',
+            '--exchanges': 'kraken,okex',
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',
@@ -415,8 +415,8 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     def test__parse_params_and_execute_algorithm__multiple_exchanges(self):
         self.template__parse_params_and_execute_algorithm__check_call(
-            argv_params={'--exchanges': 'kraken,okex3,bitfinex'},
-            check_params={'exchange_names': ['kraken', 'okex3', 'bitfinex']})
+            argv_params={'--exchanges': 'kraken,okex,bitfinex'},
+            check_params={'exchange_names': ['kraken', 'okex', 'bitfinex']})
 
     def test__parse_params_and_execute_algorithm__multiple_symbols(self):
         self.template__parse_params_and_execute_algorithm__check_call(
@@ -455,7 +455,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         self.template__parse_params_and_execute_algorithm__exception(
             argv_params={
                 '--live': True, '--start-date': None,
-                '--start-balances': '{"okex3": {"ETH": 3},'
+                '--start-balances': '{"okex": {"ETH": 3},'
                                     ' "kraken": {"USD": 100}}'},
             exception=ValueError,
             exception_test='Start balance cannot be set in live mode')
