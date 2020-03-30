@@ -34,8 +34,10 @@ class TimeframeTest(unittest.TestCase):
         t.add_timedelta()
         t.add_timedelta()
         self.assertEqual(t.date(), pd_ts('2017-01-01 1:03'))
+        self.assertEqual(t.finished(), False)
         t.add_timedelta()
-        self.assertEqual(t.date(), None)
+        self.assertEqual(t.finished(), True)
+        self.assertEqual(t.date(), pd_ts('2017-01-01 1:03'))
 
     def test__different_timedelta(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
@@ -45,8 +47,10 @@ class TimeframeTest(unittest.TestCase):
         self.assertEqual(t.date(), pd_ts('2017-01-01 1:15'))
         t.add_timedelta()
         self.assertEqual(t.date(), pd_ts('2017-01-01 1:30'))
+        self.assertEqual(t.finished(), False)
         t.add_timedelta()
-        self.assertEqual(t.date(), None)
+        self.assertEqual(t.finished(), True)
+        self.assertEqual(t.date(), pd_ts('2017-01-01 1:35'))
 
     def test__start_date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),

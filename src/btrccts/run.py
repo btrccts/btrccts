@@ -89,7 +89,7 @@ def sleep_until(date):
 def main_loop(timeframe, algorithm, live=False):
     logger = logging.getLogger(__package__)
     logger.info('Starting main_loop')
-    while timeframe.date() is not None:
+    while not timeframe.finished():
         try:
             try:
                 algorithm.next_iteration()

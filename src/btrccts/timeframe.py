@@ -14,8 +14,8 @@ class Timeframe:
         self._pd_current_date += self._pd_interval
 
     def date(self):
-        if self._pd_current_date > self._pd_end_date:
-            return None
+        if self.finished():
+            return self._pd_end_date
         return self._pd_current_date
 
     def add_timedelta_until(self, date):
@@ -27,3 +27,6 @@ class Timeframe:
 
     def end_date(self):
         return self._pd_end_date
+
+    def finished(self):
+        return self._pd_current_date > self._pd_end_date
