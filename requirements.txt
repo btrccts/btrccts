@@ -23,9 +23,9 @@ async-timeout==3.0.1 \
 attrs==19.3.0 \
     --hash=sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c \
     --hash=sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72
-ccxt==1.25.39 \
-    --hash=sha256:037bc5b6668baa633f023646b07863a02fc6c2d9f2f6ad6803dce3248c6ffed5 \
-    --hash=sha256:7e135b69e71176b9ff26cebf3eddf4789f9390a18aee8de002bb765485a215c3
+ccxt==1.31.12 \
+    --hash=sha256:03e00d543524c5e52e32852df8c8d0a281b06b9c26be226f3a383ebfe67047be \
+    --hash=sha256:997ec9058610b17bd83023796dbe4d0767b92279806b3c21881aa262eefd16f6
 certifi==2019.9.11 \
     --hash=sha256:e4f3620cfea4f83eedc95b24abd9cd56f3c4b146dd0177e83a21b4eb49e21e50 \
     --hash=sha256:fd7c7c74727ddcf00e9acd26bba8da604ffec95bf1c2144e67aff7a8b50e6cef
