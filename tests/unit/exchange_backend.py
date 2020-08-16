@@ -212,7 +212,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [780.0, 924.0, 340.0]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 01:06', '2017-01-01 01:18', 3, tz='UTC')))
+                    '2017-01-01 01:06', '2017-01-01 01:18',
+                    tz='UTC', freq='6T')))
 
     def test__fetch_ohlcv_dataframe__partial_data(self):
         symbol = 'BTC/USD'
@@ -232,7 +233,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [444.0, 480.0, 340.0]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 01:12', '2017-01-01 01:18', 3, tz='UTC')))
+                    '2017-01-01 01:12', '2017-01-01 01:18',
+                    freq='3T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe(self):
         symbol = 'BTC/USD'
@@ -251,7 +253,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [100, 104, 108, 112, 116]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 1:01', '2017-01-01 1:05', 5, tz='UTC')))
+                    '2017-01-01 1:01', '2017-01-01 1:05',
+                    freq='1T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe__limit(self):
         symbol = 'BTC/USD'
@@ -270,7 +273,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [100, 104, 108]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 1:01', '2017-01-01 1:03', 3, tz='UTC')))
+                    '2017-01-01 1:01', '2017-01-01 1:03',
+                    freq='1T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe__since(self):
         symbol = 'BTC/USD'
@@ -290,7 +294,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [124, 128, 132, 136, 140]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 1:07', '2017-01-01 1:11', 5, tz='UTC')))
+                    '2017-01-01 1:07', '2017-01-01 1:11',
+                    freq='1T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe__resample(self):
         symbol = 'BTC/USD'
@@ -312,7 +317,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [472, 536, 600]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 1:04', '2017-01-01 1:12', 3, tz='UTC')))
+                    '2017-01-01 1:04', '2017-01-01 1:12',
+                    freq='4T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe__resample_other_freq(self):
         symbol = 'BTC/USD'
@@ -334,7 +340,8 @@ class ExchangeBackendTest(unittest.TestCase):
                     'volume': [372, 408, 444]},
                 dtype=float,
                 index=pandas.date_range(
-                    '2017-01-01 1:06', '2017-01-01 1:12', 3, tz='UTC')))
+                    '2017-01-01 1:06', '2017-01-01 1:12',
+                    freq='3T', tz='UTC')))
 
     def test__fetch_ohlcv_dataframe__not_avail_past_values(self):
         symbol = 'BTC/USD'
