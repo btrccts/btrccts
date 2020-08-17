@@ -9,7 +9,7 @@ KRAKEN_BTC_USD = {
     'baseId': 'XXBT',
     'darkpool': False,
     'id': 'XXBTZUSD',
-    'limits': {'amount': {'max': 100000000.0, 'min': 0.002},
+    'limits': {'amount': {'max': 100000000.0, 'min': 0.001},
                'cost': {'max': None, 'min': 0},
                'price': {'max': None, 'min': 0.1}},
     'maker': 0.0016,
