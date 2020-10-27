@@ -9,7 +9,7 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
     StopException
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
-from tests.common_algos import TestAlgo
+from tests.common_algos import TestAlgo, assert_test_algo_result
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
     pd_ts, async_test, async_noop
 
@@ -243,16 +243,6 @@ class MainLoopTests(unittest.TestCase):
             'INFO:btrccts:Stopped because of CancelledError: aa')
 
 
-def assert_test_algo_result(self, result):
-    self.assertEqual(type(result), TestAlgo)
-    self.assertEqual(result.exit_reason, ExitReason.FINISHED)
-    self.assertEqual(result.iterations, 4)
-    self.assertEqual(result.okex.fetch_balance()['total'],
-                     {'BTC': 197.703, 'ETH': 1.0})
-    self.assertEqual(result.kraken.fetch_balance()['total'],
-                     {'BTC': 0.0998, 'USD': 99.09865})
-
-
 class ExecuteAlgorithmTests(unittest.TestCase):
 
     @patch('ccxt.okex.fetch_markets')
@@ -276,7 +266,7 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                    pd_interval=pandas.Timedelta(minutes=2),
                                    data_dir=data_dir)
         self.assertEqual(result.args, self)
-        assert_test_algo_result(self, result)
+        assert_test_algo_result(self, result, live=False)
 
 
 def execute_algorithm_return_args(**kwargs):
@@ -322,7 +312,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
                 result = parse_params_and_execute_algorithm(TestAlgo)
-        assert_test_algo_result(self, result)
+        assert_test_algo_result(self, result, live=False)
         self.assertEqual(result.args.algo_bool, True)
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)

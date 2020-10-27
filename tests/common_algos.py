@@ -1,4 +1,5 @@
 from btrccts.algorithm import AlgorithmBase
+from btrccts.run import ExitReason
 
 
 class TestAlgo(AlgorithmBase):
@@ -26,3 +27,17 @@ class TestAlgo(AlgorithmBase):
 
     def exit(self, reason):
         self.exit_reason = reason
+
+
+def assert_test_algo_result(test, result, live=False):
+    test.assertEqual(type(result), TestAlgo)
+    test.assertEqual(result.exit_reason, ExitReason.FINISHED)
+    test.assertEqual(result.iterations, 4)
+    if live:
+        okex_balance = {'BTC': 199.40045, 'ETH': 1.0}
+        kraken_balance = {'BTC': 0.09974, 'USD': 99.09865}
+    else:
+        okex_balance = {'BTC': 197.703, 'ETH': 1.0}
+        kraken_balance = {'BTC': 0.0998, 'USD': 99.09865}
+    test.assertEqual(result.okex.fetch_balance()['total'], okex_balance)
+    test.assertEqual(result.kraken.fetch_balance()['total'], kraken_balance)
