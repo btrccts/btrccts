@@ -9,6 +9,7 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
     StopException
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
+from tests.common_algos import TestAlgo
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
     pd_ts, async_test, async_noop
 
@@ -240,33 +241,6 @@ class MainLoopTests(unittest.TestCase):
         self.template__main_loop__exit_exception_during_sleep(
             asyncio.CancelledError,
             'INFO:btrccts:Stopped because of CancelledError: aa')
-
-
-class TestAlgo(AlgorithmBase):
-
-    @staticmethod
-    def configure_argparser(argparser):
-        argparser.add_argument('--algo-bool', action='store_true')
-        argparser.add_argument('--some-string', default='')
-
-    def __init__(self, context, args):
-        self.args = args
-        self.exit_reason = None
-        self.iterations = 0
-        self.kraken = context.create_exchange('kraken')
-        self.okex = context.create_exchange('okex')
-
-    def next_iteration(self):
-        self.iterations += 1
-        if self.iterations == 1:
-            self.okex.create_order(type='market', side='sell',
-                                   symbol='ETH/BTC', amount=2)
-        if self.iterations == 4:
-            self.kraken.create_order(type='market', side='buy',
-                                     symbol='BTC/USD', amount=0.1)
-
-    def exit(self, reason):
-        self.exit_reason = reason
 
 
 def assert_test_algo_result(self, result):
