@@ -1,3 +1,4 @@
+import asyncio
 import pandas
 
 
@@ -34,3 +35,11 @@ def fetch_markets_return(markets):
 
 def pd_ts(s):
     return pandas.Timestamp(s, tz='UTC')
+
+
+def async_test(coro):
+    def wrapper(*args, **kwargs):
+        async def func():
+            return await coro(*args, **kwargs)
+        return asyncio.run(func())
+    return wrapper

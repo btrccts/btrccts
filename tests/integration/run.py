@@ -1,13 +1,14 @@
-import pandas
-import time
+import asyncio
 import os
+import pandas
 import sys
+import time
 import unittest
 from btrccts.algorithm import AlgorithmBase
 from btrccts.run import ExitReason, sleep_until, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
-from tests.common import pd_ts
+from tests.common import pd_ts, async_test
 from unittest.mock import patch, MagicMock
 
 here = os.path.dirname(__file__)
@@ -66,11 +67,15 @@ class LiveTestAlgo(AlgorithmBase):
         argparser.add_argument('--some-string', default='')
 
     @staticmethod
-    def get_test_time_parameters():
+    def get_test_time_parameters_sync():
+        return asyncio.run(LiveTestAlgo.get_test_time_parameters())
+
+    @staticmethod
+    async def get_test_time_parameters():
         pd_interval = pandas.Timedelta(seconds=2)
         # Sleep until the beginning of the start, to be sure there is
         # no timing issue
-        sleep_until(pandas.Timestamp.now(tz='UTC').ceil(pd_interval))
+        await sleep_until(pandas.Timestamp.now(tz='UTC').ceil(pd_interval))
         start = pandas.Timestamp.now(tz='UTC').floor(pd_interval)
         return {
             'pd_start_date': start,
@@ -182,7 +187,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
         self.assertEqual(result.args.live, False)
 
     def test__parse_params_and_execute_algorithm__live(self):
-        time_params = LiveTestAlgo.get_test_time_parameters()
+        time_params = LiveTestAlgo.get_test_time_parameters_sync()
         sys_argv = self.create_sys_argv({
             '--start-date': None,
             '--end-date': str(time_params['pd_end_date']),
@@ -203,12 +208,14 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
 class MainLoopIntegrationTest(unittest.TestCase):
 
-    def test__main_loop__live(self):
+    @async_test
+    async def test__main_loop__live(self):
         algo = LiveTestAlgo(MagicMock(), MagicMock())
-        time_params = LiveTestAlgo.get_test_time_parameters()
+        time_params = await LiveTestAlgo.get_test_time_parameters()
         timeframe = Timeframe(pd_start_date=time_params['pd_start_date'],
                               pd_end_date=time_params['pd_end_date'],
                               pd_interval=time_params['pd_interval'])
-        result = main_loop(timeframe=timeframe, algorithm=algo, live=True)
+        result = await main_loop(timeframe=timeframe, algorithm=algo,
+                                 live=True)
 
         assert_test_live_algo_result(self, result, time_params)
