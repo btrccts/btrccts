@@ -54,7 +54,7 @@ class Algorithm(AlgorithmBase):
         print('Exchanges:', args.exchanges)
         print('Symbols:', args.symbols)
 
-    def next_iteration(self):
+    async def next_iteration(self):
         # This method is executed each time interval
 
         # This is the current context date:
@@ -75,7 +75,7 @@ class Algorithm(AlgorithmBase):
         # do this:
         self._context.stop('stop message')
 
-    def handle_exception(self, e):
+    async def handle_exception(self, e):
         # This method is called, when next_iteration raises an exception, e.g.
         # because of an exchange error or a programming error.
         # If this method raises an exception, the algorith will stop with
@@ -86,7 +86,7 @@ class Algorithm(AlgorithmBase):
         if not self._args.live:
             raise e
 
-    def exit(self, reason):
+    async def exit(self, reason):
         # This method is called, when the algorithm exits and should be used
         # to cleanup (e.g. cancel open orders).
         # reason contains information on why the algorithm exits.
