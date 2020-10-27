@@ -9,21 +9,11 @@ from btrccts.run import ExitReason, sleep_until, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
 from tests.common import pd_ts, async_test
-from tests.common_algos import TestAlgo
+from tests.common_algos import TestAlgo, assert_test_algo_result
 from unittest.mock import patch, MagicMock
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
-
-
-def assert_test_algo_result(test, result):
-    test.assertEqual(type(result), TestAlgo)
-    test.assertEqual(result.exit_reason, ExitReason.FINISHED)
-    test.assertEqual(result.iterations, 4)
-    test.assertEqual(result.okex.fetch_balance()['total'],
-                     {'BTC': 199.40045, 'ETH': 1.0})
-    test.assertEqual(result.kraken.fetch_balance()['total'],
-                     {'BTC': 0.09974, 'USD': 99.09865})
 
 
 class LiveTestAlgo(AlgorithmBase):
@@ -117,7 +107,7 @@ class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
                                    pd_interval=pandas.Timedelta(minutes=2),
                                    data_dir=data_dir)
         self.assertEqual(result.args, self)
-        assert_test_algo_result(self, result)
+        assert_test_algo_result(self, result, live=True)
 
 
 def execute_algorithm_return_args(**kwargs):
@@ -155,7 +145,7 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
                 result = parse_params_and_execute_algorithm(TestAlgo)
-        assert_test_algo_result(self, result)
+        assert_test_algo_result(self, result, live=True)
         self.assertEqual(result.args.algo_bool, True)
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)
