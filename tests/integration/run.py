@@ -9,37 +9,11 @@ from btrccts.run import ExitReason, sleep_until, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
 from tests.common import pd_ts, async_test
+from tests.common_algos import TestAlgo
 from unittest.mock import patch, MagicMock
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
-
-
-class TestAlgo(AlgorithmBase):
-
-    @staticmethod
-    def configure_argparser(argparser):
-        argparser.add_argument('--algo-bool', action='store_true')
-        argparser.add_argument('--some-string', default='')
-
-    def __init__(self, context, args):
-        self.args = args
-        self.exit_reason = None
-        self.iterations = 0
-        self.kraken = context.create_exchange('kraken')
-        self.okex = context.create_exchange('okex')
-
-    def next_iteration(self):
-        self.iterations += 1
-        if self.iterations == 1:
-            self.okex.create_order(type='market', side='sell',
-                                   symbol='ETH/BTC', amount=2)
-        if self.iterations == 4:
-            self.kraken.create_order(type='market', side='buy',
-                                     symbol='BTC/USD', amount=0.1)
-
-    def exit(self, reason):
-        self.exit_reason = reason
 
 
 def assert_test_algo_result(test, result):
