@@ -2,6 +2,7 @@ import unittest
 from tests.unit.context import BacktestContextTest, LiveContextTest
 from tests.unit.balance import BalanceTest
 from tests.unit.exchange import BacktestExchangeBaseTest
+from tests.unit.async_exchange import AsyncBacktestExchangeBaseTest
 from tests.unit.exchange_account import ExchangeAccountTest
 from tests.unit.exchange_backend import ExchangeBackendTest
 from tests.unit.pep_checker import Pep8Test
@@ -16,6 +17,7 @@ def test_suite():
         unittest.makeSuite(BacktestContextTest),
         unittest.makeSuite(LiveContextTest),
         unittest.makeSuite(BacktestExchangeBaseTest),
+        unittest.makeSuite(AsyncBacktestExchangeBaseTest),
         unittest.makeSuite(BalanceTest),
         unittest.makeSuite(ExchangeAccountTest),
         unittest.makeSuite(ExchangeBackendTest),

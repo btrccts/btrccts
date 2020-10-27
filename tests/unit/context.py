@@ -6,8 +6,9 @@ from btrccts.timeframe import Timeframe
 from btrccts.context import BacktestContext, ContextState, LiveContext, \
     StopException
 from btrccts.exchange import BacktestExchangeBase
+from btrccts.async_exchange import AsyncBacktestExchangeBase
 from btrccts.exchange_backend import ExchangeBackend
-from tests.common import pd_ts
+from tests.common import pd_ts, async_test
 
 
 class BacktestContextTest(unittest.TestCase):
@@ -36,16 +37,19 @@ class BacktestContextTest(unittest.TestCase):
 
     @patch('btrccts.context.ExchangeBackend')
     @patch('btrccts.context.BacktestExchangeBase.__init__')
-    def test__create_exchange__default_exchange_backend_parameters(
-            self, base_init_mock, exchange_backend):
+    @patch('btrccts.context.AsyncBacktestExchangeBase.__init__')
+    @async_test
+    async def test__create_exchange__default_exchange_backend_parameters(
+            self, async_init_mock, base_init_mock, exchange_backend):
         base_init_mock.return_value = None
+        async_init_mock.return_value = None
         timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                               pd_end_date=pd_ts('2017-01-01 1:03'),
                               pd_interval=pandas.Timedelta(minutes=1))
         backtest = BacktestContext(timeframe=timeframe)
         # Create two instances, to see if they get the same backend
-        backtest.create_exchange('binance', {'some': 'test'})
-        base_init_mock.assert_called_once_with(
+        backtest.create_exchange('binance', {'some': 'test'}, async_ccxt=True)
+        async_init_mock.assert_called_once_with(
             config={'some': 'test'},
             exchange_backend=exchange_backend.return_value)
         exchange = backtest.create_exchange('binance', {'some': 'test'})
@@ -56,9 +60,36 @@ class BacktestContextTest(unittest.TestCase):
         self.assertEqual(
             base_init_mock.mock_calls,
             [call(config={'some': 'test'},
-                  exchange_backend=exchange_backend.return_value),
-             call(config={'some': 'test'},
                   exchange_backend=exchange_backend.return_value)])
+        self.assertEqual(
+            async_init_mock.mock_calls,
+            [call(config={'some': 'test'},
+                  exchange_backend=exchange_backend.return_value)])
+
+    def test__create_exchange__not_an_async_exchange(self):
+        backtest = BacktestContext(timeframe=None)
+        with self.assertRaises(ValueError) as e:
+            backtest.create_exchange('not_an_exchange', async_ccxt=True)
+        self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
+
+    @patch('btrccts.context.AsyncBacktestExchangeBase.__init__')
+    @async_test
+    async def test__create_exchange__async__parameters(self, base_init_mock):
+        base_init_mock.return_value = None
+        bitfinex_backend = ExchangeBackend(timeframe=None)
+        binance_backend = ExchangeBackend(timeframe=None)
+        backtest = BacktestContext(timeframe=None,
+                                   exchange_backends={
+                                       'bitfinex': bitfinex_backend,
+                                       'binance': binance_backend})
+        exchange = backtest.create_exchange('bitfinex', {'parameter': 123},
+                                            async_ccxt=True)
+        base_init_mock.assert_called_once_with(
+            config={'parameter': 123},
+            exchange_backend=bitfinex_backend)
+        self.assertEqual(exchange.__class__.__bases__,
+                         (AsyncBacktestExchangeBase,
+                          ccxt.async_support.bitfinex))
 
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
@@ -140,6 +171,59 @@ class LiveContextTest(unittest.TestCase):
              'enableRateLimit': False,
              'parameter': 2})
         self.assertTrue(isinstance(exchange, ccxt.binance))
+
+    def test__create_exchange__not_an_async_exchange(self):
+        context = LiveContext(timeframe=None, auth_aliases={}, conf_dir='')
+        with self.assertRaises(ValueError) as e:
+            context.create_exchange('not_an_exchange', async_ccxt=True)
+        self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
+
+    @patch('ccxt.async_support.bitfinex.__init__')
+    def test__create_exchange__async(self, base_init_mock):
+        base_init_mock.return_value = None
+        context = LiveContext(timeframe=None,
+                              conf_dir='tests/unit/context/config',
+                              auth_aliases={})
+        exchange = context.create_exchange('bitfinex', {'parameter': 2},
+                                           async_ccxt=True)
+        base_init_mock.assert_called_once_with(
+            {'apiKey': '555',
+             'enableRateLimit': True,
+             'parameter': 2})
+        self.assertTrue(isinstance(exchange, ccxt.async_support.bitfinex))
+
+    @patch('ccxt.async_support.binance.__init__')
+    def test__create_exchange__async_no_file(self, base_init_mock):
+        base_init_mock.return_value = None
+        context = LiveContext(timeframe=None, conf_dir='/dir',
+                              auth_aliases={'binance': 'bb'})
+        with self.assertLogs('btrccts') as cm:
+            exchange = context.create_exchange('binance', {'parameter': 123},
+                                               async_ccxt=True)
+        self.assertEqual(
+            cm.output,
+            ['WARNING:btrccts:Config file for exchange binance does not'
+             ' exist: /dir/bb.json'])
+        base_init_mock.assert_called_once_with({'parameter': 123,
+                                                'enableRateLimit': True})
+        self.assertTrue(isinstance(exchange, ccxt.async_support.binance))
+
+    @patch('ccxt.async_support.binance.__init__')
+    def test__create_exchange__async_merge_config(self, base_init_mock):
+        base_init_mock.return_value = None
+        context = LiveContext(timeframe=None,
+                              conf_dir='tests/unit/context/config',
+                              auth_aliases={'binance': 'binance_mod'})
+        exchange = context.create_exchange(
+            'binance', {'parameter': 2, 'enableRateLimit': False},
+            async_ccxt=True)
+        base_init_mock.assert_called_once_with(
+            {'apiKey': 'testkey',
+             'secret': 'secret',
+             'other': True,
+             'enableRateLimit': False,
+             'parameter': 2})
+        self.assertTrue(isinstance(exchange, ccxt.async_support.binance))
 
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),

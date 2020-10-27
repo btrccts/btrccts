@@ -43,3 +43,7 @@ def async_test(coro):
             return await coro(*args, **kwargs)
         return asyncio.run(func())
     return wrapper
+
+
+async def async_noop(t=None):
+    pass
