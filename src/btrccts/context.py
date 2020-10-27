@@ -1,4 +1,5 @@
 import ccxt
+import ccxt.async_support
 import pandas
 import os
 import json
@@ -7,6 +8,7 @@ import logging
 from collections import defaultdict
 from enum import auto, Enum
 from btrccts.exchange import BacktestExchangeBase
+from btrccts.async_exchange import AsyncBacktestExchangeBase
 from btrccts.exchange_backend import ExchangeBackend
 
 
@@ -29,12 +31,17 @@ class BacktestContext:
             self._exchange_backends[key] = exchange_backends[key]
         self._timeframe = timeframe
 
-    def create_exchange(self, exchange_id, config={}):
-        if exchange_id not in ccxt.exchanges:
+    def create_exchange(self, exchange_id, config={}, async_ccxt=False):
+        use_ccxt = ccxt
+        base = BacktestExchangeBase
+        if async_ccxt:
+            use_ccxt = ccxt.async_support
+            base = AsyncBacktestExchangeBase
+        if exchange_id not in use_ccxt.exchanges:
             raise ValueError('Unknown exchange: {}'.format(exchange_id))
-        exchange = getattr(ccxt, exchange_id)
+        exchange = getattr(use_ccxt, exchange_id)
 
-        class BacktestExchange(BacktestExchangeBase, exchange):
+        class BacktestExchange(base, exchange):
             pass
 
         backend = self._exchange_backends[exchange_id]
@@ -61,10 +68,13 @@ class LiveContext:
         self._auth_aliases = auth_aliases
         self._conf_dir = conf_dir
 
-    def create_exchange(self, exchange_id, config={}):
-        if exchange_id not in ccxt.exchanges:
+    def create_exchange(self, exchange_id, config={}, async_ccxt=False):
+        use_ccxt = ccxt
+        if async_ccxt:
+            use_ccxt = ccxt.async_support
+        if exchange_id not in use_ccxt.exchanges:
             raise ValueError('Unknown exchange: {}'.format(exchange_id))
-        exchange = getattr(ccxt, exchange_id)
+        exchange = getattr(use_ccxt, exchange_id)
         config_file = os.path.join(self._conf_dir, '{}.json'.format(
             self._auth_aliases.get(exchange_id, exchange_id)))
         exchange_config = {'enableRateLimit': True}

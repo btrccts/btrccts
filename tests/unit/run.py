@@ -9,7 +9,7 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
-    pd_ts, async_test
+    pd_ts, async_test, async_noop
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
@@ -468,10 +468,6 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             exception_test='Start balance cannot be set in live mode')
 
 
-async def sleep_noop(t):
-    pass
-
-
 class SleepUntilTests(unittest.TestCase):
 
     @async_test
@@ -488,7 +484,7 @@ class SleepUntilTests(unittest.TestCase):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00', '2017-08-18 00:01:00'], utc=True)
         now_mock.side_effect = dates
-        sleep_mock.side_effect = sleep_noop
+        sleep_mock.side_effect = async_noop
         await sleep_until(dates[1])
         sleep_mock.assert_called_once_with(1)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
@@ -500,7 +496,7 @@ class SleepUntilTests(unittest.TestCase):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01'], utc=True)
         now_mock.side_effect = dates
-        sleep_mock.side_effect = sleep_noop
+        sleep_mock.side_effect = async_noop
         await sleep_until(dates[1])
         sleep_mock.assert_called_once_with(0.8)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
@@ -513,7 +509,7 @@ class SleepUntilTests(unittest.TestCase):
             ['2017-08-18 00:00:00', '2017-08-18 00:00:01.123',
              '2017-08-18 00:00:02.24', '2017-08-18 00:00:03.1'], utc=True)
         now_mock.side_effect = dates
-        sleep_mock.side_effect = sleep_noop
+        sleep_mock.side_effect = async_noop
         await sleep_until(pandas.Timestamp('2017-08-18 00:00:03', tz='UTC'))
         self.assertEqual(sleep_mock.mock_calls, [call(1), call(1), call(0.76)])
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
@@ -526,7 +522,7 @@ class SleepUntilTests(unittest.TestCase):
             ['2017-08-18 00:01:00', '2017-08-18 00:00:59',
              '2017-08-18 00:01:00', '2017-08-18 00:01:01'], utc=True)
         now_mock.side_effect = dates
-        sleep_mock.side_effect = sleep_noop
+        sleep_mock.side_effect = async_noop
         await sleep_until(pandas.Timestamp('2017-08-18 00:01:01', tz='UTC'))
         self.assertEqual(sleep_mock.mock_calls, [call(1)] * 3)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
