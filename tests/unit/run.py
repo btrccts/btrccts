@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pandas
 import sys
@@ -234,6 +235,11 @@ class MainLoopTests(unittest.TestCase):
         self.template__main_loop__exit_exception_during_sleep(
             KeyboardInterrupt,
             'INFO:btrccts:Stopped because of KeyboardInterrupt: aa')
+
+    def test__main_loop__cancellederror_in_sleep(self):
+        self.template__main_loop__exit_exception_during_sleep(
+            asyncio.CancelledError,
+            'INFO:btrccts:Stopped because of CancelledError: aa')
 
 
 class TestAlgo(AlgorithmBase):
