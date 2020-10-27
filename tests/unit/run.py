@@ -1,5 +1,5 @@
-import pandas
 import os
+import pandas
 import sys
 import unittest
 from btrccts.algorithm import AlgorithmBase
@@ -9,7 +9,7 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
-    pd_ts
+    pd_ts, async_test
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
@@ -126,12 +126,14 @@ class MainLoopTests(unittest.TestCase):
                                    pd_end_date=pd_ts('2017-01-01 1:03'),
                                    pd_interval=pandas.Timedelta(minutes=1))
 
-    def test__main_loop__successful(self):
+    @async_test
+    async def test__main_loop__successful(self):
         algorithm = Mock(spec=AlgorithmBase)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, 0, error, 0]
         with self.assertLogs('btrccts') as cm:
-            result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
+            result = await main_loop(timeframe=self.timeframe,
+                                     algorithm=algorithm)
         self.assertEqual(result, algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
@@ -148,14 +150,15 @@ class MainLoopTests(unittest.TestCase):
             'ERROR:btrccts:a\nTraceback (most recent call last):\n  File'))
         self.assertEqual(cm.output[3], 'INFO:btrccts:Finished main_loop')
 
-    def test__main_loop__handle_exception_throws(self):
+    @async_test
+    async def test__main_loop__handle_exception_throws(self):
         algorithm = Mock(spec=AlgorithmBase)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, error, 0, 0]
         algorithm.handle_exception.side_effect = AttributeError('side')
         with self.assertLogs('btrccts') as cm:
             with self.assertRaises(AttributeError) as e:
-                main_loop(timeframe=self.timeframe, algorithm=algorithm)
+                await main_loop(timeframe=self.timeframe, algorithm=algorithm)
         self.assertEqual(str(e.exception), 'side')
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
@@ -173,11 +176,14 @@ class MainLoopTests(unittest.TestCase):
         self.assertTrue(cm.output[4].startswith(
             'ERROR:btrccts:side\nTraceback (most recent call last):\n  File'))
 
-    def template__main_loop__exit_exception(self, exception_class, log_str):
+    @async_test
+    async def template__main_loop__exit_exception(self, exception_class,
+                                                  log_str):
         algorithm = Mock(spec=AlgorithmBase)
         algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
         with self.assertLogs('btrccts') as cm:
-            result = main_loop(timeframe=self.timeframe, algorithm=algorithm)
+            result = await main_loop(timeframe=self.timeframe,
+                                     algorithm=algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.next_iteration(),
@@ -200,8 +206,9 @@ class MainLoopTests(unittest.TestCase):
             StopException,
             'INFO:btrccts:Stopped because of StopException: aa')
 
-    @patch('btrccts.run.time.sleep')
-    def template__main_loop__exit_exception_during_sleep(
+    @patch('btrccts.run.asyncio.sleep')
+    @async_test
+    async def template__main_loop__exit_exception_during_sleep(
             self, exception_class, log_str, sleep_mock):
         algorithm = Mock(spec=AlgorithmBase)
         sleep_mock.side_effect = [exception_class('aa')]
@@ -210,8 +217,8 @@ class MainLoopTests(unittest.TestCase):
                               pd_end_date=pd_ts('2217-01-01 1:03'),
                               pd_interval=pandas.Timedelta(minutes=1))
         with self.assertLogs('btrccts') as cm:
-            result = main_loop(timeframe=timeframe, algorithm=algorithm,
-                               live=True)
+            result = await main_loop(timeframe=timeframe, algorithm=algorithm,
+                                     live=True)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.exit(reason=ExitReason.STOPPED)])
@@ -461,52 +468,65 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             exception_test='Start balance cannot be set in live mode')
 
 
+async def sleep_noop(t):
+    pass
+
+
 class SleepUntilTests(unittest.TestCase):
 
-    @patch('btrccts.run.time.sleep')
-    def test__sleep_until__none(self, sleep_mock):
+    @async_test
+    @patch('btrccts.run.asyncio.sleep')
+    async def test__sleep_until__none(self, sleep_mock):
         with self.assertRaises(TypeError):
-            sleep_until(None)
-            sleep_mock.assert_not_called()
+            await sleep_until(None)
+        sleep_mock.assert_not_called()
 
     @patch('btrccts.run.pandas.Timestamp.now')
-    @patch('btrccts.run.time.sleep')
-    def test__sleep_until__one_longer_sleep(self, sleep_mock, now_mock):
+    @patch('btrccts.run.asyncio.sleep')
+    @async_test
+    async def test__sleep_until__one_longer_sleep(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00', '2017-08-18 00:01:00'], utc=True)
         now_mock.side_effect = dates
-        sleep_until(dates[1])
+        sleep_mock.side_effect = sleep_noop
+        await sleep_until(dates[1])
         sleep_mock.assert_called_once_with(1)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
 
     @patch('btrccts.run.pandas.Timestamp.now')
-    @patch('btrccts.run.time.sleep')
-    def test__sleep_until__one_partial_sleep(self, sleep_mock, now_mock):
+    @patch('btrccts.run.asyncio.sleep')
+    @async_test
+    async def test__sleep_until__one_partial_sleep(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01'], utc=True)
         now_mock.side_effect = dates
-        sleep_until(dates[1])
+        sleep_mock.side_effect = sleep_noop
+        await sleep_until(dates[1])
         sleep_mock.assert_called_once_with(0.8)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 2)
 
     @patch('btrccts.run.pandas.Timestamp.now')
-    @patch('btrccts.run.time.sleep')
-    def test__sleep_until__multiple_sleeps(self, sleep_mock, now_mock):
+    @patch('btrccts.run.asyncio.sleep')
+    @async_test
+    async def test__sleep_until__multiple_sleeps(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:00:00', '2017-08-18 00:00:01.123',
              '2017-08-18 00:00:02.24', '2017-08-18 00:00:03.1'], utc=True)
         now_mock.side_effect = dates
-        sleep_until(pandas.Timestamp('2017-08-18 00:00:03', tz='UTC'))
+        sleep_mock.side_effect = sleep_noop
+        await sleep_until(pandas.Timestamp('2017-08-18 00:00:03', tz='UTC'))
         self.assertEqual(sleep_mock.mock_calls, [call(1), call(1), call(0.76)])
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)
 
     @patch('btrccts.run.pandas.Timestamp.now')
-    @patch('btrccts.run.time.sleep')
-    def test__sleep_until__clock_changed(self, sleep_mock, now_mock):
+    @patch('btrccts.run.asyncio.sleep')
+    @async_test
+    async def test__sleep_until__clock_changed(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
             ['2017-08-18 00:01:00', '2017-08-18 00:00:59',
              '2017-08-18 00:01:00', '2017-08-18 00:01:01'], utc=True)
         now_mock.side_effect = dates
-        sleep_until(pandas.Timestamp('2017-08-18 00:01:01', tz='UTC'))
+        sleep_mock.side_effect = sleep_noop
+        await sleep_until(pandas.Timestamp('2017-08-18 00:01:01', tz='UTC'))
         self.assertEqual(sleep_mock.mock_calls, [call(1)] * 3)
         self.assertEqual(now_mock.mock_calls, [call(tz='UTC')] * 4)

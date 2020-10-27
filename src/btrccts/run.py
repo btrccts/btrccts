@@ -1,11 +1,12 @@
-import argparse
 import appdirs
+import argparse
+import asyncio
+import inspect
 import json
 import logging
 import numpy
 import os
 import pandas
-import time
 from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
@@ -21,6 +22,13 @@ HELP_EPILOG = """
 Default config directory: {data}
 Default data directory: {config}
 """.format(config=USER_CONFIG_DIR, data=USER_DATA_DIR)
+
+
+async def _run_a_or_sync(func, *args, **kwargs):
+    if inspect.iscoroutinefunction(func):
+        return await func(*args, **kwargs)
+    else:
+        return func(*args, **kwargs)
 
 
 def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
@@ -73,7 +81,7 @@ class ExitReason(Enum):
     FINISHED = auto()
 
 
-def sleep_until(date):
+async def sleep_until(date):
     # Use a loop, so if the system clock changes, we dont sleep too long/short
     while True:
         now = pandas.Timestamp.now(tz='UTC')
@@ -83,31 +91,33 @@ def sleep_until(date):
         diff = (date - now).value / 10**9
         if diff < SLEEP_SECONDS:
             sleep_sec = diff
-        time.sleep(sleep_sec)
+        await asyncio.sleep(sleep_sec)
 
 
-def main_loop(timeframe, algorithm, live=False):
+async def main_loop(timeframe, algorithm, live=False):
     logger = logging.getLogger(__package__)
     logger.info('Starting main_loop')
     while not timeframe.finished():
         try:
             try:
-                algorithm.next_iteration()
+                await _run_a_or_sync(algorithm.next_iteration)
             except (SystemExit, KeyboardInterrupt, StopException) as e:
                 logger.info('Stopped because of {}: {}'.format(
                     type(e).__name__, e))
-                algorithm.exit(reason=ExitReason.STOPPED)
+                await _run_a_or_sync(algorithm.exit,
+                                     reason=ExitReason.STOPPED)
                 return algorithm
             except BaseException as e:
                 logger.error('Error occured during next_iteration')
                 logger.exception(e)
                 try:
-                    algorithm.handle_exception(e)
+                    await _run_a_or_sync(algorithm.handle_exception, e)
                 except BaseException as e:
                     logger.error(
                         'Exiting because of exception in handle_exception')
                     logger.exception(e)
-                    algorithm.exit(reason=ExitReason.EXCEPTION)
+                    await _run_a_or_sync(algorithm.exit,
+                                         reason=ExitReason.EXCEPTION)
                     raise e
             timeframe.add_timedelta()
             if live:
@@ -117,13 +127,13 @@ def main_loop(timeframe, algorithm, live=False):
                 timeframe.add_timedelta_until(pandas.Timestamp.now(tz='UTC'))
                 next_date = timeframe.date()
                 if next_date is not None:
-                    sleep_until(next_date)
+                    await sleep_until(next_date)
         except (SystemExit, KeyboardInterrupt) as e:
             logger.info('Stopped because of {}: {}'.format(
                 type(e).__name__, e))
-            algorithm.exit(reason=ExitReason.STOPPED)
+            await _run_a_or_sync(algorithm.exit, reason=ExitReason.STOPPED)
             return algorithm
-    algorithm.exit(reason=ExitReason.FINISHED)
+    await _run_a_or_sync(algorithm.exit, reason=ExitReason.FINISHED)
     logger.info('Finished main_loop')
     return algorithm
 
@@ -154,11 +164,14 @@ def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
                 ohlcvs=ohlcvs.get(exchange_name, {}))
         context = BacktestContext(timeframe=timeframe,
                                   exchange_backends=exchange_backends)
-    algorithm = AlgorithmClass(context=context,
-                               args=args)
-    return main_loop(timeframe=timeframe,
-                     algorithm=algorithm,
-                     live=live)
+
+    async def func():
+        algorithm = AlgorithmClass(context=context,
+                                   args=args)
+        return await main_loop(timeframe=timeframe,
+                               algorithm=algorithm,
+                               live=live)
+    return asyncio.run(func())
 
 
 def parse_params_and_execute_algorithm(AlgorithmClass):
