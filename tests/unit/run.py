@@ -123,6 +123,9 @@ class LoadCSVTests(unittest.TestCase):
 
 class MainLoopTests(unittest.TestCase):
 
+    def algo(self, algorithm):
+        return algorithm
+
     def setUp(self):
         self.timeframe = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                                    pd_end_date=pd_ts('2017-01-01 1:03'),
@@ -133,10 +136,11 @@ class MainLoopTests(unittest.TestCase):
         algorithm = Mock(spec=AlgorithmBase)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, 0, error, 0]
+        use_algorithm = self.algo(algorithm)
         with self.assertLogs('btrccts') as cm:
             result = await main_loop(timeframe=self.timeframe,
-                                     algorithm=algorithm)
-        self.assertEqual(result, algorithm)
+                                     algorithm=use_algorithm)
+        self.assertEqual(result, use_algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.next_iteration(),
@@ -158,9 +162,11 @@ class MainLoopTests(unittest.TestCase):
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, error, 0, 0]
         algorithm.handle_exception.side_effect = AttributeError('side')
+        use_algorithm = self.algo(algorithm)
         with self.assertLogs('btrccts') as cm:
             with self.assertRaises(AttributeError) as e:
-                await main_loop(timeframe=self.timeframe, algorithm=algorithm)
+                await main_loop(
+                    timeframe=self.timeframe, algorithm=use_algorithm)
         self.assertEqual(str(e.exception), 'side')
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
@@ -183,16 +189,17 @@ class MainLoopTests(unittest.TestCase):
                                                   log_str):
         algorithm = Mock(spec=AlgorithmBase)
         algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
+        use_algorithm = self.algo(algorithm)
         with self.assertLogs('btrccts') as cm:
             result = await main_loop(timeframe=self.timeframe,
-                                     algorithm=algorithm)
+                                     algorithm=use_algorithm)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.next_iteration(),
                           call.exit(reason=ExitReason.STOPPED)])
         self.assertEqual(cm.output,
                          ['INFO:btrccts:Starting main_loop', log_str])
-        self.assertEqual(algorithm, result)
+        self.assertEqual(use_algorithm, result)
 
     def test__main_loop__systemexit(self):
         self.template__main_loop__exit_exception(
@@ -218,15 +225,17 @@ class MainLoopTests(unittest.TestCase):
         timeframe = Timeframe(pd_start_date=pd_ts('2217-01-01 1:00'),
                               pd_end_date=pd_ts('2217-01-01 1:03'),
                               pd_interval=pandas.Timedelta(minutes=1))
+        use_algorithm = self.algo(algorithm)
         with self.assertLogs('btrccts') as cm:
-            result = await main_loop(timeframe=timeframe, algorithm=algorithm,
+            result = await main_loop(timeframe=timeframe,
+                                     algorithm=use_algorithm,
                                      live=True)
         self.assertEqual(algorithm.mock_calls,
                          [call.next_iteration(),
                           call.exit(reason=ExitReason.STOPPED)])
         self.assertEqual(cm.output,
                          ['INFO:btrccts:Starting main_loop', log_str])
-        self.assertEqual(algorithm, result)
+        self.assertEqual(use_algorithm, result)
 
     def test__main_loop__systemexit_in_sleep(self):
         self.template__main_loop__exit_exception_during_sleep(
@@ -241,6 +250,27 @@ class MainLoopTests(unittest.TestCase):
         self.template__main_loop__exit_exception_during_sleep(
             asyncio.CancelledError,
             'INFO:btrccts:Stopped because of CancelledError: aa')
+
+
+class AsyncAlgo(AlgorithmBase):
+
+    def __init__(self, mock):
+        self._mock = mock
+
+    async def next_iteration(self):
+        return self._mock.next_iteration()
+
+    async def exit(self, reason):
+        return self._mock.exit(reason=reason)
+
+    async def handle_exception(self, e):
+        return self._mock.handle_exception(e)
+
+
+class AsyncMainLoopTests(MainLoopTests):
+
+    def algo(self, algorithm):
+        return AsyncAlgo(algorithm)
 
 
 class ExecuteAlgorithmTests(unittest.TestCase):
