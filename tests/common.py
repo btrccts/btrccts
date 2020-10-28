@@ -33,6 +33,16 @@ def fetch_markets_return(markets):
     return lambda *a, **b: result
 
 
+def async_return(result):
+    async def func(*args, **kwargs):
+        return result
+    return func
+
+
+def async_fetch_markets_return(markets):
+    return async_return(fetch_markets_return(markets)())
+
+
 def pd_ts(s):
     return pandas.Timestamp(s, tz='UTC')
 
