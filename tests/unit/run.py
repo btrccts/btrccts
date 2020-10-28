@@ -9,9 +9,9 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
     StopException
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
-from tests.common_algos import TestAlgo, assert_test_algo_result
+from tests.common_algos import TestAlgo, assert_test_algo_result, AsyncTestAlgo
 from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
-    pd_ts, async_test, async_noop
+    pd_ts, async_test, async_noop, async_fetch_markets_return, async_return
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
@@ -245,6 +245,22 @@ class MainLoopTests(unittest.TestCase):
 
 class ExecuteAlgorithmTests(unittest.TestCase):
 
+    def run_test(self, Algo):
+        with self.assertLogs('btrccts'):
+            result = execute_algorithm(exchange_names=['kraken', 'okex'],
+                                       symbols=[],
+                                       live=False,
+                                       auth_aliases={},
+                                       AlgorithmClass=Algo,
+                                       args=self,
+                                       start_balances={'okex': {'ETH': 3},
+                                                       'kraken': {'USD': 100}},
+                                       pd_start_date=pd_ts('2019-10-01 10:10'),
+                                       pd_end_date=pd_ts('2019-10-01 10:16'),
+                                       pd_interval=pandas.Timedelta(minutes=2),
+                                       data_dir=data_dir)
+        return result
+
     @patch('ccxt.okex.fetch_markets')
     @patch('ccxt.kraken.fetch_markets')
     @patch('ccxt.kraken.fetch_currencies')
@@ -253,21 +269,22 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = []
-        with self.assertLogs('btrccts'):
-            result = execute_algorithm(exchange_names=['kraken', 'okex'],
-                                       symbols=[],
-                                       live=False,
-                                       auth_aliases={},
-                                       AlgorithmClass=TestAlgo,
-                                       args=self,
-                                       start_balances={'okex': {'ETH': 3},
-                                                       'kraken': {'USD': 100}},
-                                       pd_start_date=pd_ts('2019-10-01 10:10'),
-                                       pd_end_date=pd_ts('2019-10-01 10:16'),
-                                       pd_interval=pandas.Timedelta(minutes=2),
-                                       data_dir=data_dir)
+        result = self.run_test(TestAlgo)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False)
+
+    @patch('ccxt.async_support.okex.fetch_markets')
+    @patch('ccxt.async_support.kraken.fetch_markets')
+    @patch('ccxt.async_support.kraken.fetch_currencies')
+    def test__execute_algorithm__async(self, kraken_currencies,
+                                       kraken_markets, okex_markets):
+        okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
+        kraken_markets.side_effect = async_fetch_markets_return(
+            [BTC_USD_MARKET])
+        kraken_currencies.side_effect = async_return([])
+        result = self.run_test(AsyncTestAlgo)
+        self.assertEqual(result.args, self)
+        assert_test_algo_result(self, result, live=False, async_algo=True)
 
 
 def execute_algorithm_return_args(**kwargs):
