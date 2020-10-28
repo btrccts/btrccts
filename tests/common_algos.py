@@ -15,15 +15,23 @@ class TestAlgo(AlgorithmBase):
         self.iterations = 0
         self.kraken = context.create_exchange('kraken')
         self.okex = context.create_exchange('okex')
+        self.exception = None
+        self.exception_iteration = None
 
     def next_iteration(self):
         self.iterations += 1
         if self.iterations == 1:
             self.okex.create_order(type='market', side='sell',
                                    symbol='ETH/BTC', amount=2)
+        if self.iterations == 2:
+            raise ValueError('test')
         if self.iterations == 4:
             self.kraken.create_order(type='market', side='buy',
                                      symbol='BTC/USD', amount=0.1)
+
+    def handle_exception(self, exp):
+        self.exception = exp
+        self.exception_iteration = self.iterations
 
     def exit(self, reason):
         self.exit_reason = reason
@@ -41,3 +49,6 @@ def assert_test_algo_result(test, result, live=False):
         kraken_balance = {'BTC': 0.0998, 'USD': 99.09865}
     test.assertEqual(result.okex.fetch_balance()['total'], okex_balance)
     test.assertEqual(result.kraken.fetch_balance()['total'], kraken_balance)
+    test.assertEqual(result.exception_iteration, 2)
+    test.assertEqual(type(result.exception), ValueError)
+    test.assertEqual(result.exception.args, ('test',))
