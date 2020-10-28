@@ -94,18 +94,19 @@ def assert_test_live_algo_result(test, result, time_parameters,
 class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
     def test__execute_algorithm(self):
-        result = execute_algorithm(exchange_names=['kraken', 'okex'],
-                                   symbols=[],
-                                   AlgorithmClass=TestAlgo,
-                                   args=self,
-                                   live=False,
-                                   auth_aliases={},
-                                   start_balances={'okex': {'ETH': 3},
-                                                   'kraken': {'USD': 100}},
-                                   pd_start_date=pd_ts('2019-10-01 10:10'),
-                                   pd_end_date=pd_ts('2019-10-01 10:16'),
-                                   pd_interval=pandas.Timedelta(minutes=2),
-                                   data_dir=data_dir)
+        with self.assertLogs('btrccts'):
+            result = execute_algorithm(exchange_names=['kraken', 'okex'],
+                                       symbols=[],
+                                       AlgorithmClass=TestAlgo,
+                                       args=self,
+                                       live=False,
+                                       auth_aliases={},
+                                       start_balances={'okex': {'ETH': 3},
+                                                       'kraken': {'USD': 100}},
+                                       pd_start_date=pd_ts('2019-10-01 10:10'),
+                                       pd_end_date=pd_ts('2019-10-01 10:16'),
+                                       pd_interval=pandas.Timedelta(minutes=2),
+                                       data_dir=data_dir)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=True)
 

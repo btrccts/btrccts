@@ -253,18 +253,19 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = []
-        result = execute_algorithm(exchange_names=['kraken', 'okex'],
-                                   symbols=[],
-                                   live=False,
-                                   auth_aliases={},
-                                   AlgorithmClass=TestAlgo,
-                                   args=self,
-                                   start_balances={'okex': {'ETH': 3},
-                                                   'kraken': {'USD': 100}},
-                                   pd_start_date=pd_ts('2019-10-01 10:10'),
-                                   pd_end_date=pd_ts('2019-10-01 10:16'),
-                                   pd_interval=pandas.Timedelta(minutes=2),
-                                   data_dir=data_dir)
+        with self.assertLogs('btrccts'):
+            result = execute_algorithm(exchange_names=['kraken', 'okex'],
+                                       symbols=[],
+                                       live=False,
+                                       auth_aliases={},
+                                       AlgorithmClass=TestAlgo,
+                                       args=self,
+                                       start_balances={'okex': {'ETH': 3},
+                                                       'kraken': {'USD': 100}},
+                                       pd_start_date=pd_ts('2019-10-01 10:10'),
+                                       pd_end_date=pd_ts('2019-10-01 10:16'),
+                                       pd_interval=pandas.Timedelta(minutes=2),
+                                       data_dir=data_dir)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False)
 
