@@ -1,6 +1,8 @@
 language: python
 jobs:
   include:
+    - name: "Python 3.9"
+      python: 3.9
     - name: "Python 3.8"
       python: 3.8
     - name: "Python 3.7"
