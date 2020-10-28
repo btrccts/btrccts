@@ -59,9 +59,26 @@ class LiveTestAlgo(AlgorithmBase):
         self.exit_reason = reason
 
 
+class AsyncLiveTestAlgo(LiveTestAlgo):
+
+    async def next_iteration(self):
+        self.iteration_dates.append(pandas.Timestamp.now(tz='UTC'))
+        if self.iterations == 2:
+            await asyncio.sleep(6.95)
+        if self.iterations == 4:
+            await asyncio.sleep(2.95)
+        self.iterations += 1
+
+    async def exit(self, reason):
+        self.exit_reason = reason
+
+
 def assert_test_live_algo_result(test, result, time_parameters,
-                                 complete=False):
-    test.assertEqual(type(result), LiveTestAlgo)
+                                 complete=False, async_algo=False):
+    if async_algo:
+        test.assertEqual(type(result), AsyncLiveTestAlgo)
+    else:
+        test.assertEqual(type(result), LiveTestAlgo)
     test.assertEqual(result.exit_reason, ExitReason.FINISHED)
     test.assertEqual(result.iterations, 6)
 
@@ -183,13 +200,19 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
 class MainLoopIntegrationTest(unittest.TestCase):
 
     @async_test
-    async def test__main_loop__live(self):
-        algo = LiveTestAlgo(MagicMock(), MagicMock())
-        time_params = await LiveTestAlgo.get_test_time_parameters()
+    async def run_algo(self, Algo, async_algo):
+        algo = Algo(MagicMock(), MagicMock())
+        time_params = await Algo.get_test_time_parameters()
         timeframe = Timeframe(pd_start_date=time_params['pd_start_date'],
                               pd_end_date=time_params['pd_end_date'],
                               pd_interval=time_params['pd_interval'])
         result = await main_loop(timeframe=timeframe, algorithm=algo,
                                  live=True)
+        assert_test_live_algo_result(
+            self, result, time_params, False, async_algo)
 
-        assert_test_live_algo_result(self, result, time_params)
+    def test__main_loop__live(self):
+        self.run_algo(LiveTestAlgo, False)
+
+    def test__main_loop__live__async(self):
+        self.run_algo(AsyncLiveTestAlgo, True)
