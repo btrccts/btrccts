@@ -7,11 +7,11 @@ class AlgorithmBase:
     def __init__(self, context, args):
         pass
 
-    def exit(self, reason):
+    async def exit(self, reason):
         pass
 
-    def handle_exception(self, e):
+    async def handle_exception(self, e):
         raise e
 
-    def next_iteration(self):
+    async def next_iteration(self):
         pass
