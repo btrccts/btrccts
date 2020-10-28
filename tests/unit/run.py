@@ -317,6 +317,13 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = []
+        result = self.run_test(TestAlgo)
+        assert_test_algo_result(self, result, live=False)
+        self.assertEqual(result.args.algo_bool, True)
+        self.assertEqual(result.args.some_string, 'testSTR')
+        self.assertEqual(result.args.live, False)
+
+    def run_test(self, Algo):
         sys_argv = self.create_sys_argv({
             '--start-balances': '{"okex": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
@@ -329,8 +336,19 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             '--interval': '2m'})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
-                result = parse_params_and_execute_algorithm(TestAlgo)
-        assert_test_algo_result(self, result, live=False)
+                return parse_params_and_execute_algorithm(Algo)
+
+    @patch('ccxt.async_support.okex.fetch_markets')
+    @patch('ccxt.async_support.kraken.fetch_markets')
+    @patch('ccxt.async_support.kraken.fetch_currencies')
+    def test__parse_params_and_execute_algorithm__async(
+            self, kraken_currencies, kraken_markets, okex_markets):
+        okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
+        kraken_markets.side_effect = async_fetch_markets_return(
+            [BTC_USD_MARKET])
+        kraken_currencies.side_effect = async_return([])
+        result = self.run_test(AsyncTestAlgo)
+        assert_test_algo_result(self, result, live=False, async_algo=True)
         self.assertEqual(result.args.algo_bool, True)
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)
