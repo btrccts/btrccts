@@ -177,8 +177,8 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
         self.assertEqual(result.args.some_string, 'testSTR')
         self.assertEqual(result.args.live, False)
 
-    def test__parse_params_and_execute_algorithm__live(self):
-        time_params = LiveTestAlgo.get_test_time_parameters_sync()
+    def run_algo(self, Algo, async_algo):
+        time_params = Algo.get_test_time_parameters_sync()
         sys_argv = self.create_sys_argv({
             '--start-date': None,
             '--end-date': str(time_params['pd_end_date']),
@@ -193,8 +193,15 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
                 int(time_params['pd_interval'].total_seconds()))})
         with patch.object(sys, 'argv', sys_argv):
             with self.assertLogs():
-                result = parse_params_and_execute_algorithm(LiveTestAlgo)
-        assert_test_live_algo_result(self, result, time_params, True)
+                result = parse_params_and_execute_algorithm(Algo)
+        assert_test_live_algo_result(
+            self, result, time_params, True, async_algo)
+
+    def test__parse_params_and_execute_algorithm__live(self):
+        self.run_algo(LiveTestAlgo, False)
+
+    def test__parse_params_and_execute_algorithm__live__async(self):
+        self.run_algo(AsyncLiveTestAlgo, True)
 
 
 class MainLoopIntegrationTest(unittest.TestCase):
