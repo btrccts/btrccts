@@ -9,7 +9,7 @@ from btrccts.run import ExitReason, sleep_until, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
 from tests.common import pd_ts, async_test
-from tests.common_algos import TestAlgo, assert_test_algo_result
+from tests.common_algos import TestAlgo, assert_test_algo_result, AsyncTestAlgo
 from unittest.mock import patch, MagicMock
 
 here = os.path.dirname(__file__)
@@ -93,11 +93,11 @@ def assert_test_live_algo_result(test, result, time_parameters,
 
 class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
-    def test__execute_algorithm(self):
+    def run_algo(self, Algo):
         with self.assertLogs('btrccts'):
             result = execute_algorithm(exchange_names=['kraken', 'okex'],
                                        symbols=[],
-                                       AlgorithmClass=TestAlgo,
+                                       AlgorithmClass=Algo,
                                        args=self,
                                        live=False,
                                        auth_aliases={},
@@ -107,8 +107,17 @@ class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
                                        pd_end_date=pd_ts('2019-10-01 10:16'),
                                        pd_interval=pandas.Timedelta(minutes=2),
                                        data_dir=data_dir)
+        return result
+
+    def test__execute_algorithm(self):
+        result = self.run_algo(TestAlgo)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=True)
+
+    def test__execute_algorithm__async(self):
+        result = self.run_algo(AsyncTestAlgo)
+        self.assertEqual(result.args, self)
+        assert_test_algo_result(self, result, live=True, async_algo=True)
 
 
 def execute_algorithm_return_args(**kwargs):
