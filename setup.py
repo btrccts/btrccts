@@ -35,6 +35,7 @@ setup(
     zip_safe=False,
     extras_require={
         'dev': ['pycodestyle', 'pyflakes'],
+        'ccxt-websockets': ['ccxtpro'],
     },
     install_requires=['ccxt', 'pandas', 'numpy', 'appdirs'],
     entry_points={
