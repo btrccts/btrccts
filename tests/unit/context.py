@@ -122,108 +122,92 @@ class BacktestContextTest(unittest.TestCase):
 
 class LiveContextTest(unittest.TestCase):
 
-    def test__create_exchange__not_an_exchange(self):
+    def create_exchange__not_an_exchange__template(self, async_ccxt):
         context = LiveContext(timeframe=None, auth_aliases={}, conf_dir='')
         with self.assertRaises(ValueError) as e:
-            context.create_exchange('not_an_exchange')
+            context.create_exchange('not_an_exchange', async_ccxt=async_ccxt)
         self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
 
-    @patch('ccxt.bitfinex.__init__')
-    def test__create_exchange(self, base_init_mock):
+    def create_exchange__template(self, base_init_mock, instance, async_ccxt):
         base_init_mock.return_value = None
         context = LiveContext(timeframe=None,
                               conf_dir='tests/unit/context/config',
                               auth_aliases={})
-        exchange = context.create_exchange('bitfinex', {'parameter': 2})
-        base_init_mock.assert_called_once_with(
-            {'apiKey': '555',
-             'enableRateLimit': True,
-             'parameter': 2})
-        self.assertTrue(isinstance(exchange, ccxt.bitfinex))
-
-    @patch('ccxt.binance.__init__')
-    def test__create_exchange__no_file(self, base_init_mock):
-        base_init_mock.return_value = None
-        context = LiveContext(timeframe=None, conf_dir='/dir',
-                              auth_aliases={'binance': 'bb'})
-        with self.assertLogs('btrccts') as cm:
-            exchange = context.create_exchange('binance', {'parameter': 123})
-        self.assertEqual(
-            cm.output,
-            ['WARNING:btrccts:Config file for exchange binance does not'
-             ' exist: /dir/bb.json'])
-        base_init_mock.assert_called_once_with({'parameter': 123,
-                                                'enableRateLimit': True})
-        self.assertTrue(isinstance(exchange, ccxt.binance))
-
-    @patch('ccxt.binance.__init__')
-    def test__create_exchange__merge_config(self, base_init_mock):
-        base_init_mock.return_value = None
-        context = LiveContext(timeframe=None,
-                              conf_dir='tests/unit/context/config',
-                              auth_aliases={'binance': 'binance_mod'})
         exchange = context.create_exchange(
-            'binance', {'parameter': 2, 'enableRateLimit': False})
-        base_init_mock.assert_called_once_with(
-            {'apiKey': 'testkey',
-             'secret': 'secret',
-             'other': True,
-             'enableRateLimit': False,
-             'parameter': 2})
-        self.assertTrue(isinstance(exchange, ccxt.binance))
-
-    def test__create_exchange__not_an_async_exchange(self):
-        context = LiveContext(timeframe=None, auth_aliases={}, conf_dir='')
-        with self.assertRaises(ValueError) as e:
-            context.create_exchange('not_an_exchange', async_ccxt=True)
-        self.assertEqual(str(e.exception), 'Unknown exchange: not_an_exchange')
-
-    @patch('ccxt.async_support.bitfinex.__init__')
-    def test__create_exchange__async(self, base_init_mock):
-        base_init_mock.return_value = None
-        context = LiveContext(timeframe=None,
-                              conf_dir='tests/unit/context/config',
-                              auth_aliases={})
-        exchange = context.create_exchange('bitfinex', {'parameter': 2},
-                                           async_ccxt=True)
+            'bitfinex', {'parameter': 2}, async_ccxt=async_ccxt)
         base_init_mock.assert_called_once_with(
             {'apiKey': '555',
              'enableRateLimit': True,
              'parameter': 2})
-        self.assertTrue(isinstance(exchange, ccxt.async_support.bitfinex))
+        self.assertTrue(isinstance(exchange, instance))
 
-    @patch('ccxt.async_support.binance.__init__')
-    def test__create_exchange__async_no_file(self, base_init_mock):
+    def create_exchange__no_file__template(self, base_init_mock, instance,
+                                           async_ccxt):
         base_init_mock.return_value = None
         context = LiveContext(timeframe=None, conf_dir='/dir',
                               auth_aliases={'binance': 'bb'})
         with self.assertLogs('btrccts') as cm:
-            exchange = context.create_exchange('binance', {'parameter': 123},
-                                               async_ccxt=True)
+            exchange = context.create_exchange(
+                'binance', {'parameter': 123}, async_ccxt=async_ccxt)
         self.assertEqual(
             cm.output,
             ['WARNING:btrccts:Config file for exchange binance does not'
              ' exist: /dir/bb.json'])
         base_init_mock.assert_called_once_with({'parameter': 123,
                                                 'enableRateLimit': True})
-        self.assertTrue(isinstance(exchange, ccxt.async_support.binance))
+        self.assertTrue(isinstance(exchange, instance))
 
-    @patch('ccxt.async_support.binance.__init__')
-    def test__create_exchange__async_merge_config(self, base_init_mock):
+    def create_exchange__merge_config__template(self, base_init_mock,
+                                                instance, async_ccxt):
         base_init_mock.return_value = None
         context = LiveContext(timeframe=None,
                               conf_dir='tests/unit/context/config',
                               auth_aliases={'binance': 'binance_mod'})
         exchange = context.create_exchange(
             'binance', {'parameter': 2, 'enableRateLimit': False},
-            async_ccxt=True)
+            async_ccxt=async_ccxt)
         base_init_mock.assert_called_once_with(
             {'apiKey': 'testkey',
              'secret': 'secret',
              'other': True,
              'enableRateLimit': False,
              'parameter': 2})
-        self.assertTrue(isinstance(exchange, ccxt.async_support.binance))
+        self.assertTrue(isinstance(exchange, instance))
+
+    def test__create_exchange__not_an_exchange(self):
+        self.create_exchange__not_an_exchange__template(False)
+
+    @patch('ccxt.binance.__init__')
+    def test__create_exchange__no_file(self, base_init_mock):
+        self.create_exchange__no_file__template(
+            base_init_mock, ccxt.binance, False)
+
+    @patch('ccxt.bitfinex.__init__')
+    def test__create_exchange(self, base_init_mock):
+        self.create_exchange__template(base_init_mock, ccxt.bitfinex, False)
+
+    @patch('ccxt.binance.__init__')
+    def test__create_exchange__merge_config(self, base_init_mock):
+        self.create_exchange__merge_config__template(
+            base_init_mock, ccxt.binance, False)
+
+    def test__create_exchange__not_an_async_exchange(self):
+        self.create_exchange__not_an_exchange__template(True)
+
+    @patch('ccxt.async_support.bitfinex.__init__')
+    def test__create_exchange__async(self, base_init_mock):
+        self.create_exchange__template(
+            base_init_mock, ccxt.async_support.bitfinex, True)
+
+    @patch('ccxt.async_support.binance.__init__')
+    def test__create_exchange__async_no_file(self, base_init_mock):
+        self.create_exchange__no_file__template(
+            base_init_mock, ccxt.async_support.binance, True)
+
+    @patch('ccxt.async_support.binance.__init__')
+    def test__create_exchange__async_merge_config(self, base_init_mock):
+        self.create_exchange__merge_config__template(
+            base_init_mock, ccxt.async_support.binance, True)
 
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
