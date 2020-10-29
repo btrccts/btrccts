@@ -43,9 +43,10 @@ class Algorithm(AlgorithmBase):
         # See: [CCXT](https://github.com/ccxt/ccxt/wiki)
         # In live mode, this will be a plain ccxt instance of the exchange
         # The exchange keys will be read from the config directory (see --help)
-        self._kraken = context.create_exchange('kraken')
-        # In live mode, markets are not loaded by the library
-        self._kraken.load_markets()
+        # You can create sync or async versions of the exchange.
+        # If ccxtpro is available in your python environment, the async
+        # call will create a ccxtpro instance.
+        self._kraken = context.create_exchange('kraken', async_ccxt=True)
 
         # You can access your own defined parameters
         print('Pyramiding:', args.pyramiding)
@@ -56,15 +57,20 @@ class Algorithm(AlgorithmBase):
 
     async def next_iteration(self):
         # This method is executed each time interval
+        # This method can be async or a normal method.
 
         # This is the current context date:
         print('context date', self._context.date())
 
+        # In live mode, markets are not loaded by the library
+        # If you need access to the exchanges market object, you need
+        # to load them first
+        await self._kraken.load_markets()
         # Use the exchange to load OHLCV data
         ohlcv_len = 10
         ohlcv_offset = ohlcv_len * 60 * 1000
         ohlcv_start = int(self._context.date().value / 1000000 - ohlcv_offset)
-        print(self._kraken.fetch_ohlcv(
+        print(await self._kraken.fetch_ohlcv(
             'BTC/USD', '1m', ohlcv_start, ohlcv_len))
 
         # Use the exchange to create a market order
@@ -80,6 +86,7 @@ class Algorithm(AlgorithmBase):
         # because of an exchange error or a programming error.
         # If this method raises an exception, the algorith will stop with
         # reason EXCEPTION
+        # This method can be async or a normal method.
         # If you are not in live mode, it is advicable to rethrow the
         # exception to fix the programming error.
         print(e)
@@ -89,17 +96,24 @@ class Algorithm(AlgorithmBase):
     async def exit(self, reason):
         # This method is called, when the algorithm exits and should be used
         # to cleanup (e.g. cancel open orders).
+        # This method can be async or a normal method.
         # reason contains information on why the algorithm exits.
         # e.g. STOPPED, EXCEPTION, FINISHED
         print("Done", reason)
+        self.closed_orders = await self._kraken.fetch_closed_orders()
+        # Async versions of an exchange needs to be closed, because
+        # btrccts will close the asyncio loop after the run.
+        await self._kraken.close()
 
 
 # This method parses commandline parameters (see --help)
 # and runs the Algorithm according to the parameters
 result = parse_params_and_execute_algorithm(Algorithm)
 # The result is an instance of Algorithm, you can now use saved
-# information or exchanges to benchmark your performance.
-print(result._kraken.fetch_closed_orders())
+# information. If you used a sync version of the exchange you can
+# still use them. For async exchages the asyncio loop is already
+# destroyed.
+print(result.orders)
 ```
 
 To run this algorithm, just execute the file with python.
