@@ -10,6 +10,11 @@ from enum import auto, Enum
 from btrccts.exchange import BacktestExchangeBase
 from btrccts.async_exchange import AsyncBacktestExchangeBase
 from btrccts.exchange_backend import ExchangeBackend
+try:
+    import ccxtpro
+except ImportError:
+    ccxtpro = None
+    pass
 
 
 class StopException(SystemExit):
@@ -71,7 +76,10 @@ class LiveContext:
     def create_exchange(self, exchange_id, config={}, async_ccxt=False):
         use_ccxt = ccxt
         if async_ccxt:
-            use_ccxt = ccxt.async_support
+            if ccxtpro is not None:
+                use_ccxt = ccxtpro
+            else:
+                use_ccxt = ccxt.async_support
         if exchange_id not in use_ccxt.exchanges:
             raise ValueError('Unknown exchange: {}'.format(exchange_id))
         exchange = getattr(use_ccxt, exchange_id)

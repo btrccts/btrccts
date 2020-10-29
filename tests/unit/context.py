@@ -120,6 +120,26 @@ class BacktestContextTest(unittest.TestCase):
         self.assertEqual(str(e.exception), 'msg')
 
 
+class CCXTProBinance:
+
+    def __init__(self, config={}):
+        pass
+
+
+class CCXTProBitfinex:
+
+    def __init__(self, config={}):
+        pass
+
+
+class CCXTProMock:
+
+    def __init__(self):
+        self.exchanges = ['binance', 'bitfinex']
+        self.bitfinex = CCXTProBinance
+        self.binance = CCXTProBitfinex
+
+
 class LiveContextTest(unittest.TestCase):
 
     def create_exchange__not_an_exchange__template(self, async_ccxt):
@@ -208,6 +228,28 @@ class LiveContextTest(unittest.TestCase):
     def test__create_exchange__async_merge_config(self, base_init_mock):
         self.create_exchange__merge_config__template(
             base_init_mock, ccxt.async_support.binance, True)
+
+    @patch('btrccts.context.ccxtpro', CCXTProMock())
+    def test__create_exchange__not_an_ccxtpro_exchange(self):
+        self.create_exchange__not_an_exchange__template(True)
+
+    @patch('btrccts.context.ccxtpro', CCXTProMock())
+    @patch('tests.unit.context.CCXTProBinance.__init__')
+    def test__create_exchange__ccxtpro(self, base_init_mock):
+        self.create_exchange__template(
+            base_init_mock, CCXTProBinance, True)
+
+    @patch('btrccts.context.ccxtpro', CCXTProMock())
+    @patch('tests.unit.context.CCXTProBitfinex.__init__')
+    def test__create_exchange__ccxtpro_no_file(self, base_init_mock):
+        self.create_exchange__no_file__template(
+            base_init_mock, CCXTProBitfinex, True)
+
+    @patch('btrccts.context.ccxtpro', CCXTProMock())
+    @patch('tests.unit.context.CCXTProBitfinex.__init__')
+    def test__create_exchange__ccxtpro_merge_config(self, base_init_mock):
+        self.create_exchange__merge_config__template(
+            base_init_mock, CCXTProBitfinex, True)
 
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
