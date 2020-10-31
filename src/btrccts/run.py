@@ -7,6 +7,7 @@ import logging
 import numpy
 import os
 import pandas
+from asyncio import events
 from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
@@ -29,6 +30,14 @@ async def _run_a_or_sync(func, *args, **kwargs):
         return await func(*args, **kwargs)
     else:
         return func(*args, **kwargs)
+
+
+def _run_async(main, *args, **kwargs):
+    loop = events.new_event_loop()
+    try:
+        return loop.run_until_complete(main)
+    finally:
+        loop.close()
 
 
 def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
@@ -171,7 +180,7 @@ def execute_algorithm(exchange_names, symbols, AlgorithmClass, args,
         return await main_loop(timeframe=timeframe,
                                algorithm=algorithm,
                                live=live)
-    return asyncio.run(func())
+    return _run_async(func())
 
 
 def parse_params_and_execute_algorithm(AlgorithmClass):
