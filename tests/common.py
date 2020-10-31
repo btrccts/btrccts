@@ -1,5 +1,5 @@
-import asyncio
 import pandas
+from btrccts.run import _run_async
 
 
 ETH_BTC_MARKET = {
@@ -51,7 +51,7 @@ def async_test(coro):
     def wrapper(*args, **kwargs):
         async def func():
             return await coro(*args, **kwargs)
-        return asyncio.run(func())
+        return _run_async(func())
     return wrapper
 
 
