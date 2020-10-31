@@ -5,7 +5,7 @@ import sys
 import time
 import unittest
 from btrccts.algorithm import AlgorithmBase
-from btrccts.run import ExitReason, sleep_until, \
+from btrccts.run import ExitReason, sleep_until, _run_async, \
     execute_algorithm, parse_params_and_execute_algorithm, main_loop
 from btrccts.timeframe import Timeframe
 from tests.common import pd_ts, async_test
@@ -32,7 +32,7 @@ class LiveTestAlgo(AlgorithmBase):
 
     @staticmethod
     def get_test_time_parameters_sync():
-        return asyncio.run(LiveTestAlgo.get_test_time_parameters())
+        return _run_async(LiveTestAlgo.get_test_time_parameters())
 
     @staticmethod
     async def get_test_time_parameters():
