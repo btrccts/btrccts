@@ -7,7 +7,7 @@ import logging
 import numpy
 import os
 import pandas
-from asyncio import events
+from asyncio import events, tasks, coroutines
 from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
@@ -32,13 +32,48 @@ async def _run_a_or_sync(func, *args, **kwargs):
         return func(*args, **kwargs)
 
 
-def _run_async(main, *args, **kwargs):
+def _cancel_all_tasks(loop):
+    to_cancel = tasks.all_tasks(loop)
+    if not to_cancel:
+        return
+
+    for task in to_cancel:
+        task.cancel()
+
+    loop.run_until_complete(
+        tasks.gather(*to_cancel, loop=loop, return_exceptions=True))
+
+    for task in to_cancel:
+        if task.cancelled():
+            continue
+        if task.exception() is not None:
+            loop.call_exception_handler({
+                'message': 'unhandled exception during asyncio.run() shutdown',
+                'exception': task.exception(),
+                'task': task,
+            })
+
+
+def _run_async(main, *, debug=False):
+    if events._get_running_loop() is not None:
+        raise RuntimeError(
+            "asyncio.run() cannot be called from a running event loop")
+
+    if not coroutines.iscoroutine(main):
+        raise ValueError("a coroutine was expected, got {!r}".format(main))
+
     loop = events.new_event_loop()
     try:
         events.set_event_loop(loop)
+        loop.set_debug(debug)
         return loop.run_until_complete(main)
     finally:
-        events.set_event_loop(None)
+        try:
+            _cancel_all_tasks(loop)
+            loop.run_until_complete(loop.shutdown_asyncgens())
+        finally:
+            events.set_event_loop(None)
+            loop.close()
 
 
 def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
