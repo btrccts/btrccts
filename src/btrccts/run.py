@@ -35,9 +35,10 @@ async def _run_a_or_sync(func, *args, **kwargs):
 def _run_async(main, *args, **kwargs):
     loop = events.new_event_loop()
     try:
+        events.set_event_loop(loop)
         return loop.run_until_complete(main)
     finally:
-        loop.close()
+        events.set_event_loop(None)
 
 
 def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
@@ -137,7 +138,8 @@ async def main_loop(timeframe, algorithm, live=False):
                 next_date = timeframe.date()
                 if next_date is not None:
                     await sleep_until(next_date)
-        except (SystemExit, KeyboardInterrupt, asyncio.CancelledError) as e:
+        except (SystemExit, KeyboardInterrupt, asyncio.CancelledError,
+                GeneratorExit, RuntimeError) as e:
             logger.info('Stopped because of {}: {}'.format(
                 type(e).__name__, e))
             await _run_a_or_sync(algorithm.exit, reason=ExitReason.STOPPED)
