@@ -210,6 +210,11 @@ class MainLoopTests(unittest.TestCase):
             KeyboardInterrupt,
             'INFO:btrccts:Stopped because of KeyboardInterrupt: aa')
 
+    def test__main_loop__cancellederror(self):
+        self.template__main_loop__exit_exception(
+            asyncio.CancelledError,
+            'INFO:btrccts:Stopped because of CancelledError: aa')
+
     def test__main_loop__stop(self):
         self.template__main_loop__exit_exception(
             StopException,
