@@ -146,7 +146,8 @@ async def main_loop(timeframe, algorithm, live=False):
         try:
             try:
                 await _run_a_or_sync(algorithm.next_iteration)
-            except (SystemExit, KeyboardInterrupt, StopException) as e:
+            except (SystemExit, KeyboardInterrupt, StopException,
+                    asyncio.CancelledError) as e:
                 logger.info('Stopped because of {}: {}'.format(
                     type(e).__name__, e))
                 await _run_a_or_sync(algorithm.exit,
