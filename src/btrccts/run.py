@@ -33,7 +33,11 @@ async def _run_a_or_sync(func, *args, **kwargs):
 
 
 def _cancel_all_tasks(loop):
-    to_cancel = tasks.all_tasks(loop)
+    if hasattr(asyncio, 'all_tasks'):
+        all_tasks = asyncio.all_tasks
+    else:
+        all_tasks = asyncio.Task.all_tasks
+    to_cancel = all_tasks(loop)
     if not to_cancel:
         return
 
