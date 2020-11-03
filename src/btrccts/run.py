@@ -173,8 +173,7 @@ async def main_loop(timeframe, algorithm, live=False):
                 next_date = timeframe.date()
                 if next_date is not None:
                     await sleep_until(next_date)
-        except (SystemExit, KeyboardInterrupt, asyncio.CancelledError,
-                GeneratorExit, RuntimeError) as e:
+        except (SystemExit, KeyboardInterrupt, asyncio.CancelledError) as e:
             logger.info('Stopped because of {}: {}'.format(
                 type(e).__name__, e))
             await _run_a_or_sync(algorithm.exit, reason=ExitReason.STOPPED)

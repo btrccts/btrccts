@@ -251,16 +251,6 @@ class MainLoopTests(unittest.TestCase):
             asyncio.CancelledError,
             'INFO:btrccts:Stopped because of CancelledError: aa')
 
-    def test__main_loop__runtimeerror_in_sleep(self):
-        self.template__main_loop__exit_exception_during_sleep(
-            RuntimeError,
-            'INFO:btrccts:Stopped because of RuntimeError: aa')
-
-    def test__main_loop__generatorexit_in_sleep(self):
-        self.template__main_loop__exit_exception_during_sleep(
-            GeneratorExit,
-            'INFO:btrccts:Stopped because of GeneratorExit: aa')
-
 
 class AsyncAlgo(AlgorithmBase):
 
