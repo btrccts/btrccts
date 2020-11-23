@@ -1,7 +1,6 @@
 import appdirs
 import argparse
 import asyncio
-import inspect
 import json
 import logging
 import numpy
@@ -26,7 +25,7 @@ Default data directory: {config}
 
 
 async def _run_a_or_sync(func, *args, **kwargs):
-    if inspect.iscoroutinefunction(func):
+    if asyncio.iscoroutinefunction(func):
         return await func(*args, **kwargs)
     else:
         return func(*args, **kwargs)
