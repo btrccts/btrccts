@@ -3,7 +3,7 @@ import os
 import pandas
 import sys
 import unittest
-from btrccts.algorithm import AlgorithmBase
+from btrccts.algorithm import AlgorithmBase, AlgorithmBaseSync
 from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
     execute_algorithm, parse_params_and_execute_algorithm, sleep_until, \
     StopException
@@ -133,7 +133,7 @@ class MainLoopTests(unittest.TestCase):
 
     @async_test
     async def test__main_loop__successful(self):
-        algorithm = Mock(spec=AlgorithmBase)
+        algorithm = Mock(spec=AlgorithmBaseSync)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, 0, error, 0]
         use_algorithm = self.algo(algorithm)
@@ -158,7 +158,7 @@ class MainLoopTests(unittest.TestCase):
 
     @async_test
     async def test__main_loop__handle_exception_throws(self):
-        algorithm = Mock(spec=AlgorithmBase)
+        algorithm = Mock(spec=AlgorithmBaseSync)
         error = ValueError('a')
         algorithm.next_iteration.side_effect = [0, error, 0, 0]
         algorithm.handle_exception.side_effect = AttributeError('side')
@@ -187,7 +187,7 @@ class MainLoopTests(unittest.TestCase):
     @async_test
     async def template__main_loop__exit_exception(self, exception_class,
                                                   log_str):
-        algorithm = Mock(spec=AlgorithmBase)
+        algorithm = Mock(spec=AlgorithmBaseSync)
         algorithm.next_iteration.side_effect = [0, exception_class('aa'), 0, 0]
         use_algorithm = self.algo(algorithm)
         with self.assertLogs('btrccts') as cm:
@@ -224,7 +224,7 @@ class MainLoopTests(unittest.TestCase):
     @async_test
     async def template__main_loop__exit_exception_during_sleep(
             self, exception_class, log_str, sleep_mock):
-        algorithm = Mock(spec=AlgorithmBase)
+        algorithm = Mock(spec=AlgorithmBaseSync)
         sleep_mock.side_effect = [exception_class('aa')]
         # We need to use future dates, because we are in live mode
         timeframe = Timeframe(pd_start_date=pd_ts('2217-01-01 1:00'),
