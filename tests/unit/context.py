@@ -251,6 +251,20 @@ class LiveContextTest(unittest.TestCase):
         self.create_exchange__merge_config__template(
             base_init_mock, CCXTProBitfinex, True)
 
+    @patch('btrccts.context.ccxtpro', CCXTProMock())
+    @patch('ccxt.async_support.bithumb.__init__')
+    def test__create_exchange__not_in_ccxtpro(self, base_init_mock):
+        base_init_mock.return_value = None
+        context = LiveContext(timeframe=None,
+                              conf_dir='tests/unit/context/config',
+                              auth_aliases={})
+        exchange = context.create_exchange('bithumb', {'param': 2}, True)
+        base_init_mock.assert_called_once_with(
+            {'apiKey': 'abc',
+             'enableRateLimit': True,
+             'param': 2})
+        self.assertTrue(isinstance(exchange, ccxt.async_support.bithumb))
+
     def test__date(self):
         t = Timeframe(pd_start_date=pd_ts('2017-01-01 1:00'),
                       pd_end_date=pd_ts('2017-01-01 1:35'),
