@@ -17,7 +17,7 @@ except ImportError:
     pass
 
 
-class StopException(SystemExit):
+class StopException(BaseException):
     pass
 
 
