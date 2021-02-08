@@ -102,9 +102,9 @@ cryptography==3.4.1 \
     --hash=sha256:be70bdaa29bcacf70896dae3a6f3eef91daf51bfba8a49dbfb9c23bb2cc914ba \
     --hash=sha256:cd1d14b6c52d9372a7f4682576fa7d9c9d256afa6cc50828b337dbb8a9596066 \
     --hash=sha256:e63b8da1d77ff60a73d72db68cb72e8ffbe9f7319e5ffa23f6bfe2757d6871e3
-idna==2.10 \
-    --hash=sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6 \
-    --hash=sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0
+idna==3.1 \
+    --hash=sha256:5205d03e7bcbb919cc9c19885f9920d622ca52448306f2377daede5cf3faac16 \
+    --hash=sha256:c5b02147e01ea9920e6b0a3f1f7bb833612d507592c837a6c49552768f4054e1
 multidict==5.1.0 \
     --hash=sha256:018132dbd8688c7a69ad89c4a3f39ea2f9f33302ebe567a879da8f4ca73f0d0a \
     --hash=sha256:051012ccee979b2b06be928a6150d237aec75dd6bf2d1eeeb190baf2b05abc93 \
