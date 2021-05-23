@@ -9,7 +9,7 @@ KRAKEN_BTC_USD = {
     'baseId': 'XXBT',
     'darkpool': False,
     'id': 'XXBTZUSD',
-    'limits': {'amount': {'max': 100000000.0, 'min': 0.0002},
+    'limits': {'amount': {'max': 100000000.0, 'min': 0.0001},
                'cost': {'max': None, 'min': 0},
                'price': {'max': None, 'min': 0.1}},
     'maker': 0.0016,
@@ -25,8 +25,6 @@ KRAKEN_BTC_CURRENCY = {
     'fee': None,
     'id': 'XXBT',
     'limits': {'amount': {'max': 10000000000.0, 'min': 1e-10},
-               'cost': {'max': None, 'min': None},
-               'price': {'max': 10000000000.0, 'min': 1e-10},
                'withdraw': {'max': 10000000000.0, 'min': None}},
     'name': 'BTC',
     'precision': 10}
