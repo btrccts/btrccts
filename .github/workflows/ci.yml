@@ -1,0 +1,32 @@
+name: Test code
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.7', '3.8', '3.9']
+    name: Tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      # Setup workspace
+      - run: set -e
+      - run: python3 --version
+      - run: pip3 install --upgrade setuptools pip
+      - run: pip3 install -r requirements.txt
+      - run: pip3 install -e . --no-deps
+      # name: Test example algorithm
+      - run: python3 examples/print_time.py --start-date 2017-01-01 --end-date 2017-01-02
+      - run: pip3 install -e .[dev]
+      # Run Tests
+      - run: python3 -m unittest tests/unit/tests.py
+      - run: python3 -m unittest tests/integration/tests.py
+      - run: pip3 install -r version_hashes.txt
+      # Check syntax
+      - run: sudo apt-get install python3-pip flake8
+      - run: flake8 .
