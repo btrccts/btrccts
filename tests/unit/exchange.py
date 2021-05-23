@@ -45,7 +45,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
     @patch.object(Exchange, 'load_markets')
     def test__exchange_methods_check_has(self, mock):
         params_per_method = {
-            'createLimitOrder': ['BTC/USD', 'sell', 5],
+            'createLimitOrder': ['BTC/USD', 'sell', 5, 2],
             'createMarketOrder': ['BTC/USD', 'sell', 5],
             'createOrder': ['BTC/USD', 'sell', 'market', 5],
             'fetchOHLCV': ['BTC/USD', '1m'],
