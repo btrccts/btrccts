@@ -65,7 +65,7 @@ class AsyncBacktestExchangeBase:
     async def fetch_balance(self, params={}):
         self._check_has('fetchBalance')
         result = self._exchange_backend.fetch_balance()
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     async def fetch_closed_orders(
             self, symbol=None, since=None, limit=None, params={}):
