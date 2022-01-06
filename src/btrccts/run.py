@@ -61,7 +61,7 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
             try:
                 ohlcv = pandas.read_csv(
                     file_path,
-                    index_col=0, parse_dates=[0], dtype=numpy.float,
+                    index_col=0, parse_dates=[0], dtype=numpy.float64,
                     date_parser=partial(pandas.to_datetime, utc=True)
                     )
                 exchange_result[symbol] = ohlcv

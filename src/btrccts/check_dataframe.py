@@ -13,7 +13,7 @@ def _check_dataframe(ohlcvs, timeframe, needed_columns=['low', 'high']):
     except ValueError:
         raise ValueError('ohlcv needs to be in 1T format')
     try:
-        result = ohlcvs.astype(numpy.float)
+        result = ohlcvs.astype(numpy.float64)
         if not numpy.isfinite(result).values.all():
             raise ValueError('ohlcv needs to finite')
     except ValueError as e:
