@@ -50,7 +50,7 @@ class ExchangeBackendTest(unittest.TestCase):
         self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
 
     def template__init__ohlcvs__missing(self, column):
-        df = self.init_ohlcvs.drop(column, 1)
+        df = self.init_ohlcvs.drop(column, axis=1)
         with self.assertRaises(ValueError) as e:
             ExchangeBackend(timeframe=self.init_timeframe,
                             ohlcvs={'ETH/BTC': df},

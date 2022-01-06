@@ -67,7 +67,7 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(str(e.exception), 'ohlcv needs to cover timeframe')
 
     def test__init__ohlcvs__high_missing(self):
-        df = self.eth_btc_ohlcvs.drop('high', 1)
+        df = self.eth_btc_ohlcvs.drop('high', axis=1)
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': df},
@@ -75,7 +75,7 @@ class ExchangeAccountTest(unittest.TestCase):
         self.assertEqual(str(e.exception), 'ohlcv high needs to be provided')
 
     def test__init__ohlcvs__low_missing(self):
-        df = self.eth_btc_ohlcvs.drop('low', 1)
+        df = self.eth_btc_ohlcvs.drop('low', axis=1)
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': df},
