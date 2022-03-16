@@ -7,30 +7,46 @@ KRAKEN_BTC_USD = {
     'altname': 'XBTUSD',
     'base': 'BTC',
     'baseId': 'XXBT',
+    'contract': False,
+    'contractSize': None,
     'darkpool': False,
+    'expiry': None,
+    'expiryDatetime': None,
+    'future': False,
     'id': 'XXBTZUSD',
+    'inverse': None,
     'limits': {'amount': {'max': None, 'min': 0.0001},
                'cost': {'max': None, 'min': None},
-               'leverage': {'max': '5'},
+               'leverage': {'max': 5.0, 'min': 1.0},
                'price': {'max': None, 'min': 0.1}},
+    'linear': None,
     'maker': 0.0016,
+    'margin': True,
+    'option': False,
+    'optionType': None,
     'precision': {'amount': 8, 'price': 1},
     'quote': 'USD',
     'quoteId': 'ZUSD',
+    'settle': None,
+    'settleId': None,
     'spot': True,
     'symbol': 'BTC/USD',
+    'strike': None,
+    'swap': False,
     'taker': 0.0026,
     'type': 'spot'}
 
 KRAKEN_BTC_CURRENCY = {
     'active': True,
     'code': 'BTC',
+    'deposit': None,
     'fee': None,
     'id': 'XXBT',
     'limits': {'amount': {'max': 10000000000.0, 'min': 1e-10},
                'withdraw': {'max': 10000000000.0, 'min': None}},
     'name': 'BTC',
-    'precision': 10}
+    'precision': 10,
+    'withdraw': None}
 
 KRAKEN_MARKET_BTC_USD = KRAKEN_BTC_USD.copy()
 KRAKEN_MARKET_BTC_USD.update({
