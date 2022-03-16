@@ -117,7 +117,14 @@ print(result.orders)
 ```
 
 To run this algorithm, just execute the file with python.
-e.g. `.venv/bin/python examples/algo_readme.py --start-date 2017-12-01 --end-date 2017-12-02 --timedelta 1h --exchanges kraken --symbols BTC/USD --start-balances '{"kraken": {"USD": 10000}}'`
+e.g.
+```bash
+.venv/bin/python examples/algo_readme.py --start-date 2017-12-01 --end-date 2017-12-02 --interval 1h \
+                                         --exchanges kraken --symbols BTC/USD \
+                                         --start-balances '{"kraken": {"USD": 10000}}'
+```
+To execute orders in exchanges, you can run the algorithm in live mode with the command-line parameter `--live`.
+For other parameters, see `.venv/bin/python examples/algo_readme.py --help`.
 
 If you dont want the function to parse commandline parameters for you, you can use
 ```python
