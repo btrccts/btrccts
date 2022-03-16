@@ -74,7 +74,7 @@ class Algorithm(AlgorithmBase):
             'BTC/USD', '1m', ohlcv_start, ohlcv_len))
 
         # Use the exchange to create a market order
-        self._order_id = self._kraken.create_order(
+        self._order_id = await self._kraken.create_order(
             type='market', side='buy', symbol='BTC/USD', amount=0.1)
 
         # If you want to stop the algorithm in context or live mode, you can
@@ -113,7 +113,7 @@ result = parse_params_and_execute_algorithm(Algorithm)
 # information. If you used a sync version of the exchange you can
 # still use them. For async exchages the asyncio loop is already
 # destroyed.
-print(result.orders)
+print(result.closed_orders)
 ```
 
 To run this algorithm, just execute the file with python.
