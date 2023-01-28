@@ -6,7 +6,7 @@ with open('README.md', encoding='utf-8') as f:
 
 setup(
     name='btrccts',
-    version='0.1.2',
+    version='0.1.3',
     description='BackTest and Run CryptoCurrency Trading Strategies',
     long_description=readme,
     long_description_content_type='text/markdown',
