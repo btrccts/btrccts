@@ -24,7 +24,7 @@ KRAKEN_BTC_USD = {
     'margin': True,
     'option': False,
     'optionType': None,
-    'precision': {'amount': 8, 'price': 1},
+    'precision': {'amount': 1e-08, 'price': 0.1},
     'quote': 'USD',
     'quoteId': 'ZUSD',
     'settle': None,
@@ -42,10 +42,10 @@ KRAKEN_BTC_CURRENCY = {
     'deposit': None,
     'fee': None,
     'id': 'XXBT',
-    'limits': {'amount': {'max': 10000000000.0, 'min': 1e-10},
-               'withdraw': {'max': 10000000000.0, 'min': None}},
+    'limits': {'amount': {'max': None, 'min': 1e-10},
+               'withdraw': {'max': None, 'min': None}},
     'name': 'BTC',
-    'precision': 10,
+    'precision': 1e-10,
     'withdraw': None}
 
 KRAKEN_MARKET_BTC_USD = KRAKEN_BTC_USD.copy()

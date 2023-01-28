@@ -303,7 +303,7 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                 kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
-        kraken_currencies.return_value = []
+        kraken_currencies.return_value = {}
         result = self.run_test(TestAlgo)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False)
@@ -316,7 +316,7 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = async_fetch_markets_return(
             [BTC_USD_MARKET])
-        kraken_currencies.side_effect = async_return([])
+        kraken_currencies.side_effect = async_return({})
         result = self.run_test(AsyncTestAlgo)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False, async_algo=True)
@@ -351,7 +351,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             self, kraken_currencies, kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
-        kraken_currencies.return_value = []
+        kraken_currencies.return_value = {}
         result = self.run_test(TestAlgo)
         assert_test_algo_result(self, result, live=False)
         self.assertEqual(result.args.algo_bool, True)
@@ -381,7 +381,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = async_fetch_markets_return(
             [BTC_USD_MARKET])
-        kraken_currencies.side_effect = async_return([])
+        kraken_currencies.side_effect = async_return({})
         result = self.run_test(AsyncTestAlgo)
         assert_test_algo_result(self, result, live=False, async_algo=True)
         self.assertEqual(result.args.algo_bool, True)

@@ -191,6 +191,6 @@ class AsyncBacktestExchangeBaseTest(unittest.TestCase):
     async def test__fetch_ohlcv__timeframe_not_in_timeframes(self):
         exchange = self.backtest.create_exchange('poloniex', async_ccxt=True)
         with self.assertRaises(BadRequest) as e:
-            await exchange.fetch_ohlcv('BTC/USD', '1m')
+            await exchange.fetch_ohlcv('BTC/USD', '11m')
         self.assertEqual(str(e.exception),
-                         'Timeframe 1m not supported by exchange')
+                         'Timeframe 11m not supported by exchange')

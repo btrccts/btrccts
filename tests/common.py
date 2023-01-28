@@ -12,6 +12,7 @@ ETH_BTC_MARKET = {
     'maker': 0.005,
     'taker': 0.01,
     'info': {},
+    'spot': None,
     'active': True,
 }
 BTC_USD_MARKET = {
@@ -24,6 +25,7 @@ BTC_USD_MARKET = {
     'maker': 0.001,
     'taker': 0.002,
     'info': {},
+    'spot': None,
     'active': True,
 }
 
