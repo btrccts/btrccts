@@ -1,4 +1,6 @@
 import asyncio
+import ccxt
+import ccxt.async_support
 import os
 import pandas
 import sys
@@ -296,9 +298,9 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                        data_dir=data_dir)
         return result
 
-    @patch('ccxt.okex.fetch_markets')
-    @patch('ccxt.kraken.fetch_markets')
-    @patch('ccxt.kraken.fetch_currencies')
+    @patch.object(ccxt.okex, 'fetch_markets')
+    @patch.object(ccxt.kraken, 'fetch_markets')
+    @patch.object(ccxt.kraken, 'fetch_currencies')
     def test__execute_algorithm(self, kraken_currencies,
                                 kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
@@ -308,9 +310,9 @@ class ExecuteAlgorithmTests(unittest.TestCase):
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False)
 
-    @patch('ccxt.async_support.okex.fetch_markets')
-    @patch('ccxt.async_support.kraken.fetch_markets')
-    @patch('ccxt.async_support.kraken.fetch_currencies')
+    @patch.object(ccxt.async_support.okex, 'fetch_markets')
+    @patch.object(ccxt.async_support.kraken, 'fetch_markets')
+    @patch.object(ccxt.async_support.kraken, 'fetch_currencies')
     def test__execute_algorithm__async(self, kraken_currencies,
                                        kraken_markets, okex_markets):
         okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
@@ -344,9 +346,9 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                 sys_argv.append(y)
         return sys_argv
 
-    @patch('ccxt.okex.fetch_markets')
-    @patch('ccxt.kraken.fetch_markets')
-    @patch('ccxt.kraken.fetch_currencies')
+    @patch.object(ccxt.okex, 'fetch_markets')
+    @patch.object(ccxt.kraken, 'fetch_markets')
+    @patch.object(ccxt.kraken, 'fetch_currencies')
     def test__parse_params_and_execute_algorithm(
             self, kraken_currencies, kraken_markets, okex_markets):
         okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
@@ -373,9 +375,9 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             with self.assertLogs():
                 return parse_params_and_execute_algorithm(Algo)
 
-    @patch('ccxt.async_support.okex.fetch_markets')
-    @patch('ccxt.async_support.kraken.fetch_markets')
-    @patch('ccxt.async_support.kraken.fetch_currencies')
+    @patch.object(ccxt.async_support.okex, 'fetch_markets')
+    @patch.object(ccxt.async_support.kraken, 'fetch_markets')
+    @patch.object(ccxt.async_support.kraken, 'fetch_currencies')
     def test__parse_params_and_execute_algorithm__async(
             self, kraken_currencies, kraken_markets, okex_markets):
         okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])

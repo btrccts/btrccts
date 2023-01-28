@@ -1,3 +1,4 @@
+import ccxt
 import unittest
 import re
 import pandas
@@ -111,7 +112,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
                           'total': {'BTC': 15.3, 'USD': 0.3},
                           'used': {'BTC': 0.0, 'USD': 0.0}})
 
-    @patch('ccxt.bittrex.fetch_markets')
+    @patch.object(ccxt.bittrex, 'fetch_markets')
     def test__fetch_markets(self, method):
         exchange = self.backtest.create_exchange('bittrex')
         result = exchange.fetch_markets({'test': 123})
@@ -119,7 +120,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             {'test': 123})
         self.assertEqual(result, method())
 
-    @patch('ccxt.bittrex.fetch_currencies')
+    @patch.object(ccxt.bittrex, 'fetch_currencies')
     def test__fetch_currencies(self, fetch_currencies):
         exchange = self.backtest.create_exchange('bittrex')
         result = exchange.fetch_currencies({'test': 123})
@@ -127,7 +128,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             {'test': 123})
         self.assertEqual(result, fetch_currencies())
 
-    @patch('ccxt.binance.fetch_markets')
+    @patch.object(ccxt.binance, 'fetch_markets')
     def test__create_order__market_sell(self, fetch_markets_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_markets_mock.return_value = [BTC_USD_MARKET]
@@ -139,7 +140,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             market=exchange.markets['BTC/USD'])
         self.assertEqual(result, self.binance_backend_mock.create_order())
 
-    @patch('ccxt.binance.fetch_markets')
+    @patch.object(ccxt.binance, 'fetch_markets')
     def test__create_order__limit_buy(self, fetch_markets_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_markets_mock.return_value = [BTC_USD_MARKET]
@@ -151,7 +152,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
             market=exchange.markets['BTC/USD'])
         self.assertEqual(result, self.binance_backend_mock.create_order())
 
-    @patch('ccxt.binance.fetch_markets')
+    @patch.object(ccxt.binance, 'fetch_markets')
     def test__create_order__no_market(self, fetch_markets_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_markets_mock.return_value = [BTC_USD_MARKET]
@@ -163,7 +164,7 @@ class BacktestExchangeBaseTest(unittest.TestCase):
         fetch_markets_mock.assert_called_once_with({})
         self.binance_backend_mock.create_order.assert_not_called()
 
-    @patch('ccxt.binance.fetch_markets')
+    @patch.object(ccxt.binance, 'fetch_markets')
     def test__create_order__fetch_markets_only_once(self, fetch_markets_mock):
         exchange = self.backtest.create_exchange('binance')
         fetch_markets_mock.return_value = [BTC_USD_MARKET]

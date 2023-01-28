@@ -197,16 +197,16 @@ class LiveContextTest(unittest.TestCase):
     def test__create_exchange__not_an_exchange(self):
         self.create_exchange__not_an_exchange__template(False)
 
-    @patch('ccxt.binance.__init__')
+    @patch.object(ccxt.binance, '__init__')
     def test__create_exchange__no_file(self, base_init_mock):
         self.create_exchange__no_file__template(
             base_init_mock, ccxt.binance, False)
 
-    @patch('ccxt.bitfinex.__init__')
+    @patch.object(ccxt.bitfinex, '__init__')
     def test__create_exchange(self, base_init_mock):
         self.create_exchange__template(base_init_mock, ccxt.bitfinex, False)
 
-    @patch('ccxt.binance.__init__')
+    @patch.object(ccxt.binance, '__init__')
     def test__create_exchange__merge_config(self, base_init_mock):
         self.create_exchange__merge_config__template(
             base_init_mock, ccxt.binance, False)
@@ -214,17 +214,17 @@ class LiveContextTest(unittest.TestCase):
     def test__create_exchange__not_an_async_exchange(self):
         self.create_exchange__not_an_exchange__template(True)
 
-    @patch('ccxt.async_support.bitfinex.__init__')
+    @patch.object(ccxt.async_support.bitfinex, '__init__')
     def test__create_exchange__async(self, base_init_mock):
         self.create_exchange__template(
             base_init_mock, ccxt.async_support.bitfinex, True)
 
-    @patch('ccxt.async_support.binance.__init__')
+    @patch.object(ccxt.async_support.binance, '__init__')
     def test__create_exchange__async_no_file(self, base_init_mock):
         self.create_exchange__no_file__template(
             base_init_mock, ccxt.async_support.binance, True)
 
-    @patch('ccxt.async_support.binance.__init__')
+    @patch.object(ccxt.async_support.binance, '__init__')
     def test__create_exchange__async_merge_config(self, base_init_mock):
         self.create_exchange__merge_config__template(
             base_init_mock, ccxt.async_support.binance, True)
@@ -252,7 +252,7 @@ class LiveContextTest(unittest.TestCase):
             base_init_mock, CCXTProBitfinex, True)
 
     @patch('btrccts.context.ccxtpro', CCXTProMock())
-    @patch('ccxt.async_support.bithumb.__init__')
+    @patch.object(ccxt.async_support.bithumb, '__init__')
     def test__create_exchange__not_in_ccxtpro(self, base_init_mock):
         base_init_mock.return_value = None
         context = LiveContext(timeframe=None,
