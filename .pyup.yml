@@ -1,8 +1,0 @@
-update: all
-schedule: "every week"
-# TODO: remove schedule and change to immediatly, if ccxt PR spamming can be
-# reduced due to other config options
-requirements:
-    - requirements.txt
-    - requirements_dev.txt
-branch_prefix: pyup/
