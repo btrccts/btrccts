@@ -45,6 +45,7 @@ KRAKEN_BTC_CURRENCY = {
     'limits': {'amount': {'max': None, 'min': 1e-10},
                'withdraw': {'max': None, 'min': None}},
     'name': 'BTC',
+    'networks': {},
     'precision': 1e-10,
     'withdraw': None}
 
