@@ -537,7 +537,7 @@ class SleepUntilTests(unittest.TestCase):
     @async_test
     async def test__sleep_until__one_partial_sleep(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
-            ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01'], utc=True)
+            ['2017-08-18 00:00:00.2', '2017-08-18 00:00:01.0'], utc=True)
         now_mock.side_effect = dates
         sleep_mock.side_effect = async_noop
         await sleep_until(dates[1])
@@ -549,7 +549,7 @@ class SleepUntilTests(unittest.TestCase):
     @async_test
     async def test__sleep_until__multiple_sleeps(self, sleep_mock, now_mock):
         dates = pandas.to_datetime(
-            ['2017-08-18 00:00:00', '2017-08-18 00:00:01.123',
+            ['2017-08-18 00:00:00.0', '2017-08-18 00:00:01.123',
              '2017-08-18 00:00:02.24', '2017-08-18 00:00:03.1'], utc=True)
         now_mock.side_effect = dates
         sleep_mock.side_effect = async_noop
