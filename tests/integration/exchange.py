@@ -34,7 +34,8 @@ KRAKEN_BTC_USD = {
     'strike': None,
     'swap': False,
     'taker': 0.0026,
-    'type': 'spot'}
+    'type': 'spot',
+    'wsId': 'XBT/USD'}
 
 KRAKEN_BTC_CURRENCY = {
     'active': True,
