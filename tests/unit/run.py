@@ -12,8 +12,9 @@ from btrccts.run import load_ohlcvs, main_loop, ExitReason, \
 from btrccts.timeframe import Timeframe
 from unittest.mock import Mock, call, patch
 from tests.common_algos import TestAlgo, assert_test_algo_result, AsyncTestAlgo
-from tests.common import fetch_markets_return, BTC_USD_MARKET, ETH_BTC_MARKET,\
-    pd_ts, async_test, async_noop, async_fetch_markets_return, async_return
+from tests.common import fetch_markets_return, BTC_USD_MARKET, \
+    ETH_BTC_MARKET, pd_ts, async_test, async_noop, \
+    async_fetch_markets_return, async_return
 
 here = os.path.dirname(__file__)
 data_dir = os.path.join(here, 'run', 'data_dir')
