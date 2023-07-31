@@ -9,7 +9,6 @@ import pandas
 from ccxt.base.errors import NotSupported
 from ccxt.base.exchange import Exchange
 from enum import Enum, auto
-from functools import partial
 from btrccts.context import BacktestContext, LiveContext, StopException
 from btrccts.exchange_backend import ExchangeBackend
 from btrccts.timeframe import Timeframe
@@ -61,9 +60,8 @@ def load_ohlcvs(ohlcv_dir, exchange_names, symbols):
             try:
                 ohlcv = pandas.read_csv(
                     file_path,
-                    index_col=0, parse_dates=[0], dtype=numpy.float64,
-                    date_parser=partial(pandas.to_datetime, utc=True)
-                    )
+                    index_col=0, parse_dates=[0], dtype=numpy.float64)
+                ohlcv.index = pandas.to_datetime(ohlcv.index, utc=True)
                 exchange_result[symbol] = ohlcv
             except FileNotFoundError:
                 raise FileNotFoundError(
