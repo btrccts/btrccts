@@ -26,7 +26,7 @@ class BalanceTest(unittest.TestCase):
         with self.assertRaises(ValueError) as e:
             Balance(-1)
         self.assertEqual(str(e.exception),
-                         'Balance: inital value cant be negative')
+                         "Balance: initial value can't be negative")
 
     def test__change_total__add(self):
         balance = Balance(15.3)

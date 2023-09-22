@@ -237,7 +237,7 @@ class ExchangeAccount:
 
     def _update_balance(self, price, amount, base, quote, buy, fee_percentage):
         # First decrease balance, then increase, so
-        # decrease can throw and increase wont be affected
+        # decrease can throw and increase won't be affected
         multiplier = DECIMAL_ONE - fee_percentage
         if buy:
             self._balances[quote].change_total(- price * amount)

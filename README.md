@@ -84,10 +84,10 @@ class Algorithm(AlgorithmBase):
     async def handle_exception(self, e):
         # This method is called, when next_iteration raises an exception, e.g.
         # because of an exchange error or a programming error.
-        # If this method raises an exception, the algorith will stop with
+        # If this method raises an exception, the algorithm will stop with
         # reason EXCEPTION
         # This method can be async or a normal method.
-        # If you are not in live mode, it is advicable to rethrow the
+        # If you are not in live mode, it is advisable to rethrow the
         # exception to fix the programming error.
         print(e)
         if not self._args.live:
@@ -111,7 +111,7 @@ class Algorithm(AlgorithmBase):
 result = parse_params_and_execute_algorithm(Algorithm)
 # The result is an instance of Algorithm, you can now use saved
 # information. If you used a sync version of the exchange you can
-# still use them. For async exchages the asyncio loop is already
+# still use them. For async exchanges the asyncio loop is already
 # destroyed.
 print(result.closed_orders)
 ```
@@ -180,11 +180,11 @@ know how you want to handle e.g. errors or reloading the market.
 
 - Market order
 
-Market orders are executed immediatly with a price a little worse than current low/high.
+Market orders are executed immediately with a price a little worse than current low/high.
 Since we only have ohlcv data, we cannot use the next data, because this would introduce
 a look-ahead bias
 Some other backtesting libraries would wait until the next round to fill market orders,
-but this is not what is happening in the real world (executing market orders immediatly).
+but this is not what is happening in the real world (executing market orders immediately).
 
 - Limit order
 
@@ -196,10 +196,10 @@ order open until filled.
 
 ### When next round is initiated in live mode / How interval is handled in live mode
 
-When the algorithm is started, it will immediatly execute `next_iteration`.
+When the algorithm is started, it will immediately execute `next_iteration`.
 Now the library waits until the next time interval and executes `next_iteration`.
 If the `next_iteration` call takes longer than the interval, `next_iteration` is
-called immediatly again. If `next_iteration` takes longer than multiple intervals,
+called immediately again. If `next_iteration` takes longer than multiple intervals,
 only the last interval is rescheduled.
 
 ## Development

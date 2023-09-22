@@ -1,0 +1,15 @@
+name: Check spelling
+
+on: [push, pull_request]
+
+jobs:
+  check-spelling:
+    name: Check spelling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check spelling
+        uses: codespell-project/actions-codespell@v1
+        with:
+          skip: ./tests/files
+          check_filenames: true

@@ -17,7 +17,7 @@ class Balance:
         self._total = _convert_float(start_balance)
         self._used = Decimal('0')
         if self._total < 0:
-            raise ValueError('Balance: inital value cant be negative')
+            raise ValueError("Balance: initial value can't be negative")
 
     def to_dict(self):
         return {

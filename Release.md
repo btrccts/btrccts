@@ -11,13 +11,13 @@ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ```
 
 Test the release on pypi testing.
-Upload the relase to pypi:
+Upload the release to pypi:
 
 ```shell
 twine upload dist/*
 ```
 
-Tag the relase with `git tag` and push the tag to the git server.
+Tag the release with `git tag` and push the tag to the git server.
 Create hashes:
 
 ```shell

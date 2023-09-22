@@ -109,7 +109,7 @@ async def main_loop(timeframe, algorithm, live=False):
                                      reason=ExitReason.STOPPED)
                 return algorithm
             except BaseException as e:
-                logger.error('Error occured during next_iteration')
+                logger.error('Error occurred during next_iteration')
                 logger.exception(e)
                 try:
                     await _run_a_or_sync(algorithm.handle_exception, e)

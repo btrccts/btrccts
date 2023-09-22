@@ -152,9 +152,10 @@ class MainLoopTests(unittest.TestCase):
                           call.next_iteration(),
                           call.exit(reason=ExitReason.FINISHED)])
         self.assertEqual(len(cm.output), 4)
-        self.assertEqual(cm.output[0:2],
-                         ['INFO:btrccts:Starting main_loop',
-                          'ERROR:btrccts:Error occured during next_iteration'])
+        self.assertEqual(
+            cm.output[0:2],
+            ['INFO:btrccts:Starting main_loop',
+             'ERROR:btrccts:Error occurred during next_iteration'])
         self.assertTrue(cm.output[2].startswith(
             'ERROR:btrccts:a\nTraceback (most recent call last):\n  File'))
         self.assertEqual(cm.output[3], 'INFO:btrccts:Finished main_loop')
@@ -177,9 +178,10 @@ class MainLoopTests(unittest.TestCase):
                           call.handle_exception(error),
                           call.exit(reason=ExitReason.EXCEPTION)])
         self.assertEqual(len(cm.output), 5)
-        self.assertEqual(cm.output[0:2],
-                         ['INFO:btrccts:Starting main_loop',
-                          'ERROR:btrccts:Error occured during next_iteration'])
+        self.assertEqual(
+            cm.output[0:2],
+            ['INFO:btrccts:Starting main_loop',
+             'ERROR:btrccts:Error occurred during next_iteration'])
         self.assertTrue(cm.output[2].startswith(
             'ERROR:btrccts:a\nTraceback (most recent call last):\n  File'))
         self.assertEqual(cm.output[3], 'ERROR:btrccts:Exiting because of '

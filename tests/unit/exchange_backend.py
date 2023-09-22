@@ -352,7 +352,7 @@ class ExchangeBackendTest(unittest.TestCase):
             backend.fetch_ohlcv_dataframe(symbol=symbol,
                                           since=1483232330000)
         self.assertEqual(str(e.exception), 'ExchangeBackend: fetch_ohlcv: no '
-                                           'date availabe at since')
+                                           'date available at since')
 
     def test__fetch_ticker(self):
         timeframe = Timeframe(pd_start_date=self.fetch_ohlcv_ohlcvs.index[0],

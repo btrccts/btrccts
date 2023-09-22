@@ -59,10 +59,10 @@ class Algorithm(AlgorithmBase):
     async def handle_exception(self, e):
         # This method is called, when next_iteration raises an exception, e.g.
         # because of an exchange error or a programming error.
-        # If this method raises an exception, the algorith will stop with
+        # If this method raises an exception, the algorithm will stop with
         # reason EXCEPTION
         # This method can be async or a normal method.
-        # If you are not in live mode, it is advicable to rethrow the
+        # If you are not in live mode, it is advisable to rethrow the
         # exception to fix the programming error.
         print(e)
         if not self._args.live:
@@ -86,6 +86,6 @@ class Algorithm(AlgorithmBase):
 result = parse_params_and_execute_algorithm(Algorithm)
 # The result is an instance of Algorithm, you can now use saved
 # information. If you used a sync version of the exchange you can
-# still use them. For async exchages the asyncio loop is already
+# still use them. For async exchanges the asyncio loop is already
 # destroyed.
 print(result.closed_orders)
