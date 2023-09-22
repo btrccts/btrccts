@@ -92,7 +92,9 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__init__ohlcvs__not_finite(self):
         df = self.eth_btc_ohlcvs.copy()
-        df.iloc[1, 1] = float('inf')
+        update = df.low.astype(object)
+        update.iloc[1] = float('inf')
+        df.low = update
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': df},
@@ -101,7 +103,9 @@ class ExchangeAccountTest(unittest.TestCase):
 
     def test__init__ohlcvs__not_convertable_to_float(self):
         df = self.eth_btc_ohlcvs.copy()
-        df.iloc[1, 1] = 'asd'
+        update = df.low.astype(object)
+        update.iloc[1] = 'asd'
+        df.low = update
         with self.assertRaises(ValueError) as e:
             ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': df},
