@@ -287,13 +287,13 @@ class ExecuteAlgorithmTests(unittest.TestCase):
 
     def run_test(self, Algo):
         with self.assertLogs('btrccts'):
-            result = execute_algorithm(exchange_names=['kraken', 'okex'],
+            result = execute_algorithm(exchange_names=['kraken', 'okx'],
                                        symbols=[],
                                        live=False,
                                        auth_aliases={},
                                        AlgorithmClass=Algo,
                                        args=self,
-                                       start_balances={'okex': {'ETH': 3},
+                                       start_balances={'okx': {'ETH': 3},
                                                        'kraken': {'USD': 100}},
                                        pd_start_date=pd_ts('2019-10-01 10:10'),
                                        pd_end_date=pd_ts('2019-10-01 10:16'),
@@ -301,24 +301,24 @@ class ExecuteAlgorithmTests(unittest.TestCase):
                                        data_dir=data_dir)
         return result
 
-    @patch.object(ccxt.okex, 'fetch_markets')
+    @patch.object(ccxt.okx, 'fetch_markets')
     @patch.object(ccxt.kraken, 'fetch_markets')
     @patch.object(ccxt.kraken, 'fetch_currencies')
     def test__execute_algorithm(self, kraken_currencies,
-                                kraken_markets, okex_markets):
-        okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
+                                kraken_markets, okx_markets):
+        okx_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = {}
         result = self.run_test(TestAlgo)
         self.assertEqual(result.args, self)
         assert_test_algo_result(self, result, live=False)
 
-    @patch.object(ccxt.async_support.okex, 'fetch_markets')
+    @patch.object(ccxt.async_support.okx, 'fetch_markets')
     @patch.object(ccxt.async_support.kraken, 'fetch_markets')
     @patch.object(ccxt.async_support.kraken, 'fetch_currencies')
     def test__execute_algorithm__async(self, kraken_currencies,
-                                       kraken_markets, okex_markets):
-        okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
+                                       kraken_markets, okx_markets):
+        okx_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = async_fetch_markets_return(
             [BTC_USD_MARKET])
         kraken_currencies.side_effect = async_return({})
@@ -349,12 +349,12 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                 sys_argv.append(y)
         return sys_argv
 
-    @patch.object(ccxt.okex, 'fetch_markets')
+    @patch.object(ccxt.okx, 'fetch_markets')
     @patch.object(ccxt.kraken, 'fetch_markets')
     @patch.object(ccxt.kraken, 'fetch_currencies')
     def test__parse_params_and_execute_algorithm(
-            self, kraken_currencies, kraken_markets, okex_markets):
-        okex_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
+            self, kraken_currencies, kraken_markets, okx_markets):
+        okx_markets.side_effect = fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = fetch_markets_return([BTC_USD_MARKET])
         kraken_currencies.return_value = {}
         result = self.run_test(TestAlgo)
@@ -365,9 +365,9 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     def run_test(self, Algo):
         sys_argv = self.create_sys_argv({
-            '--start-balances': '{"okex": {"ETH": 3},'
+            '--start-balances': '{"okx": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
-            '--exchanges': 'kraken,okex',
+            '--exchanges': 'kraken,okx',
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',
@@ -378,12 +378,12 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
             with self.assertLogs():
                 return parse_params_and_execute_algorithm(Algo)
 
-    @patch.object(ccxt.async_support.okex, 'fetch_markets')
+    @patch.object(ccxt.async_support.okx, 'fetch_markets')
     @patch.object(ccxt.async_support.kraken, 'fetch_markets')
     @patch.object(ccxt.async_support.kraken, 'fetch_currencies')
     def test__parse_params_and_execute_algorithm__async(
-            self, kraken_currencies, kraken_markets, okex_markets):
-        okex_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
+            self, kraken_currencies, kraken_markets, okx_markets):
+        okx_markets.side_effect = async_fetch_markets_return([ETH_BTC_MARKET])
         kraken_markets.side_effect = async_fetch_markets_return(
             [BTC_USD_MARKET])
         kraken_currencies.side_effect = async_return({})
@@ -468,8 +468,8 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     def test__parse_params_and_execute_algorithm__multiple_exchanges(self):
         self.template__parse_params_and_execute_algorithm__check_call(
-            argv_params={'--exchanges': 'kraken,okex,bitfinex'},
-            check_params={'exchange_names': ['kraken', 'okex', 'bitfinex']})
+            argv_params={'--exchanges': 'kraken,okx,bitfinex'},
+            check_params={'exchange_names': ['kraken', 'okx', 'bitfinex']})
 
     def test__parse_params_and_execute_algorithm__multiple_symbols(self):
         self.template__parse_params_and_execute_algorithm__check_call(
@@ -508,7 +508,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
         self.template__parse_params_and_execute_algorithm__exception(
             argv_params={
                 '--live': True, '--start-date': None,
-                '--start-balances': '{"okex": {"ETH": 3},'
+                '--start-balances': '{"okx": {"ETH": 3},'
                                     ' "kraken": {"USD": 100}}'},
             exception=ValueError,
             exception_test='Start balance cannot be set in live mode')

@@ -14,8 +14,8 @@ class TestAlgo(AlgorithmBase):
         self.exit_reason = None
         self.iterations = 0
         self.kraken = context.create_exchange('kraken')
-        self.okex = context.create_exchange('okex')
-        self.okex_balance = None
+        self.okx = context.create_exchange('okx')
+        self.okx_balance = None
         self.kraken_balance = None
         self.exception = None
         self.exception_iteration = None
@@ -23,8 +23,8 @@ class TestAlgo(AlgorithmBase):
     def next_iteration(self):
         self.iterations += 1
         if self.iterations == 1:
-            self.okex.create_order(type='market', side='sell',
-                                   symbol='ETH/BTC', amount=2)
+            self.okx.create_order(type='market', side='sell',
+                                  symbol='ETH/BTC', amount=2)
         if self.iterations == 2:
             raise ValueError('test')
         if self.iterations == 4:
@@ -37,7 +37,7 @@ class TestAlgo(AlgorithmBase):
 
     def exit(self, reason):
         self.exit_reason = reason
-        self.okex_balance = self.okex.fetch_balance()
+        self.okx_balance = self.okx.fetch_balance()
         self.kraken_balance = self.kraken.fetch_balance()
 
 
@@ -53,8 +53,8 @@ class AsyncTestAlgo(AlgorithmBase):
         self.exit_reason = None
         self.iterations = 0
         self.kraken = context.create_exchange('kraken', async_ccxt=True)
-        self.okex = context.create_exchange('okex', async_ccxt=True)
-        self.okex_balance = None
+        self.okx = context.create_exchange('okx', async_ccxt=True)
+        self.okx_balance = None
         self.kraken_balance = None
         self.exception = None
         self.exception_iteration = None
@@ -62,8 +62,8 @@ class AsyncTestAlgo(AlgorithmBase):
     async def next_iteration(self):
         self.iterations += 1
         if self.iterations == 1:
-            await self.okex.create_order(type='market', side='sell',
-                                         symbol='ETH/BTC', amount=2)
+            await self.okx.create_order(type='market', side='sell',
+                                        symbol='ETH/BTC', amount=2)
         if self.iterations == 2:
             raise ValueError('test')
         if self.iterations == 4:
@@ -76,10 +76,10 @@ class AsyncTestAlgo(AlgorithmBase):
 
     async def exit(self, reason):
         self.exit_reason = reason
-        self.okex_balance = await self.okex.fetch_balance()
+        self.okx_balance = await self.okx.fetch_balance()
         self.kraken_balance = await self.kraken.fetch_balance()
         await self.kraken.close()
-        await self.okex.close()
+        await self.okx.close()
 
 
 def assert_test_algo_result(test, result, live=False, async_algo=False):
@@ -90,12 +90,12 @@ def assert_test_algo_result(test, result, live=False, async_algo=False):
     test.assertEqual(result.exit_reason, ExitReason.FINISHED)
     test.assertEqual(result.iterations, 4)
     if live:
-        okex_balance = {'BTC': 199.40045, 'ETH': 1.0}
+        okx_balance = {'BTC': 199.40045, 'ETH': 1.0}
         kraken_balance = {'BTC': 0.09974, 'USD': 99.09865}
     else:
-        okex_balance = {'BTC': 197.703, 'ETH': 1.0}
+        okx_balance = {'BTC': 197.703, 'ETH': 1.0}
         kraken_balance = {'BTC': 0.0998, 'USD': 99.09865}
-    test.assertEqual(result.okex_balance['total'], okex_balance)
+    test.assertEqual(result.okx_balance['total'], okx_balance)
     test.assertEqual(result.kraken_balance['total'], kraken_balance)
     test.assertEqual(result.exception_iteration, 2)
     test.assertEqual(type(result.exception), ValueError)
