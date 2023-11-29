@@ -112,13 +112,13 @@ class ExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
     def run_algo(self, Algo):
         with self.assertLogs('btrccts'):
-            result = execute_algorithm(exchange_names=['kraken', 'okex'],
+            result = execute_algorithm(exchange_names=['kraken', 'okx'],
                                        symbols=[],
                                        AlgorithmClass=Algo,
                                        args=self,
                                        live=False,
                                        auth_aliases={},
-                                       start_balances={'okex': {'ETH': 3},
+                                       start_balances={'okx': {'ETH': 3},
                                                        'kraken': {'USD': 100}},
                                        pd_start_date=pd_ts('2019-10-01 10:10'),
                                        pd_end_date=pd_ts('2019-10-01 10:16'),
@@ -160,9 +160,9 @@ class ParseParamsAndExecuteAlgorithmIntegrationTests(unittest.TestCase):
 
     def test__parse_params_and_execute_algorithm(self):
         sys_argv = self.create_sys_argv({
-            '--start-balances': '{"okex": {"ETH": 3},'
+            '--start-balances': '{"okx": {"ETH": 3},'
                                 ' "kraken": {"USD": 100}}',
-            '--exchanges': 'kraken,okex',
+            '--exchanges': 'kraken,okx',
             '--symbols': '',
             '--start-date': '2019-10-01 10:10',
             '--end-date': '2019-10-01 10:16',

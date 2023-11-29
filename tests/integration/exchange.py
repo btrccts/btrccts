@@ -9,6 +9,7 @@ KRAKEN_BTC_USD = {
     'baseId': 'XXBT',
     'contract': False,
     'contractSize': None,
+    'created': None,
     'darkpool': False,
     'expiry': None,
     'expiryDatetime': None,
@@ -16,7 +17,7 @@ KRAKEN_BTC_USD = {
     'id': 'XXBTZUSD',
     'inverse': None,
     'limits': {'amount': {'max': None, 'min': 0.0001},
-               'cost': {'max': None, 'min': None},
+               'cost': {'max': None, 'min': 0.5},
                'leverage': {'max': 5.0, 'min': 1.0},
                'price': {'max': None, 'min': 0.1}},
     'linear': None,
@@ -52,8 +53,16 @@ KRAKEN_BTC_CURRENCY = {
 
 KRAKEN_MARKET_BTC_USD = KRAKEN_BTC_USD.copy()
 KRAKEN_MARKET_BTC_USD.update({
+    'index': None,
+    'lowercaseId': None,
     'tierBased': True,
+    'subType': None,
     'percentage': True,
+    'precision': {'amount': 1e-08,
+                  'base': None,
+                  'cost': None,
+                  'price': 0.1,
+                  'quote': None},
     'tiers': {'maker': [[0, 0.0016],
                         [50000, 0.0014],
                         [100000, 0.0012],
