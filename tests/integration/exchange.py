@@ -21,7 +21,7 @@ KRAKEN_BTC_USD = {
                'leverage': {'max': 5.0, 'min': 1.0},
                'price': {'max': None, 'min': 0.1}},
     'linear': None,
-    'maker': 0.0016,
+    'maker': 0.0025,
     'margin': True,
     'option': False,
     'optionType': None,
@@ -34,7 +34,7 @@ KRAKEN_BTC_USD = {
     'symbol': 'BTC/USD',
     'strike': None,
     'swap': False,
-    'taker': 0.0026,
+    'taker': 0.004,
     'type': 'spot',
     'wsId': 'XBT/USD'}
 
@@ -46,7 +46,7 @@ KRAKEN_BTC_CURRENCY = {
     'id': 'XXBT',
     'limits': {'amount': {'max': None, 'min': 1e-10},
                'withdraw': {'max': None, 'min': None}},
-    'name': 'BTC',
+    'name': 'XBT',
     'networks': {},
     'precision': 1e-10,
     'withdraw': None}

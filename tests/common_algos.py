@@ -91,7 +91,7 @@ def assert_test_algo_result(test, result, live=False, async_algo=False):
     test.assertEqual(result.iterations, 4)
     if live:
         okx_balance = {'BTC': 199.40045, 'ETH': 1.0}
-        kraken_balance = {'BTC': 0.09974, 'USD': 99.09865}
+        kraken_balance = {'BTC': 0.0996, 'USD': 99.09865}
     else:
         okx_balance = {'BTC': 197.703, 'ETH': 1.0}
         kraken_balance = {'BTC': 0.0998, 'USD': 99.09865}
