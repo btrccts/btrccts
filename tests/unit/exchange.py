@@ -112,17 +112,17 @@ class BacktestExchangeBaseTest(unittest.TestCase):
                           'total': {'BTC': 15.3, 'USD': 0.3},
                           'used': {'BTC': 0.0, 'USD': 0.0}})
 
-    @patch.object(ccxt.bittrex, 'fetch_markets')
+    @patch.object(ccxt.kraken, 'fetch_markets')
     def test__fetch_markets(self, method):
-        exchange = self.backtest.create_exchange('bittrex')
+        exchange = self.backtest.create_exchange('kraken')
         result = exchange.fetch_markets({'test': 123})
         method.assert_called_once_with(
             {'test': 123})
         self.assertEqual(result, method())
 
-    @patch.object(ccxt.bittrex, 'fetch_currencies')
+    @patch.object(ccxt.kraken, 'fetch_currencies')
     def test__fetch_currencies(self, fetch_currencies):
-        exchange = self.backtest.create_exchange('bittrex')
+        exchange = self.backtest.create_exchange('kraken')
         result = exchange.fetch_currencies({'test': 123})
         fetch_currencies.assert_called_once_with(
             {'test': 123})

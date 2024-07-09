@@ -98,21 +98,21 @@ class AsyncBacktestExchangeBaseTest(unittest.TestCase):
                           'total': {'BTC': 15.3, 'USD': 0.3},
                           'used': {'BTC': 0.0, 'USD': 0.0}})
 
-    @patch.object(ccxt.async_support.bittrex, 'fetch_markets')
+    @patch.object(ccxt.async_support.kraken, 'fetch_markets')
     @async_test
     async def test__fetch_markets(self, method):
         method.side_effect = async_func_result('someresult24')
-        exchange = self.backtest.create_exchange('bittrex', async_ccxt=True)
+        exchange = self.backtest.create_exchange('kraken', async_ccxt=True)
         result = await exchange.fetch_markets({'test': 123})
         method.assert_called_once_with(
             {'test': 123})
         self.assertEqual(result, 'someresult24')
 
-    @patch.object(ccxt.async_support.bittrex, 'fetch_currencies')
+    @patch.object(ccxt.async_support.kraken, 'fetch_currencies')
     @async_test
     async def test__fetch_currencies(self, fetch_currencies):
         fetch_currencies.side_effect = async_func_result('fcresult')
-        exchange = self.backtest.create_exchange('bittrex', async_ccxt=True)
+        exchange = self.backtest.create_exchange('kraken', async_ccxt=True)
         result = await exchange.fetch_currencies({'test': 123})
         fetch_currencies.assert_called_once_with(
             {'test': 123})
