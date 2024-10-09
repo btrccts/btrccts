@@ -55,9 +55,10 @@ KRAKEN_MARKET_BTC_USD = KRAKEN_BTC_USD.copy()
 KRAKEN_MARKET_BTC_USD.update({
     'index': None,
     'lowercaseId': None,
-    'tierBased': True,
-    'subType': None,
+    'marginModes': {'cross': None, 'isolated': None},
     'percentage': True,
+    'subType': None,
+    'tierBased': True,
     'precision': {'amount': 1e-08,
                   'base': None,
                   'cost': None,
