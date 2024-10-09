@@ -478,7 +478,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
 
     # Live mode tests
     def test__parse_params_and_execute_algorithm__live_start_date(self):
-        now_floor = pandas.Timestamp.now(tz='UTC').floor('1T')
+        now_floor = pandas.Timestamp.now(tz='UTC').floor('1min')
         self.template__parse_params_and_execute_algorithm__check_call(
             argv_params={'--live': True, '--start-date': None},
             check_params={'live': True,
@@ -486,7 +486,7 @@ class ParseParamsAndExecuteAlgorithmTests(unittest.TestCase):
                           'start_balances': None})
 
     def test__parse_params_and_execute_algorithm__live_auth_aliases(self):
-        now_floor = pandas.Timestamp.now(tz='UTC').floor('1T')
+        now_floor = pandas.Timestamp.now(tz='UTC').floor('1min')
         self.template__parse_params_and_execute_algorithm__check_call(
             argv_params={'--live': True,
                          '--start-date': None,

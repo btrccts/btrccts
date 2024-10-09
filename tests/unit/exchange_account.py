@@ -88,7 +88,7 @@ class ExchangeAccountTest(unittest.TestCase):
             ExchangeAccount(timeframe=self.timeframe,
                             ohlcvs={'ETH/BTC': df},
                             balances={})
-        self.assertEqual(str(e.exception), 'ohlcv needs to be in 1T format')
+        self.assertEqual(str(e.exception), 'ohlcv needs to be in 1min format')
 
     def test__init__ohlcvs__not_finite(self):
         df = self.eth_btc_ohlcvs.copy()
