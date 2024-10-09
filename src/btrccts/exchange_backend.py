@@ -44,7 +44,7 @@ class ExchangeBackend:
         ohlcv = self._ohlcvs.get(symbol)
         if ohlcv is None:
             raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
-        current_date = self._timeframe.date().floor('1T')
+        current_date = self._timeframe.date().floor('1min')
         row = ohlcv.loc[current_date]
         timestamp = int(current_date.value / 10**6)
         return {
@@ -82,7 +82,7 @@ class ExchangeBackend:
         ohlcv = self._ohlcvs.get(symbol)
         if ohlcv is None:
             raise BadSymbol('ExchangeBackend: no prices for {}'.format(symbol))
-        pd_current_date = self._timeframe.date().floor('1T')
+        pd_current_date = self._timeframe.date().floor('1min')
         if limit is None:
             limit = 5
         timeframe_sec = Exchange.parse_timeframe(timeframe)

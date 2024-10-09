@@ -9,9 +9,9 @@ def _check_dataframe(ohlcvs, timeframe, needed_columns=['low', 'high']):
         if col not in ohlcvs.columns:
             raise ValueError('ohlcv {} needs to be provided'.format(col))
     try:
-        ohlcvs.index.freq = '1T'
+        ohlcvs.index.freq = '1min'
     except ValueError:
-        raise ValueError('ohlcv needs to be in 1T format')
+        raise ValueError('ohlcv needs to be in 1min format')
     try:
         result = ohlcvs.astype(numpy.float64)
         if not numpy.isfinite(result).values.all():
