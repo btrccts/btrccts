@@ -16,7 +16,7 @@ KRAKEN_BTC_USD = {
     'future': False,
     'id': 'XXBTZUSD',
     'inverse': None,
-    'limits': {'amount': {'max': None, 'min': 0.0001},
+    'limits': {'amount': {'max': None, 'min': 5e-05},
                'cost': {'max': None, 'min': 0.5},
                'leverage': {'max': 5.0, 'min': 1.0},
                'price': {'max': None, 'min': 0.1}},
