@@ -22,7 +22,7 @@ jobs:
       - run: pip3 install -e . --no-deps
       # name: Test example algorithm
       - run: python3 examples/print_time.py --start-date 2017-01-01 --end-date 2017-01-02
-      - run: pip3 install -r requirements_dev.txt
+      - run: pip3 install -r tests/requirements.txt
       # Run Tests
       - run: python3 -m unittest tests/unit/tests.py
       - run: python3 -m unittest tests/integration/tests.py
