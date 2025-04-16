@@ -1,4 +1,4 @@
-# btrccts
+# mycrypto
 ## BackTest and Run CryptoCurrency Trading Strategies
 
 ### [Install](#install) - [Usage](#usage) - [Manual](#manual) - [Development](#development)
@@ -11,9 +11,9 @@ you need an additional library.
 
 ## Install
 
-The easiest way to install the BTRCCTS library is to use a package manager:
+The easiest way to install the mycrypto library is to use a package manager:
 
-- https://pypi.org/project/btrccts/
+- https://pypi.org/project/mycrypto/
 
 The python package hashes can be found in the `version_hashes.txt`.
 
@@ -23,7 +23,7 @@ You can also clone the repository, see [Development](development)
 
 For example algorithms see in [Examples](examples/)
 ```python
-from btrccts import parse_params_and_execute_algorithm, AlgorithmBase
+from mycrypto import parse_params_and_execute_algorithm, AlgorithmBase
 
 
 class Algorithm(AlgorithmBase):
@@ -102,7 +102,7 @@ class Algorithm(AlgorithmBase):
         print("Done", reason)
         self.closed_orders = await self._kraken.fetch_closed_orders()
         # Async versions of an exchange needs to be closed, because
-        # btrccts will close the asyncio loop after the run.
+        # mycrypto will close the asyncio loop after the run.
         await self._kraken.close()
 
 
@@ -128,7 +128,7 @@ For other parameters, see `.venv/bin/python examples/algo_readme.py --help`.
 
 If you dont want the function to parse commandline parameters for you, you can use
 ```python
-from btrccts.run import execute_algorithm
+from mycrypto.run import execute_algorithm
 execute_algorithm(...)
 ```
 
@@ -207,7 +207,7 @@ only the last interval is rescheduled.
 Setup a virtualenv:
 
 ```shell
-git clone git@github.com:btrccts/btrccts.git
+git clone git@github.com:mycrypto/mycrypto.git
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/pip install -e . --no-deps
@@ -227,4 +227,4 @@ Run the tests:
 
 ## Contact us
 
-btrccts@e.email
+mycrypto@e.email
