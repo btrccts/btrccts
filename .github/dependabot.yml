@@ -8,4 +8,4 @@ updates:
       interval: "daily"
     allow:
       - dependency-type: "all"
-    open-pull-requests-limit: 20
+    open-pull-requests-limit: 50
