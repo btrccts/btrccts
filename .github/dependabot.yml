@@ -3,7 +3,6 @@ updates:
   - package-ecosystem: "pip"
     directories:
       - "/"
-      - "/tests"
     schedule:
       interval: "daily"
     allow:
