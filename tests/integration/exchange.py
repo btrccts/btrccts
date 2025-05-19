@@ -49,6 +49,7 @@ KRAKEN_BTC_CURRENCY = {
     'name': 'XBT',
     'networks': {},
     'precision': 1e-10,
+    'type': 'crypto',
     'withdraw': None}
 
 KRAKEN_MARKET_BTC_USD = KRAKEN_BTC_USD.copy()
