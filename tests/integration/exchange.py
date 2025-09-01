@@ -17,7 +17,7 @@ KRAKEN_BTC_USD = {
     'inverse': None,
     'limits': {'amount': {'max': None, 'min': 5e-05},
                'cost': {'max': None, 'min': 0.5},
-               'leverage': {'max': 5.0, 'min': 1.0},
+               'leverage': {'max': 10.0, 'min': 1.0},
                'price': {'max': None, 'min': None}},
     'linear': None,
     'maker': 0.0025,
