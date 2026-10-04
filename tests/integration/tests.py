@@ -8,11 +8,12 @@ from tests.integration.run import (
 
 
 def test_suite():
+    load_tests = unittest.defaultTestLoader.loadTestsFromTestCase
     suite = unittest.TestSuite([
-        unittest.makeSuite(AsyncBacktestExchangeBaseIntegrationTest),
-        unittest.makeSuite(BacktestExchangeBaseIntegrationTest),
-        unittest.makeSuite(ExecuteAlgorithmIntegrationTests),
-        unittest.makeSuite(MainLoopIntegrationTest),
-        unittest.makeSuite(ParseParamsAndExecuteAlgorithmIntegrationTests),
+        load_tests(AsyncBacktestExchangeBaseIntegrationTest),
+        load_tests(BacktestExchangeBaseIntegrationTest),
+        load_tests(ExecuteAlgorithmIntegrationTests),
+        load_tests(MainLoopIntegrationTest),
+        load_tests(ParseParamsAndExecuteAlgorithmIntegrationTests),
     ])
     return suite

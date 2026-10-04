@@ -13,21 +13,22 @@ from tests.unit.timeframe import TimeframeTest
 
 
 def test_suite():
+    load_tests = unittest.defaultTestLoader.loadTestsFromTestCase
     suite = unittest.TestSuite([
-        unittest.makeSuite(BacktestContextTest),
-        unittest.makeSuite(LiveContextTest),
-        unittest.makeSuite(BacktestExchangeBaseTest),
-        unittest.makeSuite(AsyncBacktestExchangeBaseTest),
-        unittest.makeSuite(BalanceTest),
-        unittest.makeSuite(ExchangeAccountTest),
-        unittest.makeSuite(ExchangeBackendTest),
-        unittest.makeSuite(ExecuteAlgorithmTests),
-        unittest.makeSuite(LoadCSVTests),
-        unittest.makeSuite(MainLoopTests),
-        unittest.makeSuite(AsyncMainLoopTests),
-        unittest.makeSuite(ParseParamsAndExecuteAlgorithmTests),
-        unittest.makeSuite(Pep8Test),
-        unittest.makeSuite(TimeframeTest),
-        unittest.makeSuite(SleepUntilTests),
+        load_tests(BacktestContextTest),
+        load_tests(LiveContextTest),
+        load_tests(BacktestExchangeBaseTest),
+        load_tests(AsyncBacktestExchangeBaseTest),
+        load_tests(BalanceTest),
+        load_tests(ExchangeAccountTest),
+        load_tests(ExchangeBackendTest),
+        load_tests(ExecuteAlgorithmTests),
+        load_tests(LoadCSVTests),
+        load_tests(MainLoopTests),
+        load_tests(AsyncMainLoopTests),
+        load_tests(ParseParamsAndExecuteAlgorithmTests),
+        load_tests(Pep8Test),
+        load_tests(TimeframeTest),
+        load_tests(SleepUntilTests),
     ])
     return suite
